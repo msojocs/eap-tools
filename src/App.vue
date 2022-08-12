@@ -27,7 +27,7 @@ const onMenuSelected = (index: String, indexPath: string[], item: MenuItemClicke
           <span>测试</span>
         </template>
       </el-menu-item>
-      <el-menu-item index="2" :route="{path:'/'}">
+      <el-menu-item index="2" :route="{path:'/config'}">
         <el-icon>
           <Menu ></Menu>
         </el-icon>
@@ -39,7 +39,7 @@ const onMenuSelected = (index: String, indexPath: string[], item: MenuItemClicke
         </el-icon>
         <template #title>无用</template>
       </el-menu-item>
-      <el-menu-item index="4">
+      <el-menu-item index="4" :route="{path:'/output'}">
         <el-icon>
           <setting />
         </el-icon>
@@ -57,26 +57,10 @@ const onMenuSelected = (index: String, indexPath: string[], item: MenuItemClicke
         <div>
         导航栏</div>
       </div>
-      <p>
-        <!--使用 router-link 组件进行导航 -->
-        <!--通过传递 `to` 来指定链接 -->
-        <!--`<router-link>` 将呈现一个带有正确 `href` 属性的 `<a>` 标签-->
-        <router-link to="/">Go to Home</router-link>
-        <router-link to="/test">Go to Test</router-link>
-      </p>
       <!-- 路由出口 -->
       <!-- 路由匹配到的组件将渲染在这里 -->
       <router-view></router-view>
     </div>
-    <!-- <div>
-    <a href="https://vitejs.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
-  </div> -->
-    <!-- <HelloWorld msg="Vite + Vue" /> -->
   </div>
 </template>
 

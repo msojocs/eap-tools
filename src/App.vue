@@ -1,51 +1,57 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setups
+const isCollapse = ref(false)
 </script>
 
 <template>
   <div class="layout">
-    <el-menu default-active="2" class="el-menu-vertical-demo" background-color="#545c64">
-      <el-sub-menu index="1">
+    <el-menu
+     default-active="2"
+      class="el-menu-vertical-demo"
+       background-color="#545c64"
+       text-color="#fff"
+       :collapse="isCollapse"
+       >
+      <el-menu-item index="1">
+        <el-icon>
+          <location />
+        </el-icon>
         <template #title>
-          <el-icon>
-            <location />
-          </el-icon>
-          <span>Navigator One</span>
+          <span>测试</span>
         </template>
-        <el-menu-item-group>
-          <template #title><span>Group One</span></template>
-          <el-menu-item index="1-1">item one</el-menu-item>
-          <el-menu-item index="1-2">item two</el-menu-item>
-        </el-menu-item-group>
-        <el-menu-item-group title="Group Two">
-          <el-menu-item index="1-3">item three</el-menu-item>
-        </el-menu-item-group>
-        <el-sub-menu index="1-4">
-          <template #title><span>item four</span></template>
-          <el-menu-item index="1-4-1">item one</el-menu-item>
-        </el-sub-menu>
-      </el-sub-menu>
+      </el-menu-item>
       <el-menu-item index="2">
         <el-icon>
-          <icon-menu />
+          <Menu ></Menu>
         </el-icon>
-        <template #title>Navigator Two</template>
+        <template #title>配置</template>
       </el-menu-item>
       <el-menu-item index="3" disabled>
         <el-icon>
           <document />
         </el-icon>
-        <template #title>Navigator Three</template>
+        <template #title>无用</template>
       </el-menu-item>
       <el-menu-item index="4">
         <el-icon>
           <setting />
         </el-icon>
-        <template #title>Navigator Four</template>
+        <template #title>导出报告</template>
       </el-menu-item>
     </el-menu>
-    <div>
+    <div class="right-area">
+      <div class="navbar">
+        <!-- 左边按钮 -->
+        <div style="width:50px;display: flex;align-items: center;" @click="isCollapse = !isCollapse">
+          <el-icon v-if="isCollapse" :size="40"><Expand /></el-icon>
+          <el-icon v-else :size="40"><Fold/></el-icon>
+        </div>
+        <!-- 右边其它 -->
+        <div>
+        导航栏</div>
+      </div>
       <p>
         <!--使用 router-link 组件进行导航 -->
         <!--通过传递 `to` 来指定链接 -->
@@ -72,5 +78,23 @@
 <style scoped>
 .layout {
   display: flex;
+}
+.el-menu-vertical-demo{
+  height: 100vh;
+}
+.right-area{
+  width: 100%;
+}
+.navbar{
+  background-color: #fffefe;
+  width: 100%;
+  height: 50px;
+  display: flex;
+  box-shadow: #eee 0px 4px 5px;
+  align-items: center;
+}
+.el-menu-vertical-demo:not(.el-menu--collapse) {
+  width: 200px;
+  min-height: 400px;
 }
 </style>

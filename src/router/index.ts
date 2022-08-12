@@ -1,16 +1,18 @@
 import * as VueRouter from "vue-router";
 import HelloWorld from "./../components/HelloWorld.vue";
+import TEST from "./../views/TEST.vue";
 
 // 1. 定义路由组件.
 // 也可以从其他文件导入
-const About = { template: "<div>About</div>" };
 
 // 2. 定义一些路由
 // 每个路由都需要映射到一个组件。
 // 我们后面再讨论嵌套路由。
 const routes = [
-    { path: "/", component: HelloWorld },
-    { path: "/about", component: About },
+    { 
+        name: "home",
+        path: "/", component: HelloWorld },
+    { path: "/test", component: TEST },
 ];
 
 // 3. 创建路由实例并传递 `routes` 配置

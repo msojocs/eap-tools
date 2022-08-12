@@ -1,8 +1,12 @@
 <script setup lang="ts">
+import { MenuItemClicked } from 'element-plus/es/components/menu';
 import { ref } from 'vue'
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setups
 const isCollapse = ref(false)
+const onMenuSelected = (index: String, indexPath: string[], item: MenuItemClicked)=>{
+  console.log(index, item.route)
+}
 </script>
 
 <template>
@@ -13,8 +17,9 @@ const isCollapse = ref(false)
        background-color="#545c64"
        text-color="#fff"
        :collapse="isCollapse"
+       router
        >
-      <el-menu-item index="1">
+      <el-menu-item index="1" :route="{path:'/test'}">
         <el-icon>
           <location />
         </el-icon>
@@ -22,7 +27,7 @@ const isCollapse = ref(false)
           <span>测试</span>
         </template>
       </el-menu-item>
-      <el-menu-item index="2">
+      <el-menu-item index="2" :route="{path:'/'}">
         <el-icon>
           <Menu ></Menu>
         </el-icon>
@@ -44,7 +49,7 @@ const isCollapse = ref(false)
     <div class="right-area">
       <div class="navbar">
         <!-- 左边按钮 -->
-        <div style="width:50px;display: flex;align-items: center;" @click="isCollapse = !isCollapse">
+        <div style="width:50px;display: flex;align-items: center;cursor: pointer;" @click="isCollapse = !isCollapse">
           <el-icon v-if="isCollapse" :size="40"><Expand /></el-icon>
           <el-icon v-else :size="40"><Fold/></el-icon>
         </div>
@@ -57,7 +62,7 @@ const isCollapse = ref(false)
         <!--通过传递 `to` 来指定链接 -->
         <!--`<router-link>` 将呈现一个带有正确 `href` 属性的 `<a>` 标签-->
         <router-link to="/">Go to Home</router-link>
-        <router-link to="/about">Go to About</router-link>
+        <router-link to="/test">Go to Test</router-link>
       </p>
       <!-- 路由出口 -->
       <!-- 路由匹配到的组件将渲染在这里 -->

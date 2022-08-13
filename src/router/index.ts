@@ -1,7 +1,7 @@
 import * as VueRouter from "vue-router";
 import HelloWorld from "@/components/HelloWorld.vue";
-import TEST from "@/views/TEST.vue";
-import CONFIG from "@/views/config/config.vue";
+import TEST from "@/views/test/test.vue";
+import CONFIG from "@/views/config/Config.vue";
 import OUTPUT from "@/views/output/output.vue";
 
 // 1. 定义路由组件.
@@ -18,7 +18,7 @@ const routes = [
     },
     { path: "/test", component: TEST },
     { path: "/config", component: CONFIG },
-    { path: "/OUTPUT", component: OUTPUT },
+    { path: "/output", component: OUTPUT },
 ];
 
 // 3. 创建路由实例并传递 `routes` 配置

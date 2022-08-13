@@ -1,6 +1,11 @@
 // electron/electron.js
 const path = require("path");
 const { app, BrowserWindow } = require("electron");
+const { VUEJS_DEVTOOLS } = require("electron-devtools-installer");
+const installExtension = require("electron-devtools-installer").default;
+const remote = require("@electron/remote/main")
+remote.initialize()
+//...
 
 const isDev = process.env.IS_DEV == "true" ? true : false;
 
@@ -12,6 +17,8 @@ function createWindow() {
     webPreferences: {
       //preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: true,
+      contextIsolation: false,
+      enableRemoteModule: true
     },
   });
 
@@ -22,6 +29,7 @@ function createWindow() {
   if (isDev) {
     mainWindow.webContents.openDevTools();
   }
+  remote.enable(mainWindow.webContents)
 }
 
 // This method will be called when Electron has finished
@@ -34,6 +42,7 @@ app.whenReady().then(() => {
     // dock icon is clicked and there are no other windows open.
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+  installExtension(VUEJS_DEVTOOLS)
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

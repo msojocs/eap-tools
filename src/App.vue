@@ -4,9 +4,7 @@ import { ref } from 'vue'
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setups
 const isCollapse = ref(false)
-const onMenuSelected = (index: String, indexPath: string[], item: MenuItemClicked)=>{
-  console.log(index, item.route)
-}
+
 </script>
 
 <template>
@@ -60,6 +58,7 @@ const onMenuSelected = (index: String, indexPath: string[], item: MenuItemClicke
       <!-- 路由出口 -->
       <!-- 路由匹配到的组件将渲染在这里 -->
       <router-view></router-view>
+      
     </div>
   </div>
 </template>

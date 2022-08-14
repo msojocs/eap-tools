@@ -2,8 +2,8 @@
  * @see https://www.electron.build/configuration/configuration
  */
 {
-  appId: "https://github.com/iceliebodich",
-  productName: "MyApp",
+  appId: "https://github.com/msojocs",
+  productName: "EAPTOOLS",
   copyright: "Copyright © 2022 ${author}",
   mac: {
     target: [
@@ -28,11 +28,7 @@
         target: "nsis",
         arch: ["x64"],
       },
-      {
-        target: "msi",
-        arch: ["x64"],
-      },
     ],
-    icon: "public/appIcon.ico",
+    // icon: "public/appIcon.ico",
   },
 }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import secs from '@/utils/secs'
+import * as logHandle from '@/utils/log'
 import * as storeConfig from '@/store/store'
 // import * as Excel from 'exceljs'
 import { ref } from 'vue'
@@ -71,7 +72,7 @@ const parseLog = async ()=>{
     const wb = new Excel.Workbook()
     await wb.xlsx.readFile(logFile.value as string)
     console.log(wb)
-
+    logHandle.genProcedureList(wb)
     // window.wb = wb
 }
 </script>

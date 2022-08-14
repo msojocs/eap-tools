@@ -15,10 +15,35 @@ const routes = [
         name: "home",
         path: "/",
         component: HelloWorld,
+        meta: {
+            title: '首页',
+            icon: 'House'
+        }
     },
-    { path: "/test", component: TEST },
-    { path: "/config", component: CONFIG },
-    { path: "/output", component: OUTPUT },
+    {
+        path: "/test",
+        component: TEST,
+        meta: {
+            title: '测试',
+            icon: 'Compass'
+        }
+    },
+    {
+        path: "/config",
+        component: CONFIG,
+        meta: {
+            title: '配置',
+            icon: 'Setting'
+        }
+    },
+    {
+        path: "/output",
+        component: OUTPUT,
+        meta: {
+            title: '导出',
+            icon: 'Upload'
+        }
+    },
 ];
 
 // 3. 创建路由实例并传递 `routes` 配置

@@ -72,7 +72,7 @@ const parseLog = async ()=>{
     const wb = new Excel.Workbook()
     await wb.xlsx.readFile(logFile.value as string)
     console.log(wb)
-    logHandle.genProcedureList(wb)
+    logHandle.parseLogData(wb)
     // window.wb = wb
 }
 </script>

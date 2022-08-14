@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { MenuItemClicked } from 'element-plus/es/components/menu';
+import { useRouter, useRoute } from 'vue-router'
 import { ref } from 'vue'
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setups
 const isCollapse = ref(false)
-
+const router = useRouter()
+const route = useRoute()
+console.log(router.getRoutes(), route)
 </script>
 
 <template>
@@ -17,31 +19,14 @@ const isCollapse = ref(false)
        :collapse="isCollapse"
        router
        >
-      <el-menu-item index="1" :route="{path:'/test'}">
+      
+      <el-menu-item v-for="r in router.getRoutes()" :key="r.path" :index="r.path" >
         <el-icon>
-          <location />
+          <component :is="r.meta.icon"></component>
         </el-icon>
         <template #title>
-          <span>测试</span>
+          <span>{{r.meta.title}}</span>
         </template>
-      </el-menu-item>
-      <el-menu-item index="2" :route="{path:'/config'}">
-        <el-icon>
-          <Menu ></Menu>
-        </el-icon>
-        <template #title>配置</template>
-      </el-menu-item>
-      <el-menu-item index="3" disabled>
-        <el-icon>
-          <document />
-        </el-icon>
-        <template #title>无用</template>
-      </el-menu-item>
-      <el-menu-item index="4" :route="{path:'/output'}">
-        <el-icon>
-          <setting />
-        </el-icon>
-        <template #title>导出报告</template>
       </el-menu-item>
     </el-menu>
     <div class="right-area">

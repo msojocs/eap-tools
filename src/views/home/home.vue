@@ -12,8 +12,10 @@ const Excel = require('exceljs') as typeof import('exceljs')
 const logFile = ref(localStorage.getItem('logFile'))
 
 const newLogFile = ref(logFile.value as string)
-let dotPos = newLogFile.value.lastIndexOf('.')
-newLogFile.value = newLogFile.value.replace(newLogFile.value.substring(0, dotPos), `${newLogFile.value.substring(0, dotPos)} - new`)
+if(newLogFile.value){
+    let dotPos = newLogFile.value.lastIndexOf('.')
+    newLogFile.value = newLogFile.value.replace(newLogFile.value.substring(0, dotPos), `${newLogFile.value.substring(0, dotPos)} - new`)
+}
 const selectLogFile = async ()=>{
  
     const result = await remote.dialog.showOpenDialog({
@@ -33,6 +35,9 @@ const selectLogFile = async ()=>{
     if(!result.canceled){
         logFile.value = result.filePaths[0]
         localStorage.setItem('logFile', logFile.value as string)
+        const newLogFile = ref(logFile.value as string)
+        let dotPos = newLogFile.value.lastIndexOf('.')
+        newLogFile.value = newLogFile.value.replace(newLogFile.value.substring(0, dotPos), `${newLogFile.value.substring(0, dotPos)} - new`)
     }
 }
 const generator = async ()=>{

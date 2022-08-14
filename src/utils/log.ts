@@ -6,14 +6,77 @@ import { Workbook } from "exceljs"
  */
 const genProcedureList = (wb: Workbook)=>{
     let target = wb.getWorksheet('业务流程清单')
-    if(!target){
-        target = wb.addWorksheet('业务流程清单')
-    }
-    // console.log(target)
+    console.log('业务流程清单:', target)
+    const orderNo = (target as any).orderNo;
+    wb.removeWorksheet('业务流程清单')
+    target = wb.addWorksheet('业务流程清单');
+    (target as any).orderNo = orderNo;
+    
 
-    target.getCell(1,1).value = '业务流程清单'
-    target.mergeCells(1, 1, 1, 5)
-    target.addRow([, 'No', '业务流程', '说明', '测试结果', '备注'])
+    const titleCell = target.getCell(1,1)
+    titleCell.value = '业务流程清单'
+    titleCell.alignment = {
+        vertical: 'middle',
+        horizontal: 'center'
+    }
+    titleCell.border = {
+        bottom: {style: 'thin'},
+        left: {style: 'thin'},
+        right: {style: 'thin'},
+        top: {style: 'thin'}
+    }
+    titleCell.font = {
+        charset: 134,
+        name: 'Arial',
+        size: 16,
+        bold: true
+    }
+    titleCell.style.fill = {
+        fgColor:{
+            argb:'FFD9D9D9'
+        },
+        bgColor:{
+            argb:'FF0000FF'
+        },
+        pattern: "solid",
+        type: "pattern",
+    }
+    if(!target.getCell(1, 1).isMerged)
+        target.mergeCells(1, 1, 1, 5)
+    target.addRow([, 'No', '业务流程', '说明', '测试结果', '备注'], )
+    target.getCell(2,1).style = {
+        fill: {
+            fgColor:{
+                argb:'FFD9D9D9'
+            },
+            bgColor:{
+                argb:'FF0000FF'
+            },
+            pattern: "solid",
+            type: "pattern",
+        }
+    }
+    target.getCell(2,1).font = {
+        bold: true,
+        charset: 134,
+        name: "Arial",
+        size: 10
+    }
+    for(let i=1; i<6; i++){
+        target.getCell(2,i).style = target.getCell(2,1).style
+    }
+    target.getColumn(2).width = 20
+    target.getColumn(3).width = 60
+    target.getColumn(5).width = 40
+    target.getColumn(1).alignment = {
+        horizontal: 'center',
+        vertical: 'middle'
+    }
+    target.getColumn(2).alignment = {
+        horizontal: 'center',
+        vertical: 'middle'
+    }
+    target.getColumn(4).numFmt = '_-* "-"??_-'
 
     const ignoreList = ['标题', '测试信息', 'Stream Function List', '业务流程清单', 'test']
     let No = 1;
@@ -22,7 +85,7 @@ const genProcedureList = (wb: Workbook)=>{
         if(ignoreList.includes(ws.name.trim()))continue
         if(ws.state !== 'visible')continue
 
-        console.log(ws.name)
+        // console.log(ws.name)
         const resultColumn = ws.getColumn('F')
         let itemLength = 0
         resultColumn.eachCell((cell, rowNum)=>{
@@ -35,17 +98,34 @@ const genProcedureList = (wb: Workbook)=>{
                 while (resultCell && !resultCell.isMerged && resultCell.value?.toString() !== 'Result') {
                     resultCell = ws.getCell(rowNum + ++resultRowInc, 6)
                 }
-                target.addRow([, No, ws.name, title, resultCell.value])
+                target.addRow([, No, ws.name, title, {
+                    formula : `'${ws.name}'!${resultCell.$col$row}`,
+                    result: resultCell.value
+                }])
                 itemLength++
             }
         })
         // target.unMergeCells(startRow, 1, startRow + itemLength-1, 1)
         if(itemLength > 0){
-            target.mergeCells(startRow, 1, startRow + itemLength - 1, 1)
-            target.mergeCells(startRow, 2, startRow + itemLength - 1, 2)
+            if(!target.getCell(startRow, 1).isMerged)
+                target.mergeCells(startRow, 1, startRow + itemLength - 1, 1)
+            if(!target.getCell(startRow, 2).isMerged)
+                target.mergeCells(startRow, 2, startRow + itemLength - 1, 2)
+            No++
         }
         startRow += itemLength
-        No++
+    }
+    // target.getRows(1, target.lastRow?.number as number)
+    for (let r = 1; r <= (target.lastRow?.number ?? 0); r++) {
+        for (let c = 1; c <= target.lastColumn.number; c++) {
+            target.getCell(r, c).border = {
+                bottom: {style: 'thin'},
+                left: {style: 'thin'},
+                right: {style: 'thin'},
+                top: {style: 'thin'}
+            }
+        }
+        
     }
 }
 const isSXFY = (ele: any)=>{

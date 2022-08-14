@@ -41,8 +41,10 @@ console.log(router.getRoutes(), route)
         导航栏</div>
       </div>
       <!-- 路由出口 -->
-      <!-- 路由匹配到的组件将渲染在这里 -->
-      <router-view></router-view>
+      <div class="router-v">
+        <!-- 路由匹配到的组件将渲染在这里 -->
+        <router-view></router-view>
+      </div>
       
     </div>
   </div>
@@ -69,5 +71,8 @@ console.log(router.getRoutes(), route)
 .el-menu-vertical-demo:not(.el-menu--collapse) {
   width: 200px;
   min-height: 400px;
+}
+.router-v{
+  padding: 1rem;
 }
 </style>

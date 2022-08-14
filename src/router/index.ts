@@ -1,5 +1,5 @@
 import * as VueRouter from "vue-router";
-import HelloWorld from "@/components/HelloWorld.vue";
+import Home from "@/views/home/home.vue";
 import TEST from "@/views/test/test.vue";
 import CONFIG from "@/views/config/Config.vue";
 import OUTPUT from "@/views/output/output.vue";
@@ -14,7 +14,7 @@ const routes = [
     {
         name: "home",
         path: "/",
-        component: HelloWorld,
+        component: Home,
         meta: {
             title: '首页',
             icon: 'House'

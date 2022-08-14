@@ -1,0 +1,38 @@
+/**
+ * @see https://www.electron.build/configuration/configuration
+ */
+{
+  appId: "https://github.com/iceliebodich",
+  productName: "MyApp",
+  copyright: "Copyright © 2022 ${author}",
+  mac: {
+    target: [
+      {
+        target: "dmg",
+      },
+    ],
+    icon: "public/appIcon.icns",
+  },
+  nsis: {
+    oneClick: false,
+    allowToChangeInstallationDirectory: true,
+  },
+  files: ["dist/**/*", "electron/**/*"],
+  directories: {
+    buildResources: "assets",
+    output: "dist_electron",
+  },
+  win: {
+    target: [
+      {
+        target: "nsis",
+        arch: ["x64"],
+      },
+      {
+        target: "msi",
+        arch: ["x64"],
+      },
+    ],
+    icon: "public/appIcon.ico",
+  },
+}

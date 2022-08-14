@@ -1,5 +1,5 @@
 {
-  "name": "vite-pnpm",
+  "name": "eap-log",
   "private": true,
   "version": "0.0.0",
   "main": "electron/main.js",

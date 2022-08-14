@@ -91,7 +91,10 @@ const parse = async (filePath: string) =>{
 
     const eid2rid = FUNC.parseEventList(eventListSheet);
     const rid2vid = FUNC.parseReportList(reportListSheet);
-    
+    return {
+        eid2rid,
+        rid2vid
+    }
 };
 
 export default {

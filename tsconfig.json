@@ -26,6 +26,6 @@
         "src/utils/*.ts",
         "electron-main/**/*.ts",
         "electron-preload/**/*.ts"
-, "src/utils/secs.js"    ],
+        ],
     "references": [{ "path": "./tsconfig.node.json" }]
 }

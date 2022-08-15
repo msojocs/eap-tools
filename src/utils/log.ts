@@ -1,18 +1,25 @@
-import { Workbook } from "exceljs"
+import { Workbook, Worksheet } from "exceljs"
+import {getTextValue} from './excel'
 
 /**
  * 生成业务流程清单
  * @param wb 
  */
 const genProcedureList = (wb: Workbook)=>{
-    let target = wb.getWorksheet('业务流程清单')
+    let target: any = null
+    for(let ws of wb.worksheets){
+        if(/业务流程清单/.test(ws.name)){
+            target = ws
+            break
+        }
+    }
+    if(!target)return false
     console.log('业务流程清单:', target)
     const orderNo = (target as any).orderNo;
-    wb.removeWorksheet('业务流程清单')
-    target = wb.addWorksheet('业务流程清单');
+    wb.removeWorksheet(target.name)
+    target = wb.addWorksheet(target.name);
     (target as any).orderNo = orderNo;
     
-
     const titleCell = target.getCell(1,1)
     titleCell.value = '业务流程清单'
     titleCell.alignment = {
@@ -98,7 +105,7 @@ const genProcedureList = (wb: Workbook)=>{
                 while (resultCell && !resultCell.isMerged && resultCell.value?.toString() !== 'Result') {
                     resultCell = ws.getCell(rowNum + ++resultRowInc, 6)
                 }
-                target.addRow([, No, ws.name, title, {
+                target.addRow([, No, ws.name, `■${getTextValue(title)}` , {
                     formula : `'${ws.name}'!${resultCell.$col$row}`,
                     result: resultCell.value
                 }])
@@ -127,6 +134,7 @@ const genProcedureList = (wb: Workbook)=>{
         }
         
     }
+    return true
 }
 const isSXFY = (ele: any)=>{
     console.log('isSXFY:', ele)

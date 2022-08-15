@@ -35,7 +35,7 @@ const selectLogFile = async ()=>{
     if(!result.canceled){
         logFile.value = result.filePaths[0]
         localStorage.setItem('logFile', logFile.value as string)
-        const newLogFile = ref(logFile.value as string)
+        newLogFile.value = logFile.value as string
         let dotPos = newLogFile.value.lastIndexOf('.')
         newLogFile.value = newLogFile.value.replace(newLogFile.value.substring(0, dotPos), `${newLogFile.value.substring(0, dotPos)} - new`)
     }

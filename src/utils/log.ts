@@ -105,10 +105,25 @@ const genProcedureList = (wb: Workbook)=>{
                 while (resultCell && !resultCell.isMerged && resultCell.value?.toString() !== 'Result') {
                     resultCell = ws.getCell(rowNum + ++resultRowInc, 6)
                 }
-                target.addRow([, No, ws.name, `■${getTextValue(title)}` , {
+                let row = (target as Worksheet).addRow([, No, {
+                    // richText: [{
+                    //     text: ws.name,
+                    //     font: {
+                    //         underline: true
+                    //     }
+                    // }],
+                    text: ws.name,
+                    location: `${ws.name}!A1`
+                }, `■${getTextValue(title)}` , {
                     formula : `'${ws.name}'!${resultCell.$col$row}`,
                     result: resultCell.value
                 }])
+                row.getCell(2).style.font = {
+                        underline: true,
+                        color:{
+                            argb: 'FF0000FF'
+                        }
+                    }
                 itemLength++
             }
         })

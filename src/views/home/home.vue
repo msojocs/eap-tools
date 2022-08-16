@@ -42,7 +42,8 @@ const selectLogFile = async ()=>{
 }
 const generator = async ()=>{
     const wb = new Excel.Workbook()
-    await wb.xlsx.readFile(logFile.value as string)
+    await wb.xlsx.readFile(logFile.value as string);
+    (window as any).wb = wb
     console.log(wb)
     try {
             

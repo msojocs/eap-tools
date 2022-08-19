@@ -1,5 +1,5 @@
 import * as VueRouter from "vue-router";
-import Home from "@/views/home/home.vue";
+import CheckList from "@/views/home/CheckList.vue";
 import TEST from "@/views/test/test.vue";
 import CONFIG from "@/views/config/Config.vue";
 import OUTPUT from "@/views/output/output.vue";
@@ -12,11 +12,11 @@ import OUTPUT from "@/views/output/output.vue";
 // 我们后面再讨论嵌套路由。
 const routes = [
     {
-        name: "home",
+        name: "check-list",
         path: "/",
-        component: Home,
+        component: CheckList,
         meta: {
-            title: '首页',
+            title: '测试报告',
             icon: 'House'
         }
     },

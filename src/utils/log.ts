@@ -1,4 +1,4 @@
-import { Workbook, Worksheet } from "exceljs"
+import { Border, Workbook, Worksheet } from "exceljs"
 import {getTextValue} from './excel'
 
 /**
@@ -83,6 +83,10 @@ const genProcedureList = (wb: Workbook)=>{
         horizontal: 'center',
         vertical: 'middle'
     }
+    target.getColumn(4).alignment = {
+        horizontal: 'center',
+        vertical: 'middle'
+    }
     target.getColumn(4).numFmt = '_-* "-"??_-'
 
     const ignoreList = ['标题', '测试信息', 'Stream Function List', '业务流程清单', 'test']
@@ -123,8 +127,8 @@ const genProcedureList = (wb: Workbook)=>{
                     text: `■${getTextValue(title)}`,
                     location: `'${ws.name}'!${titleCell.address}`
                 } , {
-                    formula : `'${ws.name}'!${resultCell.$col$row}`,
-                    result: resultCell.value
+                    formula : `'${ws.name}'!${resultCell.address}`,
+                    result: resultCell.value,
                 }])
                 
                 itemLength++
@@ -152,6 +156,68 @@ const genProcedureList = (wb: Workbook)=>{
         }
         
     }
+    return true
+}
+
+/**
+ * 测试准备
+ * @param wb 
+ */
+const testPrepare = (wb: Workbook)=>{
+
+    const ignoreList = ['标题', '测试信息', 'Stream Function List', '业务流程清单', 'test']
+    for(let ws of wb.worksheets){
+        if(ignoreList.includes(ws.name.trim()))continue
+        if(ws.state !== 'visible')continue
+
+        const resultColumn = ws.getColumn('F')
+        
+        resultColumn.eachCell((cell, rowNum)=>{
+            
+            if(cell.value === 'Result'){
+                let resultRowInc = 1
+                let logCell = ws.getCell(rowNum + resultRowInc, 7)
+                let resultCell = ws.getCell(rowNum + resultRowInc, cell.col)
+                while (resultCell && !resultCell.isMerged && resultCell.value?.toString() !== 'Result') {
+                    resultCell = ws.getCell(rowNum + ++resultRowInc, 6)
+                }
+                resultRowInc = 1
+                while (logCell && !logCell.isMerged && resultRowInc < 5) {
+                    logCell = ws.getCell(rowNum + ++resultRowInc, 7)
+                }
+
+                if(resultCell.value !== 'NA'){
+                    resultCell.value = ''
+                    // 右侧LOG处理
+                    for (let i = parseInt(logCell.col); i <= ws.columnCount; i++) {
+                        let rowInc = 1
+                        let cell_t = ws.getCell(logCell.row, i);
+                        if(!cell_t.isMerged)break;
+                        do{
+                            // console.log(ws.name, cell.$col$row)
+                            cell_t.value = ''
+                            cell_t.style.fill = {
+                                bgColor:{
+                                    argb:'FF000000'
+                                },
+                                pattern: "solid",
+                                type: "pattern",
+                            }
+                            
+                            cell_t.style.border = {
+                                bottom: {style: 'thin'},
+                                left: {style: 'thin'},
+                                right: {style: 'thin'},
+                                top: {style: 'thin'}
+                            }
+                            cell_t = ws.getCell(parseInt(logCell.row) + rowInc++, i);
+                        }while(cell_t.isMerged && parseInt(logCell.row) + rowInc < ws.rowCount)
+                    }
+                }
+            }
+        })
+    }
+    
     return true
 }
 const isSXFY = (ele: any)=>{
@@ -229,5 +295,6 @@ const parseLogData = (wb: Workbook)=>{
 
 export {
     genProcedureList,
-    parseLogData
+    parseLogData,
+    testPrepare
 }

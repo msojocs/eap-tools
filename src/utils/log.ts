@@ -99,7 +99,8 @@ const genProcedureList = (wb: Workbook)=>{
             // console.log(rowNum)
             
             if(cell.value === 'Result'){
-                const title = ws.getCell(rowNum - 1, 6).value
+                const titleCell = ws.getCell(rowNum - 1, 6)
+                const title = titleCell.value
                 let resultRowInc = 1
                 let resultCell = ws.getCell(rowNum + resultRowInc, 6)
                 while (resultCell && !resultCell.isMerged && resultCell.value?.toString() !== 'Result') {
@@ -118,7 +119,10 @@ const genProcedureList = (wb: Workbook)=>{
                     }],
                     // text: ws.name,
                     location: `'${ws.name}'!A1`
-                }, `■${getTextValue(title)}` , {
+                }, {
+                    text: `■${getTextValue(title)}`,
+                    location: `'${ws.name}'!${titleCell.address}`
+                } , {
                     formula : `'${ws.name}'!${resultCell.$col$row}`,
                     result: resultCell.value
                 }])

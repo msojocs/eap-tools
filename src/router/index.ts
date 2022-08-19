@@ -24,7 +24,7 @@ const routes = [
         path: "/test",
         component: TEST,
         meta: {
-            title: '测试',
+            title: '测试 (开发中)',
             icon: 'Compass'
         }
     },
@@ -32,7 +32,7 @@ const routes = [
         path: "/config",
         component: CONFIG,
         meta: {
-            title: '配置',
+            title: '配置 (开发中)',
             icon: 'Setting'
         }
     },
@@ -40,7 +40,7 @@ const routes = [
         path: "/output",
         component: OUTPUT,
         meta: {
-            title: '导出',
+            title: '导出 (开发中)',
             icon: 'Upload'
         }
     },

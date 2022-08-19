@@ -12,7 +12,7 @@ console.log(router.getRoutes(), route)
 <template>
   <div class="layout">
     <el-menu
-     default-active="2"
+     default-active="/"
       class="el-menu-vertical-demo"
        background-color="#545c64"
        text-color="#fff"
@@ -20,7 +20,7 @@ console.log(router.getRoutes(), route)
        router
        >
       
-      <el-menu-item v-for="r in router.getRoutes()" :key="r.path" :index="r.path" >
+      <el-menu-item v-for="r in router.getRoutes()" :key="r.path" :index="r.path">
         <el-icon>
           <component :is="r.meta.icon"></component>
         </el-icon>

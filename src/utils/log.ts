@@ -117,7 +117,7 @@ const genProcedureList = (wb: Workbook)=>{
                         }
                     }],
                     // text: ws.name,
-                    location: `${ws.name}!A1`
+                    location: `'${ws.name}'!A1`
                 }, `■${getTextValue(title)}` , {
                     formula : `'${ws.name}'!${resultCell.$col$row}`,
                     result: resultCell.value

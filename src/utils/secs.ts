@@ -120,13 +120,46 @@ const testPrepare = (wb: Workbook)=>{
                 // console.log(i, type)
                 eventWorkSheet.spliceColumns(i + 1, 1)
                 i--
-            }else if (col.width && col.width > 40){
-                col.width = 40
+            }else if (col.width && col.width > 30){
+                col.width = 30
             }
         
     }
     eventWorkSheet.getColumn(5).width = 20
     eventWorkSheet.getColumn(6).width = 50
+    eventWorkSheet.getCell('E2').value = 'VID'
+    eventWorkSheet.getCell('E2').font = {
+        bold: true,
+        underline: true
+    }
+    eventWorkSheet.getCell('E2').alignment = {
+        vertical: 'middle',
+        horizontal: 'center',
+    }
+    eventWorkSheet.getCell('E2').fill = {
+        fgColor:{
+            argb:'FFD9D9D9'
+        },
+        bgColor:{
+            argb:'FF0000FF'
+        },
+        pattern: 'solid',
+        type: 'pattern'
+    }
+    eventWorkSheet.getCell('E2').border = {
+        top: {style:'thin'},
+        left: {style:'thin'},
+        bottom: {style:'thin'},
+        right: {style:'thin'},
+    }
+    eventWorkSheet.getCell('F2').value = 'VID详情'
+    eventWorkSheet.getCell('F2').font = eventWorkSheet.getCell('E2').font
+    eventWorkSheet.getCell('F2').alignment = eventWorkSheet.getCell('E2').alignment
+    eventWorkSheet.getCell('F2').fill = eventWorkSheet.getCell('E2').fill
+    eventWorkSheet.getCell('F2').border = eventWorkSheet.getCell('E2').border
+    eventWorkSheet.views = [
+        {state: 'frozen', ySplit: 2, activeCell: 'A1'}
+      ];
 
     const eventRows = eventWorkSheet.getRows(3, eventWorkSheet.rowCount - 2);
     if(!eventRows)throw new Error("Event List 数据行获取失败！");
@@ -147,14 +180,47 @@ const testPrepare = (wb: Workbook)=>{
         if(!vidCell.value)continue
 
         const vid = vidCell.value as string
-        varMap[vid] = `vid${vid}, ${descCell.value}, 类型${typeCell.value}`
+        varMap[vid] = []
+        varMap[vid].push({
+            'font': {
+                'color': {'argb': 'FFFF3300'}
+            },
+            'text': `vid${vid}`
+        })
+        varMap[vid].push({
+            'font': {
+                'color': {'argb': 'FF660000'}
+            },
+            'text': `, ${descCell.value}`
+        })
+        varMap[vid].push({
+            'font': {
+                'color': {'argb': 'FF116600'}
+            },
+            'text': `, 类型${typeCell.value}`
+        })
         if(commentCell.value){
             if((commentCell.value as string).includes('\n'))
-            varMap[vid] += `, 取值:\r\n${commentCell.value}\r\n`
+            varMap[vid].push({
+                'font': {
+                    'color': {'argb': 'FF0000FF'}
+                },
+                'text': `, 取值:\r\n${commentCell.value}\r\n`
+            })
             else
-            varMap[vid] += `, 取值-${commentCell.value}`
+            varMap[vid].push({
+                'font': {
+                    'color': {'argb': 'FF0000FF'}
+                },
+                'text': `, 取值-${commentCell.value}`
+            })
         }
-        varMap[vid] += '\r\n'
+        varMap[vid].push({
+            'font': {
+                'color': {'argb': 'FF0000FF'}
+            },
+            'text': `\r\n`
+        })
     }
     // 遍历Report List
     const rptMap = {
@@ -194,15 +260,22 @@ const testPrepare = (wb: Workbook)=>{
             horizontal: 'left',
             wrapText: true
         }
+        vidCell.border = {
+            top: {style:'thin'},
+            left: {style:'thin'},
+            bottom: {style:'thin'},
+            right: {style:'thin'},
+        }
         const vids = vid.match(/(\d+)/g)
         if(!vids){
             console.warn(`vid${vid}解析失败！`);
             continue
         }
         // console.log(vids)
-        let comment = ''
+
+        let comment = []
         for (const vid of vids) {
-            comment += varMap[vid]
+            comment.push( ...varMap[vid])
         }
         const commentCell = eventRow.getCell(6)
         commentCell.alignment = {
@@ -210,7 +283,11 @@ const testPrepare = (wb: Workbook)=>{
             horizontal: 'left',
             wrapText: true
         }
-        commentCell.value = comment
+        // console.log(comment)
+        commentCell.value = {
+            richText: comment
+        }
+        commentCell.border = vidCell.border
     }
 }
 

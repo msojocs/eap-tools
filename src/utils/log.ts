@@ -3,7 +3,7 @@ import {getTextValue} from './excel'
 
 /**
  * 生成业务流程清单
- * @param wb 
+ * @param wb 工作簿
  */
 const genProcedureList = (wb: Workbook)=>{
     let target: any = null
@@ -79,14 +79,8 @@ const genProcedureList = (wb: Workbook)=>{
         horizontal: 'center',
         vertical: 'middle'
     }
-    target.getColumn(2).alignment = {
-        horizontal: 'center',
-        vertical: 'middle'
-    }
-    target.getColumn(4).alignment = {
-        horizontal: 'center',
-        vertical: 'middle'
-    }
+    target.getColumn(2).alignment = target.getColumn(4).alignment = target.getColumn(1).alignment
+    
     target.getColumn(4).numFmt = '_-* "-"??_-'
 
     const ignoreList = ['标题', '测试信息', 'Stream Function List', '业务流程清单', 'test']
@@ -161,7 +155,8 @@ const genProcedureList = (wb: Workbook)=>{
 
 /**
  * 测试准备
- * @param wb 
+ * 清空Result和Log
+ * @param wb 工作簿
  */
 const testPrepare = (wb: Workbook)=>{
 
@@ -220,6 +215,7 @@ const testPrepare = (wb: Workbook)=>{
     
     return true
 }
+
 const isSXFY = (ele: any)=>{
     console.log('isSXFY:', ele)
     if(!ele)return false
@@ -237,7 +233,12 @@ const isSXFY = (ele: any)=>{
     }
     return false;
 }
-const parseLogData = (wb: Workbook)=>{
+
+/**
+ * 解析测试项目
+ * @param wb 工作簿
+ */
+const parseProcessItem = (wb: Workbook)=>{
     const ignoreList = ['标题', '测试信息', 'Stream Function List', '业务流程清单', 'test']
     const allLogData:any = {}
     for(let ws of wb.worksheets){
@@ -295,6 +296,6 @@ const parseLogData = (wb: Workbook)=>{
 
 export {
     genProcedureList,
-    parseLogData,
-    testPrepare
+    testPrepare,
+    parseProcessItem as parseLogData
 }

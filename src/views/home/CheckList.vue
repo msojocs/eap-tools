@@ -1,20 +1,18 @@
 <script setup lang="ts">
 import * as logHandle from '@/utils/log'
-import { getCurrentInstance, ref } from 'vue'
+import { ComponentInternalInstance, getCurrentInstance, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-
-// 在你的 setup 方法中
-const { appContext } = getCurrentInstance()!
-// ElMessage({}, appContext)
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 const Excel = require('exceljs') as typeof import('exceljs')
+// 在你的 setup 方法中
+const { appContext } = getCurrentInstance() as ComponentInternalInstance;
 
 const logFile = ref(localStorage.getItem('logFile'))
 
 const newLogFile = ref(logFile.value as string)
-if(newLogFile.value){
-    let dotPos = newLogFile.value.lastIndexOf('.')
-    newLogFile.value = newLogFile.value.replace(newLogFile.value.substring(0, dotPos), `${newLogFile.value.substring(0, dotPos)} - new`)
+if(logFile.value){
+    let dotPos = logFile.value.lastIndexOf('.')
+    newLogFile.value = logFile.value.replace(logFile.value.substring(0, dotPos), `${logFile.value.substring(0, dotPos)} - new`)
 }
 const selectLogFile = async ()=>{
  
@@ -101,12 +99,12 @@ const prepareCheckList = async ()=>{
         <el-card class="box-card">
             <template #header>
             <div class="card-header">
-                <span>测试报告准备</span>
+                <span>单机测试报告准备</span>
             </div>
             </template>
             <div>
                 <ol>
-                    <li>清空非NA项目</li>
+                    <li>清空非NA项目的Result和Log</li>
                 </ol>
                 <span style="font-weight: 600;">要处理的测试报告：</span><span>{{ logFile }}</span><br />
                 <span style="font-weight: 600;">生成的测试报告：</span><span>{{ newLogFile }}</span><br />

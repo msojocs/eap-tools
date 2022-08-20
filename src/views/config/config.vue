@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import secs from '@/utils/secs'
+import * as secs from '@/utils/secs'
 import * as logHandle from '@/utils/log'
 import * as storeConfig from '@/store/store'
 // import * as Excel from 'exceljs'

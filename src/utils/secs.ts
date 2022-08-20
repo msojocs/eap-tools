@@ -1,4 +1,4 @@
-import { Worksheet } from 'exceljs';
+import { Workbook, Worksheet } from 'exceljs';
 
 const Excel = require('exceljs') as typeof import('exceljs')
 
@@ -97,6 +97,124 @@ const parse = async (filePath: string) =>{
     }
 };
 
-export default {
-    parse
+/**
+ * 单机测试准备
+ * 
+ */
+const testPrepare = (wb: Workbook)=>{
+    const eventWorkSheet = wb.getWorksheet('Event List')
+    if(!eventWorkSheet)throw new Error("Event List工作表获取失败！");
+    const reportWorkSheet = wb.getWorksheet('Report List')
+    if(!reportWorkSheet)throw new Error("Report List工作表获取失败！");
+    const varWorkSheet = wb.getWorksheet('Variables List')
+    if(!varWorkSheet)throw new Error("Variables List工作表获取失败！");
+    
+    // 删除Event List无用列
+    const needs: (string | undefined)[] = ["Event ID", "Description", "Comment", "Link Report ID"]
+    for (let i = 0; i < 7; i++) {
+        const col = eventWorkSheet.columns[i];
+        if(!col.values)continue
+        const type = col.values[2]?.toString()
+        if(type)
+            if(!needs.includes(type)){
+                // console.log(i, type)
+                eventWorkSheet.spliceColumns(i + 1, 1)
+                i--
+            }else if (col.width && col.width > 40){
+                col.width = 40
+            }
+        
+    }
+    eventWorkSheet.getColumn(5).width = 20
+    eventWorkSheet.getColumn(6).width = 50
+
+    const eventRows = eventWorkSheet.getRows(3, eventWorkSheet.rowCount - 2);
+    if(!eventRows)throw new Error("Event List 数据行获取失败！");
+    const reportRows = reportWorkSheet.getRows(3, reportWorkSheet.rowCount - 2);
+    if(!reportRows)throw new Error("Report List 数据行获取失败！");
+    const varRows = varWorkSheet.getRows(3, varWorkSheet.rowCount - 2);
+    if(!varRows)throw new Error("Variables List 数据行获取失败！");
+
+    // 遍历var List
+    const varMap = {} as {
+        [key:string]:any
+    }
+    for(let row of varRows){
+        const vidCell = row.getCell(1)
+        const descCell = row.getCell(2)
+        const typeCell = row.getCell(3)
+        const commentCell = row.getCell(8)
+        if(!vidCell.value)continue
+
+        const vid = vidCell.value as string
+        varMap[vid] = `vid${vid}, ${descCell.value}, 类型${typeCell.value}`
+        if(commentCell.value){
+            if((commentCell.value as string).includes('\n'))
+            varMap[vid] += `, 取值:\r\n${commentCell.value}\r\n`
+            else
+            varMap[vid] += `, 取值-${commentCell.value}`
+        }
+        varMap[vid] += '\r\n'
+    }
+    // 遍历Report List
+    const rptMap = {
+        
+    } as {
+        [key:string]:any
+    }
+    for(let row of reportRows){
+        const rptCell = row.getCell(1)
+        const vidCell = row.getCell(4)
+        if(!rptCell.value)continue
+
+        const rid = rptCell.value as string
+        rptMap[rid] = vidCell.value
+    }
+    // console.log('rptMap', rptMap)
+
+    // 遍历Event List
+    for(let eventRow of eventRows){
+        const reportIDCell = eventRow.getCell(4)
+        if(!reportIDCell.value){
+            continue
+        }
+        
+        // console.log('search for:', reportIDCell.value)
+        // 从Report List找vid
+        let vid = rptMap[reportIDCell.value as string] as string
+        if(!vid || vid.length === 0){
+            console.warn(`未找到Report ID${reportIDCell.value}对应的VID！`);
+            continue
+        }
+        vid = `${vid}`
+        const vidCell = eventRow.getCell(5)
+        vidCell.value = vid.replaceAll(',', '\r\n')
+        vidCell.alignment = {
+            vertical: 'middle',
+            horizontal: 'left',
+            wrapText: true
+        }
+        const vids = vid.match(/(\d+)/g)
+        if(!vids){
+            console.warn(`vid${vid}解析失败！`);
+            continue
+        }
+        // console.log(vids)
+        let comment = ''
+        for (const vid of vids) {
+            comment += varMap[vid]
+        }
+        const commentCell = eventRow.getCell(6)
+        commentCell.alignment = {
+            vertical: 'middle',
+            horizontal: 'left',
+            wrapText: true
+        }
+        commentCell.value = comment
+    }
+}
+
+export {
+    parse,
+    testPrepare,
 }

@@ -12,7 +12,7 @@ console.log(router.getRoutes(), route)
 <template>
   <div class="layout">
     <el-menu
-     default-active="/"
+     :default-active="router.currentRoute.value.path"
       class="el-menu-vertical-demo"
        background-color="#545c64"
        text-color="#fff"

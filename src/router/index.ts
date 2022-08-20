@@ -1,8 +1,9 @@
 import * as VueRouter from "vue-router";
 import CheckList from "@/views/home/CheckList.vue";
-import TEST from "@/views/test/test.vue";
+import TEST from "@/views/test/Test.vue";
 import CONFIG from "@/views/config/Config.vue";
-import OUTPUT from "@/views/output/output.vue";
+import OUTPUT from "@/views/output/Output.vue";
+import SECS from "@/views/secs/SECS.vue";
 
 // 1. 定义路由组件.
 // 也可以从其他文件导入
@@ -18,6 +19,14 @@ const routes = [
         meta: {
             title: '测试报告',
             icon: 'House'
+        }
+    },
+    {
+        path: "/secs",
+        component: SECS,
+        meta: {
+            title: 'SECS处理',
+            icon: 'Compass'
         }
     },
     {

@@ -89,8 +89,15 @@ const fixDataForXML = async ()=>{
     console.log(wb)
     try {
             
-        secsHandle.fixDataForXML(wb)
+        const ret = secsHandle.fixDataForXML(wb)
         await wb.xlsx.writeFile(newSecsFile.value)
+        if(ret){
+            console.warn(ret)
+            ElMessage({
+                type: 'warning',
+                message: ret
+            }, appContext)
+        }else
         ElMessage({
             type: 'success',
             message: '操作完成'
@@ -124,9 +131,11 @@ const fixDataForXML = async ()=>{
             <div>
                 <ol>
                     <li>项目类型矫正</li>
+                    <li>Type</li>
+                    <li>Used</li>
                 </ol>
                 <br />
-                <el-button @click="fixDataForXML" type="primary">处理生成</el-button>
+                <el-button @click="fixDataForXML" type="primary" :disabled="!secsFile">处理生成</el-button>
             </div>
         </el-card>
         <br>
@@ -139,7 +148,7 @@ const fixDataForXML = async ()=>{
                     <li>整合Event List，Report List，Variables List</li>
                 </ol>
                 <br />
-                <el-button @click="generatorMergeSECS" type="primary">处理生成</el-button>
+                <el-button @click="generatorMergeSECS" type="primary" :disabled="!secsFile">处理生成</el-button>
             </div>
         </el-card>
     </div>

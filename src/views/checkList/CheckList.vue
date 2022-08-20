@@ -115,7 +115,7 @@ const prepareCheckList = async ()=>{
                     <li>自动链接业务流程、说明、测试结果到对应位置</li>
                 </ol>
                 <br />
-                <el-button @click="generatorProcessList" type="primary">处理生成</el-button>
+                <el-button @click="generatorProcessList" type="primary" :disabled="!logFile">处理生成</el-button>
             </div>
             
         </el-card>
@@ -131,7 +131,7 @@ const prepareCheckList = async ()=>{
                     <li>清空非NA项目的Result和Log</li>
                 </ol>
                 <br />
-                <el-button @click="prepareCheckList" type="primary">处理生成</el-button>
+                <el-button @click="prepareCheckList" type="primary" :disabled="!logFile">处理生成</el-button>
             </div>
             
         </el-card>

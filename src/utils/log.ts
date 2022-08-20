@@ -1,5 +1,5 @@
 import { Border, Workbook, Worksheet } from "exceljs"
-import {getTextValue} from './excel'
+import {getTextValue} from './common'
 
 /**
  * 生成业务流程清单

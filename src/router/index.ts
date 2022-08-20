@@ -1,5 +1,5 @@
 import * as VueRouter from "vue-router";
-import CheckList from "@/views/home/CheckList.vue";
+import CheckList from "@/views/checkList/CheckList.vue";
 import TEST from "@/views/test/Test.vue";
 import CONFIG from "@/views/config/Config.vue";
 import OUTPUT from "@/views/output/Output.vue";
@@ -18,7 +18,7 @@ const routes = [
         component: CheckList,
         meta: {
             title: '测试报告',
-            icon: 'House'
+            icon: 'List'
         }
     },
     {
@@ -26,7 +26,7 @@ const routes = [
         component: SECS,
         meta: {
             title: 'SECS处理',
-            icon: 'Compass'
+            icon: 'Collection'
         }
     },
     {

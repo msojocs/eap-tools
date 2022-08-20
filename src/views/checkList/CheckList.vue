@@ -7,7 +7,7 @@ const Excel = require('exceljs') as typeof import('exceljs')
 // 在你的 setup 方法中
 const { appContext } = getCurrentInstance() as ComponentInternalInstance;
 
-const logFile = ref(localStorage.getItem('logFile'))
+const logFile = ref(sessionStorage.getItem('logFile'))
 
 const newLogFile = ref(logFile.value as string)
 if(logFile.value){
@@ -21,21 +21,32 @@ const selectLogFile = async ()=>{
         filters: [
             {
                 name: 'Excel',
-                extensions: ['xlsx']                // 只允许 jpg 和 png 格式的文件
+                extensions: ['xlsx']
             },
             {
                 name: 'All',
-                extensions: ['*']                // 只允许 jpg 和 png 格式的文件
+                extensions: ['*']
             }
         ],
     });
     console.log(result)
     if(!result.canceled){
         logFile.value = result.filePaths[0]
-        localStorage.setItem('logFile', logFile.value as string)
+        sessionStorage.setItem('logFile', logFile.value as string)
         newLogFile.value = logFile.value as string
         let dotPos = newLogFile.value.lastIndexOf('.')
         newLogFile.value = newLogFile.value.replace(newLogFile.value.substring(0, dotPos), `${newLogFile.value.substring(0, dotPos)} - new`)
+    }
+}
+const openFolder = ()=>{
+    if(logFile.value){
+        remote.shell.showItemInFolder(logFile.value)
+        
+    }else{
+        ElMessage({
+            type: 'error',
+            message: '文件路径异常！'
+        }, appContext)
     }
 }
 const generatorProcessList = async ()=>{
@@ -79,6 +90,22 @@ const prepareCheckList = async ()=>{
         <el-card class="box-card">
             <template #header>
             <div class="card-header">
+                <span>要处理的测试报告</span>
+            </div>
+            </template>
+            <div>
+                <span style="font-weight: 600;">要处理的测试报告：</span><span>{{ logFile }}</span><br />
+                <span style="font-weight: 600;">生成的测试报告：</span><span>{{ newLogFile }}</span><br />
+                <br />
+                <el-button @click="selectLogFile">选择文件</el-button>
+                <el-button @click="openFolder" :disabled="!logFile">打开所在文件夹</el-button>
+            </div>
+            
+        </el-card>
+        <br />
+        <el-card class="box-card">
+            <template #header>
+            <div class="card-header">
                 <span>业务流程清单生成</span>
             </div>
             </template>
@@ -87,11 +114,8 @@ const prepareCheckList = async ()=>{
                     <li>自动生成“业务流程清单”表</li>
                     <li>自动链接业务流程、说明、测试结果到对应位置</li>
                 </ol>
-                <span style="font-weight: 600;">要处理的测试报告：</span><span>{{ logFile }}</span><br />
-                <span style="font-weight: 600;">生成的测试报告：</span><span>{{ newLogFile }}</span><br />
                 <br />
-                <el-button @click="selectLogFile">选择文件</el-button>
-                <el-button @click="generatorProcessList" type="primary">生成</el-button>
+                <el-button @click="generatorProcessList" type="primary">处理生成</el-button>
             </div>
             
         </el-card>
@@ -106,11 +130,8 @@ const prepareCheckList = async ()=>{
                 <ol>
                     <li>清空非NA项目的Result和Log</li>
                 </ol>
-                <span style="font-weight: 600;">要处理的测试报告：</span><span>{{ logFile }}</span><br />
-                <span style="font-weight: 600;">生成的测试报告：</span><span>{{ newLogFile }}</span><br />
                 <br />
-                <el-button @click="selectLogFile">选择文件</el-button>
-                <el-button @click="prepareCheckList" type="primary">生成</el-button>
+                <el-button @click="prepareCheckList" type="primary">处理生成</el-button>
             </div>
             
         </el-card>

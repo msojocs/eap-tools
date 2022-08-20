@@ -291,7 +291,15 @@ const testPrepare = (wb: Workbook)=>{
     }
 }
 
+/**
+ * 转XML预处理矫正
+ * 
+ */
+const fixDataForXML = (wb: Workbook)=>{
+
+}
 export {
     parse,
     testPrepare,
+    fixDataForXML,
 }

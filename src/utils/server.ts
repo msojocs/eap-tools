@@ -23,7 +23,8 @@ const FileServer = class {
         const app_t = express()
 
         // package extract: resources/app/dist/file-server
-        app_t.use(express.static('public/file-server')); // 设置静态文件的中间件
+        const isDev = process.env.IS_DEV == "true" ? true : false;
+        app_t.use(express.static(isDev? 'public/file-server' :(__dirname + '/file-server'))); // 设置静态文件的中间件
         // app_t.use('/public', express.static('public')); // 设置静态文件的中间件
         app_t.use(bodyParser.urlencoded({ extended: false })); // 判断请求体是不是json，不是的话把请求体转化为对象
         app_t.use(multer({ dest: '/tmp/' }).array('file'));

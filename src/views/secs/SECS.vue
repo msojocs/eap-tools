@@ -126,7 +126,7 @@ const fixDataForXML = async ()=>{
         <br>
         <el-card>
             <template #header>
-                <span>转XML预处理（开发中。。。）</span>
+                <span>转XML预处理</span>
             </template>
             <div>
                 <ol>

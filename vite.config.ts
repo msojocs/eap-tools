@@ -12,7 +12,6 @@ export default defineConfig({
   resolve: {
       alias: { 
         'vue': 'vue/dist/vue.esm-bundler.js',
-        'icon-menu': 'menu',
         '@': path.resolve(__dirname, './src'),
        }
   },

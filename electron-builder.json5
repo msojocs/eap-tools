@@ -5,7 +5,7 @@
   appId: "https://github.com/msojocs",
   productName: "EAPTOOLS",
   copyright: "Copyright © 2022 ${author}",
-  asar: true,
+  asar: false,
   mac: {
     target: [
       {
@@ -18,7 +18,7 @@
     oneClick: false,
     allowToChangeInstallationDirectory: true,
   },
-  files: ["dist/**/*", "electron/**/*"],
+  files: ["dist/**/*", "electron/**/*", "public/**/*"],
   directories: {
     buildResources: "assets",
     output: "dist_electron",

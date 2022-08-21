@@ -34,7 +34,25 @@ const toCDB = (str: string) => {
     return tmp
 }
 
+const getIPs = ()=>{
+    const os = require('os');
+    const interfaces = os.networkInterfaces();
+    let ips = [];
+    for (let dev in interfaces) {
+        for (let addr of interfaces[dev]) {
+            if (!addr.internal && addr.family === 'IPv4') {
+                ips.push({
+                    name: dev,
+                    ip: addr.address,
+                });
+                break;
+            }
+        }
+    }
+    return ips;
+}
 export {
     getTextValue,
     toCDB,
+    getIPs,
 }

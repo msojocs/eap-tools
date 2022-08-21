@@ -1,0 +1,23 @@
+#app{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.card{
+    width: 80%;
+}
+.path-name{
+    cursor: pointer;
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+.down-area > div{
+    align-items: center;
+    justify-content: center;
+}
+.down-area .title{
+    font-weight: bold;
+}

@@ -4,6 +4,7 @@ import TEST from "@/views/test/Test.vue";
 import CONFIG from "@/views/config/Config.vue";
 import OUTPUT from "@/views/output/Output.vue";
 import SECS from "@/views/secs/SECS.vue";
+import SERVER from "@/views/server/Server.vue";
 
 // 1. 定义路由组件.
 // 也可以从其他文件导入
@@ -25,8 +26,16 @@ const routes = [
         path: "/secs",
         component: SECS,
         meta: {
-            title: 'SECS处理',
+            title: 'SECS处理 (测试中)',
             icon: 'Collection'
+        }
+    },
+    {
+        path: "/server",
+        component: SERVER,
+        meta: {
+            title: '文件服务 (测试中)',
+            icon: 'Files'
         }
     },
     {

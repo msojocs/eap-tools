@@ -1,0 +1,164 @@
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <script src="./js/vue.global.js"></script>
+    <!-- import CSS -->
+    <link rel="stylesheet" href="./element-plus/index.css">
+    <link rel="stylesheet" href="./css/index.css">
+    <!-- import JavaScript -->
+    <script src="./element-plus/index.full.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/api.js"></script>
+    <script src="./element-plus/index.iife.min.js"></script>
+    <title>文件服务器</title>
+</head>
+
+<body>
+    <div id="app">
+        <el-card class="card">
+            <template #header>
+                上传文件
+            </template>
+            <el-upload class="upload-demo" drag :action="`${API}/upload`" multiple>
+                <svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg" style="width: 4rem;">
+                    <path fill="currentColor"
+                        d="M544 864V672h128L512 480 352 672h128v192H320v-1.6c-5.376.32-10.496 1.6-16 1.6A240 240 0 0 1 64 624c0-123.136 93.12-223.488 212.608-237.248A239.808 239.808 0 0 1 512 192a239.872 239.872 0 0 1 235.456 194.752c119.488 13.76 212.48 114.112 212.48 237.248a240 240 0 0 1-240 240c-5.376 0-10.56-1.28-16-1.6v1.6H544z">
+                    </path>
+                </svg>
+                <div class="el-upload__text">
+                    拖入文件或者 <em>点击进行上传</em>
+                </div>
+                <template #tip>
+                    <div class="el-upload__tip">
+                        支持任意文件
+                    </div>
+                </template>
+            </el-upload>
+        </el-card>
+        <br>
+        <el-card class="card">
+            <template #header>
+                <div class="card-header">
+                    <span>下载文件</span>
+                    <el-button class="button" type="primary" @click="getFileList">刷新</el-button>
+                </div>
+                
+            </template>
+            <div class="down-area">
+                <el-row class="title">
+                    <el-col :span="4">类型</el-col>
+                    <el-col :span="10">名称</el-col>
+                    <el-col :span="10">大小</el-col>
+                </el-row>
+                <el-row v-if="path.length > 0">
+                    <el-col :span="4">dir</el-col>
+                    <el-col class="path-name" :span="10" @click="openFolder" data-name="...">...</el-col>
+                    <el-col :span="10"></el-col>
+                </el-row>
+                <el-row v-for="item in dirList">
+                    <el-col :span="4">{{item.type==='dir'?'文件夹':'文件'}}</el-col>
+                    <el-col class="path-name" :span="10" v-if="item.type==='dir'" @click="openFolder"
+                        :data-name="item.src">
+                        {{item.src}}</el-col>
+                    <el-col class="path-name" :span="10" v-else @click="downloadFile" :data-name="item.src">{{item.src}}
+                    </el-col>
+                    <el-col :span="10">{{(item.size/1024).toFixed(2)}}kb</el-col>
+                </el-row>
+            </div>
+        </el-card>
+    </div>
+    <script>
+        const App = {
+            data() {
+                return {
+                    message: "Hello Element Plus",
+                    API: '/api',
+                    path: [],
+                    dirList: []
+                };
+            },
+            comments: {
+                // uploadFilled
+            },
+            mounted() {
+                this.getFileList()
+            },
+            methods: {
+                openFolder: function (e) {
+                    const name = e.target.dataset.name
+                    console.log(e.target.dataset.name)
+                    if (name === '...') {
+                        this.path.pop()
+                    } else {
+                        this.path.push(name)
+                    }
+                    this.getFileList()
+                },
+                // 获取文件列表
+                getFileList: function () {
+                    $.ajax({
+                        method: 'GET',
+                        url: `${this.API}/getFileList`,
+                        data: {
+                            path: this.path.join('/')
+                        },
+                        success: (data) => {
+                            console.log(data)
+                            if (data.code === 0) {
+                                this.dirList = data.data
+                                this.$message.success({
+                                    message: '加载完毕'
+                                })
+                            } else {
+                                console.error('错误', data.msg)
+                                this.$message.error({
+                                    message: data.msg
+                                })
+                            }
+                        },
+                        error: (err)=>{
+                            this.$message.error({
+                                message: err
+                            })
+                        }
+                    })
+                },
+                downloadFile: function (e) {
+                    const name = e.target.dataset.name
+                    // window.open(`${this.API}/downloadFile?path=${this.path.join('/')}/${name}`, '_blank')
+                    const url = `${this.API}/downloadFile?path=${this.path.join('/')}/${name}`; //记得拼接参数
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', url, true); // 也可以使用POST方式，根据接口
+                    xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+                    xhr.responseType = 'blob'; // 返回类型blob
+                    xhr.onload = function(e) {
+                        if (this.status === 200) {
+                            const blob = this.response;
+                            const reader = new FileReader();
+                            reader.readAsDataURL(blob); // 转换为base64，可以直接放入a表情href
+                            reader.onload = function(e) {
+                                const a = document.createElement('a');
+                                a.download = name;
+                                a.href = e.target.result;
+                                document.documentElement.appendChild(a);
+                                a.click();
+                                a.remove(); // 等价于document.documentElement.removeChild(a);
+                            };
+                        }
+                    };
+                    xhr.send(); // 发送ajax请求
+                }
+            },
+        };
+        const app = Vue.createApp(App);
+        app.use(ElementPlus);
+        app.mount("#app");
+        for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
+            app.component(key, component)
+        }
+    </script>
+</body>
+
+</html>

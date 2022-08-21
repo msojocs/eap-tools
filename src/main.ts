@@ -1,7 +1,7 @@
 import { createApp } from "vue";
 import "./style.css";
 import App from "./App.vue";
-import ElementPlus from "element-plus";
+import ElementPlus, { ElMessage } from "element-plus";
 import "element-plus/dist/index.css";
 import router from "./router";
 
@@ -14,3 +14,13 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
 }
 app.use(router).use(ElementPlus).mount("#app");
 
+process.setUncaughtExceptionCaptureCallback(err=>{
+    console.error('setUncaughtExceptionCaptureCallback--->', err)
+});
+process.on('uncaughtException', (err)=>{
+    console.error('uncaughtException->', err)
+    ElMessage({
+        type: 'error',
+        message: err.message
+    }, app._context)
+})

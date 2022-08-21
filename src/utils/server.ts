@@ -145,7 +145,6 @@ const FileServer = class {
     start() {
         return new Promise((resolve, reject) => {
             try {
-
                 this.server = this.app.listen(this._port, () => {
                     resolve(null)
                 })
@@ -156,6 +155,7 @@ const FileServer = class {
                     });
                 });
             } catch (error) {
+                console.error(error)
                 reject(error)
             }
         })
@@ -181,9 +181,6 @@ const FileServer = class {
     async restart() {
         await this.stop()
 
-        // TODO: apply new config to app
-        console.warn('TODO: apply new config to app')
-
         await this.start()
     }
     get address() {
@@ -196,8 +193,14 @@ const FileServer = class {
     set shareDir(v: string){
         this._shareDir = v
     }
+    get shareDir(){
+        return this._shareDir
+    }
     set uploadDir(v: string){
         this._uploadDir = v
+    }
+    get uploadDir(){
+        return this._uploadDir
     }
     set port(v: number){
         this._port = v

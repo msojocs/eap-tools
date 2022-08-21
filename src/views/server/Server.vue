@@ -1,30 +1,37 @@
 <script setup lang="ts">
 import { getIPs } from '@/utils/common';
 import { FileServer } from '@/utils/server';
-import { ref, computed } from 'vue';
+import { ref, computed, onUnmounted } from 'vue';
 const remote = require('@electron/remote') as typeof import('@electron/remote')
 
 const serverStatus = ref(0)
 const serverStatusText = [
     "已关闭", "运行中"
 ]
-const serverPort = ref(8081)
-const shareFolder = ref(sessionStorage.getItem('shareFolder'))
-const uploadFolder = ref(sessionStorage.getItem('uploadFolder'))
-const server = new FileServer(shareFolder.value || '', uploadFolder.value || '', serverPort.value);
+// const oldServer = (window as any).server;
+const server = new FileServer(localStorage.getItem('shareFolder') || '', localStorage.getItem('uploadFolder') || '', parseInt(localStorage.getItem('serverPort') || '8081'));
+// (window as any).server = server;
+const serverPort = ref(server.port)
+const shareFolder = ref(server.shareDir)
+const uploadFolder = ref(server.uploadDir)
 const startServer = ()=>{
     server.shareDir = shareFolder.value || ''
     server.uploadDir = uploadFolder.value || ''
     server.port = serverPort.value
-    server.start().then(()=>{
-        console.log('server started.')
-        serverStatus.value = 1;
-    }).catch(err=>{
-        console.error('failed to start server:', err)
-    })
+    try {
+            
+        server.start().then(()=>{
+            console.log('server started.')
+            serverStatus.value = 1;
+        }).catch(err=>{
+            console.error('failed to start server:', err)
+        })
+    } catch (error) {
+        console.error(error)
+    }
 }
 // Test
-startServer()
+// startServer()
 const stopServer = ()=>{
     server.stop().then(r=>{
         serverStatus.value = 0;
@@ -40,7 +47,7 @@ const selectShareFolder = ()=>{
     }).then(res=>{
         if(!res.canceled){
             shareFolder.value = res.filePaths[0]
-            sessionStorage.setItem('shareFolder', res.filePaths[0])
+            localStorage.setItem('shareFolder', res.filePaths[0])
             server.shareDir = shareFolder.value
         }
         
@@ -52,7 +59,7 @@ const selectUploadFolder = ()=>{
     }).then(res=>{
         if(!res.canceled){
             uploadFolder.value = res.filePaths[0]
-            sessionStorage.setItem('uploadFolder', res.filePaths[0])
+            localStorage.setItem('uploadFolder', res.filePaths[0])
             server.uploadDir = uploadFolder.value
         }
         
@@ -60,6 +67,10 @@ const selectUploadFolder = ()=>{
 }
 const localIPS = computed(()=>{
     return getIPs()
+})
+onUnmounted(()=>{
+    console.log('onUnmounted')
+    stopServer()
 })
 </script>
 
@@ -92,7 +103,7 @@ const localIPS = computed(()=>{
                 <br>
                 <el-button @click="startServer" type="primary" :disabled="serverStatus === 1">启动</el-button>
                 <el-button @click="stopServer" type="danger" :disabled="serverStatus === 0">停止</el-button>
-                <el-button @click="restartServer">重启</el-button>
+                <el-button @click="restartServer" :disabled="serverStatus === 0">重启</el-button>
             </div>
         </el-card>
         <br>

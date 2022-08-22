@@ -192,8 +192,11 @@ const testPrepare = (wb: Workbook)=>{
                             // console.log(ws.name, cell.$col$row)
                             cell_t.value = ''
                             cell_t.style.fill = {
+                                fgColor: {
+                                    argb: 'FFFFFFFF'
+                                },
                                 bgColor:{
-                                    argb:'FF000000'
+                                    argb:'FFFFFFFF'
                                 },
                                 pattern: "solid",
                                 type: "pattern",

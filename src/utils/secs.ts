@@ -323,6 +323,7 @@ const fixDataForXMLFUNC = {
                 break;
 
             default:
+                console.warn('unknown type:', type)
                 break;
         }
         return `${mark}${num || ''}`
@@ -363,7 +364,7 @@ const fixDataForXMLFUNC = {
                     if (rowNum > 2)
                         if (ws.getCell(rowNum, 1).value){
                             if(cell.value)
-                            cell.value = fixDataForXMLFUNC.fixDataType(cell.value as string)
+                            cell.value = fixDataForXMLFUNC.fixDataType(getTextValue(cell.value))
                             else{
                                 str += `${ws.name}:${rowNum} 使用默认类型：U2\r\n`
                                 cell.value = 'U2'

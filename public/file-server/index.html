@@ -127,28 +127,28 @@
                 },
                 downloadFile: function (e) {
                     const name = e.target.dataset.name
-                    // window.open(`${this.API}/downloadFile?path=${this.path.join('/')}/${name}`, '_blank')
-                    const url = `${this.API}/downloadFile?path=${this.path.join('/')}/${name}`; //记得拼接参数
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('GET', url, true); // 也可以使用POST方式，根据接口
-                    xhr.setRequestHeader('Content-Type', 'application/octet-stream');
-                    xhr.responseType = 'blob'; // 返回类型blob
-                    xhr.onload = function(e) {
-                        if (this.status === 200) {
-                            const blob = this.response;
-                            const reader = new FileReader();
-                            reader.readAsDataURL(blob); // 转换为base64，可以直接放入a表情href
-                            reader.onload = function(e) {
-                                const a = document.createElement('a');
-                                a.download = name;
-                                a.href = e.target.result;
-                                document.documentElement.appendChild(a);
-                                a.click();
-                                a.remove(); // 等价于document.documentElement.removeChild(a);
-                            };
-                        }
-                    };
-                    xhr.send(); // 发送ajax请求
+                    const url = `${this.API}/downloadFile?path=` + encodeURIComponent(`${this.path.join('/')}/${name}`); //记得拼接参数
+                    window.open(url, '_blank')
+                    // const xhr = new XMLHttpRequest();
+                    // xhr.open('GET', url, true); // 也可以使用POST方式，根据接口
+                    // xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+                    // xhr.responseType = 'blob'; // 返回类型blob
+                    // xhr.onload = function(e) {
+                    //     if (this.status === 200) {
+                    //         const blob = this.response;
+                    //         const reader = new FileReader();
+                    //         reader.readAsDataURL(blob); // 转换为base64，可以直接放入a表情href
+                    //         reader.onload = function(e) {
+                    //             const a = document.createElement('a');
+                    //             a.download = name;
+                    //             a.href = e.target.result;
+                    //             document.documentElement.appendChild(a);
+                    //             a.click();
+                    //             a.remove(); // 等价于document.documentElement.removeChild(a);
+                    //         };
+                    //     }
+                    // };
+                    // xhr.send(); // 发送ajax请求
                 }
             },
         };

@@ -72,6 +72,7 @@ const generatorMergeSECS = async ()=>{
             message: '操作完成'
         }, appContext)
     } catch (error: any) {
+        console.error(error)
         appContext.config.globalProperties.$message.error(error?.message ?? 'error')
     }
 }
@@ -119,7 +120,7 @@ const fixDataForXML = async ()=>{
                 <span style="font-weight: 600;">要处理的SECS文件：</span><span>{{ secsFile }}</span><br />
                 <span style="font-weight: 600;">生成的SECS文件：</span><span>{{ newSecsFile }}</span><br />
                 <br />
-                <el-button @click="selectLogFile">选择文件</el-button>
+                <el-button @click="selectLogFile" type="primary">选择文件</el-button>
                 <el-button @click="openFolder" :disabled="!secsFile">打开所在文件夹</el-button>
             </div>
         </el-card>

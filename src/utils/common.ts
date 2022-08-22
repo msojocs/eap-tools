@@ -5,12 +5,17 @@ const getTextValue = (value: any)=>{
             result += value
             break
         case 'object':
+            if(value.richText)
             for(let str of value.richText){
                 result += str.text
+            }
+            else if (value.result){
+                result += value.result
             }
             break
         default:
             console.warn('unknown type:', typeof value, value)
+            result += value
             break;
     }
     return result

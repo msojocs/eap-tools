@@ -1,4 +1,5 @@
 import { Workbook, Worksheet } from 'exceljs';
+import { getTextValue } from './common';
 
 const Excel = require('exceljs') as typeof import('exceljs')
 
@@ -168,15 +169,21 @@ const testPrepare = (wb: Workbook) => {
     const varRows = varWorkSheet.getRows(3, varWorkSheet.rowCount - 2);
     if (!varRows) throw new Error("Variables List 数据行获取失败！");
 
+    const varHead = varWorkSheet.getRow(2)
+    const varIndexMap = {} as any;
+    varHead.eachCell((cell, colNum)=>{
+        if(cell.value)
+        varIndexMap[(cell.value as string).toLocaleLowerCase()] = colNum
+    })
     // 遍历var List
     const varMap = {} as {
         [key: string]: any
     }
     for (let row of varRows) {
-        const vidCell = row.getCell(1)
-        const descCell = row.getCell(2)
-        const typeCell = row.getCell(3)
-        const commentCell = row.getCell(8)
+        const vidCell = row.getCell(varIndexMap['vid'])
+        const descCell = row.getCell(varIndexMap['description'])
+        const typeCell = row.getCell(varIndexMap['type'])
+        const commentCell = row.getCell(varIndexMap['comment'])
         if (!vidCell.value) continue
 
         const vid = vidCell.value as string
@@ -200,19 +207,20 @@ const testPrepare = (wb: Workbook) => {
             'text': `, 类型${typeCell.value}`
         })
         if (commentCell.value) {
-            if ((commentCell.value as string).includes('\n'))
+            const commentStr = getTextValue(commentCell.value)
+            if (commentStr.includes('\n'))
                 varMap[vid].push({
                     'font': {
                         'color': { 'argb': 'FF0000FF' }
                     },
-                    'text': `, 取值:\r\n${commentCell.value}\r\n`
+                    'text': `, 取值:\r\n${commentStr}\r\n`
                 })
             else
                 varMap[vid].push({
                     'font': {
                         'color': { 'argb': 'FF0000FF' }
                     },
-                    'text': `, 取值-${commentCell.value}`
+                    'text': `, 取值:\r\n${commentStr}`
                 })
         }
         varMap[vid].push({
@@ -228,13 +236,19 @@ const testPrepare = (wb: Workbook) => {
     } as {
         [key: string]: any
     }
+    let vidIndex = 4
+    reportWorkSheet.getRow(2).eachCell((cell, colNum)=>{
+        if(getTextValue(cell.value).includes('VID')){
+            vidIndex = colNum
+        }
+    })
     for (let row of reportRows) {
         const rptCell = row.getCell(1)
-        const vidCell = row.getCell(4)
+        const vidCell = row.getCell(vidIndex)
         if (!rptCell.value) continue
 
         const rid = rptCell.value as string
-        rptMap[rid] = vidCell.value
+        rptMap[rid] = getTextValue(vidCell.value)
     }
     // console.log('rptMap', rptMap)
 
@@ -247,7 +261,7 @@ const testPrepare = (wb: Workbook) => {
 
         // console.log('search for:', reportIDCell.value)
         // 从Report List找vid
-        let vid = rptMap[reportIDCell.value as string] as string
+        let vid = rptMap[getTextValue(reportIDCell.value)] as string
         if (!vid || vid.length === 0) {
             console.warn(`未找到Report ID${reportIDCell.value}对应的VID！`);
             continue

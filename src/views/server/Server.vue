@@ -100,6 +100,7 @@ onUnmounted(()=>{
                 端口：<el-input v-model="serverPort" type="number" style="width:100px" :disabled="serverStatus === 1"></el-input>
                 <br>
                 <span v-for="ip in localIPS" :key="ip.name">{{ip.name}}: http://{{ip.ip}}:{{server.port}}<br></span>
+                <span>本地: http://127.0.0.1:{{server.port}}<br></span>
                 <br>
                 <el-button @click="startServer" type="primary" :disabled="serverStatus === 1">启动</el-button>
                 <el-button @click="stopServer" type="danger" :disabled="serverStatus === 0">停止</el-button>

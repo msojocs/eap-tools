@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import * as secsHandle from '@/utils/secs'
 import { ComponentInternalInstance, ref, getCurrentInstance } from 'vue';
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 const Excel = require('exceljs') as typeof import('exceljs')
 // 在你的 setup 方法中
@@ -94,9 +94,13 @@ const fixDataForXML = async ()=>{
         await wb.xlsx.writeFile(newSecsFile.value)
         if(ret){
             console.warn(ret)
-            ElMessage({
+            ElMessageBox({
                 type: 'warning',
-                message: ret
+                dangerouslyUseHTMLString: true,
+                message: ret,
+                customStyle: {
+                    maxWidth: '60vw'
+                }
             }, appContext)
         }else
         ElMessage({
@@ -127,7 +131,20 @@ const fixDataForXML = async ()=>{
         <br>
         <el-card>
             <template #header>
-                <span>转XML预处理</span>
+                <span>单机测试准备</span>
+            </template>
+            <div>
+                <ol>
+                    <li>整合Event List，Report List，Variables List</li>
+                </ol>
+                <br />
+                <el-button @click="generatorMergeSECS" type="primary" :disabled="!secsFile">处理生成</el-button>
+            </div>
+        </el-card>
+        <br>
+        <el-card>
+            <template #header>
+                <span>转XML预处理 (待完善)</span>
             </template>
             <div>
                 <ol>
@@ -137,19 +154,6 @@ const fixDataForXML = async ()=>{
                 </ol>
                 <br />
                 <el-button @click="fixDataForXML" type="primary" :disabled="!secsFile">处理生成</el-button>
-            </div>
-        </el-card>
-        <br>
-        <el-card>
-            <template #header>
-                <span>单机测试准备</span>
-            </template>
-            <div>
-                <ol>
-                    <li>整合Event List，Report List，Variables List</li>
-                </ol>
-                <br />
-                <el-button @click="generatorMergeSECS" type="primary" :disabled="!secsFile">处理生成</el-button>
             </div>
         </el-card>
     </div>

@@ -129,6 +129,7 @@ const prepareCheckList = async ()=>{
             <div>
                 <ol>
                     <li>清空非NA项目的Result和Log</li>
+                    <li>注意：“测试信息” 需要手动处理</li>
                 </ol>
                 <br />
                 <el-button @click="prepareCheckList" type="primary" :disabled="!logFile">处理生成</el-button>

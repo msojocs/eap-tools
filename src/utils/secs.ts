@@ -334,7 +334,18 @@ const fixDataForXMLFUNC = {
         const namesRow = ws.getRow(2)
         if (namesRow.hasValues && namesRow.values) {
             let usedIndex = (namesRow.values as string[]).indexOf('Used(O/X)')
-            if (usedIndex >= 0) {
+            if(usedIndex < 0){
+                // used不存在
+                let i;
+                for (i = 1; i < (namesRow.values as string[]).length; i++) {
+                    const v = ((namesRow.values as string[])[i])
+                    if(!v || v.length === 0){
+                        break;
+                    }
+                }
+                str += `${ws.name}: Used(O/X) 列不存在，自动插入<br>`
+                ws.spliceColumns(i, 0, [, 'Used(O/X)'])
+            }else if (usedIndex >= 0) {
                 const usedCol = ws.getColumn(usedIndex)
                 usedCol.eachCell((cell, rowNum) => {
                     if(rowNum > 2)
@@ -345,10 +356,29 @@ const fixDataForXMLFUNC = {
                             }
                         }
                 })
-            } else {
-                str += `未找到Used(O/X)列`
-                console.warn(str)
             }
+        }
+        return str
+    },
+    fixAliasColumn: (ws: Worksheet) => {
+        let str = ''
+        // 定位Alias所在列，可能找不到
+        const namesRow = ws.getRow(2)
+        if (namesRow.hasValues && namesRow.values) {
+            let aliasIndex = (namesRow.values as string[]).indexOf('Alias')
+            if(aliasIndex < 0){
+                // used不存在
+                let i;
+                for (i = 1; i < (namesRow.values as string[]).length; i++) {
+                    const v = ((namesRow.values as string[])[i])
+                    if(!v || v.length === 0){
+                        break;
+                    }
+                }
+                str += `${ws.name}: Alias 列不存在，自动插入<br>`
+                ws.spliceColumns(i, 0, [, 'Alias'])
+            }
+            
         }
         return str
     },
@@ -358,7 +388,17 @@ const fixDataForXMLFUNC = {
         const namesRow = ws.getRow(2)
         if (namesRow.hasValues && namesRow.values) {
             let typeIndex = (namesRow.values as string[]).indexOf(typeName)
-            if (typeIndex >= 0) {
+            if(typeIndex < 0){
+                // ${typeName}列不存在，插入
+                let i;
+                for (i = 1; i < (namesRow.values as string[]).length; i++) {
+                    const v = ((namesRow.values as string[])[i])
+                    if(!v || v.length === 0){
+                        break;
+                    }
+                }
+                ws.spliceColumns(i, 0, [, typeName])
+            }else if (typeIndex >= 0) {
                 const typeCol = ws.getColumn(typeIndex)
                 typeCol.eachCell((cell, rowNum) => {
                     if (rowNum > 2)
@@ -366,15 +406,13 @@ const fixDataForXMLFUNC = {
                             if(cell.value)
                             cell.value = fixDataForXMLFUNC.fixDataType(getTextValue(cell.value))
                             else{
-                                str += `${ws.name}:${rowNum} 使用默认类型：U2\r\n`
+                                // TODO: 默认类型
+                                str += `${ws.name}:${rowNum}行 使用默认类型：U2<br>`
                                 cell.value = 'U2'
                             }
                         }
                         
                 })
-            } else {
-                str += `${ws.name}-未找到${typeName}列\r\n`
-                console.warn(str)
             }
         }
         return str
@@ -389,13 +427,20 @@ const fixDataForXML = (wb: Workbook) => {
     const fixConfig = {
         'Event List': {
             used: true,
+            alias: true,
+        },
+        'Report List': {
+            used: true,
+            alias: true,
         },
         'Variables List': {
             used: true,
+            alias: true,
             type: 'Type',
         },
         'Remote Command List': {
-            used: true
+            used: true,
+            alias: true,
         },
         'Remote Command Parameter List': {
             used: true,
@@ -419,6 +464,7 @@ const fixDataForXML = (wb: Workbook) => {
     } as {
         [key: string]: {
             used?: boolean,
+            alias?: boolean,
             type?: 'Type' | 'CPTYPE',
         }
     }
@@ -429,6 +475,7 @@ const fixDataForXML = (wb: Workbook) => {
         if (!config) continue
 
         if (config.used) ret += fixDataForXMLFUNC.fixUsedColumn(ws)
+        if (config.alias) ret += fixDataForXMLFUNC.fixAliasColumn(ws)
         if (config.type) ret += fixDataForXMLFUNC.fixTypeColumn(ws, config.type)
     }
     return ret

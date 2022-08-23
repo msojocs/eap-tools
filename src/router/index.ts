@@ -27,7 +27,7 @@ const routes = [
         path: "/secs",
         component: SECS,
         meta: {
-            title: 'SECS处理 (测试中)',
+            title: 'SECS处理',
             icon: 'Collection'
         }
     },
@@ -35,7 +35,7 @@ const routes = [
         path: "/server",
         component: SERVER,
         meta: {
-            title: '文件服务 (测试中)',
+            title: '文件服务',
             icon: 'Files'
         }
     },

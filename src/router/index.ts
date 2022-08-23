@@ -5,6 +5,7 @@ import CONFIG from "@/views/config/Config.vue";
 import OUTPUT from "@/views/output/Output.vue";
 import SECS from "@/views/secs/SECS.vue";
 import SERVER from "@/views/server/Server.vue";
+import CHANGELOG from "@/views/changelog/changelog.vue";
 
 // 1. 定义路由组件.
 // 也可以从其他文件导入
@@ -60,6 +61,14 @@ const routes = [
         meta: {
             title: '导出 (开发中)',
             icon: 'Upload'
+        }
+    },
+    {
+        path: "/changelog",
+        component: CHANGELOG,
+        meta: {
+            title: '更新日志',
+            icon: 'Timer'
         }
     },
 ];

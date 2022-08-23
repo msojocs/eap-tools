@@ -7,7 +7,6 @@ var fs = require("fs") as typeof import('fs'); //引入fs，fs 是node中一个�
 var bodyParser = require('body-parser'); // 这个模块是获取post请求传过来的数据。
 var multer = require('multer'); //multer - node.js 中间件，用于处理 enctype="multipart/form-data"（设置表单的MIME编码）的表单数据。
 
-
 const FileServer = class {
     private app: Express;
     private server: Server | undefined;
@@ -46,6 +45,7 @@ const FileServer = class {
         // 上传文件api
         app_t.post('/api/upload', (req: any, res: any) => {
             console.log(req.files);  // 上传的文件信息
+            const filename = decodeURIComponent(req.files[0].originalname)
             let response = {}as {
                 code: number,
                 msg?: string,
@@ -55,7 +55,7 @@ const FileServer = class {
                 
                 for (let i = 0; i < req.files.length; i++) {
                     fs.readFile(req.files[i].path, (err: any, data: any) => {
-                        let des_file = this._uploadDir + "/" + req.files[i].originalname;//存放路径
+                        let des_file = this._uploadDir + "/" + filename;//存放路径
                         fs.writeFile(des_file, data, function (err: any) {
                             if (err) {
                                 console.log(err);
@@ -63,7 +63,7 @@ const FileServer = class {
                                 response = {
                                     code: 0,
                                     msg: 'File uploaded successfully',
-                                    data: req.files[i].originalname
+                                    data: filename
                                 }
                             }
                             console.log(data);

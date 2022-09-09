@@ -4,8 +4,9 @@ const { app, BrowserWindow } = require("electron");
 const { VUEJS_DEVTOOLS } = require("electron-devtools-installer");
 const installExtension = require("electron-devtools-installer").default;
 const remote = require("@electron/remote/main")
+require('./odbc')
+
 remote.initialize()
-//...
 
 const isDev = process.env.IS_DEV == "true" ? true : false;
 

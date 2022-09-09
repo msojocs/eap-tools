@@ -6,6 +6,7 @@ import OUTPUT from "@/views/output/Output.vue";
 import SECS from "@/views/secs/SECS.vue";
 import SERVER from "@/views/server/Server.vue";
 import CHANGELOG from "@/views/changelog/changelog.vue";
+import MDB from "@/views/mdb/mdb.vue";
 
 // 1. 定义路由组件.
 // 也可以从其他文件导入
@@ -37,6 +38,14 @@ const routes = [
         meta: {
             title: '文件服务',
             icon: 'Files'
+        }
+    },
+    {
+        path: "/mdb",
+        component: MDB,
+        meta: {
+            title: 'MDB编辑器 (开发中)',
+            icon: 'Edit'
         }
     },
     {

@@ -4,10 +4,10 @@
 
 <template>
     <div>
-        Test Page
+        添加界面
     </div>
 </template>
 
-<style lang="scss" scoped>
-    
+<style scoped>
+
 </style>

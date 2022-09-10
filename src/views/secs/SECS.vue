@@ -3,6 +3,7 @@
 import * as secsHandle from '@/utils/secs'
 import { ComponentInternalInstance, ref, getCurrentInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { changeWorkSheetPosition, copyWorksheet } from '@/utils/excel';
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 const Excel = require('exceljs') as typeof import('exceljs')
 // 在你的 setup 方法中
@@ -62,7 +63,19 @@ const generatorMergeSECS = async ()=>{
     const wb = new Excel.Workbook()
     await wb.xlsx.readFile(secsFile.value as string);
     (window as any).wb = wb
-    console.log(wb)
+    
+    const eventWorkSheet = wb.getWorksheet('Event List')
+    if (!eventWorkSheet) throw new Error("Event List工作表获取失败！");
+    const resultWorkSheet = wb.addWorksheet('ERV Merge List(整合表)');
+    // 复制表
+    copyWorksheet(eventWorkSheet, resultWorkSheet);
+    // 移动表
+    changeWorkSheetPosition(wb, (resultWorkSheet as any).orderNo, (eventWorkSheet as any).orderNo);
+    
+    // 写入读取，补全缺失的参数
+    await wb.xlsx.writeFile(newSecsFile.value)
+    await wb.xlsx.readFile(newSecsFile.value as string);
+
     try {
             
         secsHandle.testPrepare(wb)

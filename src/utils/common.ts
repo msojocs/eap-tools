@@ -14,8 +14,8 @@ const getTextValue = (value: any)=>{
             }
             break
         default:
-            console.warn('unknown type:', typeof value, value)
-            result += value
+            console.warn('原样返回，unknown type:', typeof value, value)
+            return value
             break;
     }
     return result

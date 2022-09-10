@@ -1,5 +1,6 @@
 import { Workbook, Worksheet } from 'exceljs';
 import { getTextValue } from './common';
+import {changeWorkSheetPosition, copyWorksheet } from '@/utils/excel'
 
 const Excel = require('exceljs') as typeof import('exceljs')
 
@@ -103,8 +104,8 @@ const parse = async (filePath: string) => {
  * 
  */
 const testPrepare = (wb: Workbook) => {
-    const eventWorkSheet = wb.getWorksheet('Event List')
-    if (!eventWorkSheet) throw new Error("Event List工作表获取失败！");
+    const resultWorkSheet = wb.getWorksheet('ERV Merge List(整合表)')
+    if (!resultWorkSheet) throw new Error("ERV Merge List(整合表)工作表获取失败！");
     const reportWorkSheet = wb.getWorksheet('Report List')
     if (!reportWorkSheet) throw new Error("Report List工作表获取失败！");
     const varWorkSheet = wb.getWorksheet('Variables List')
@@ -112,32 +113,32 @@ const testPrepare = (wb: Workbook) => {
 
     // 删除Event List无用列
     const needs: (string | undefined)[] = ["Event ID", "Description", "Comment", "Link Report ID"]
-    for (let i = 0; i < 7; i++) {
-        const col = eventWorkSheet.columns[i];
+    for (let i = 0; i < resultWorkSheet.actualColumnCount; i++) {
+        const col = resultWorkSheet.columns[i];
         if (!col.values) continue
         const type = col.values[2]?.toString()
         if (type)
             if (!needs.includes(type)) {
                 // console.log(i, type)
-                eventWorkSheet.spliceColumns(i + 1, 1)
+                resultWorkSheet.spliceColumns(i + 1, 1)
                 i--
             } else if (col.width && col.width > 30) {
                 col.width = 30
             }
 
     }
-    eventWorkSheet.getColumn(5).width = 20
-    eventWorkSheet.getColumn(6).width = 50
-    eventWorkSheet.getCell('E2').value = 'VID'
-    eventWorkSheet.getCell('E2').font = {
+    resultWorkSheet.getColumn(5).width = 20
+    resultWorkSheet.getColumn(6).width = 50
+    resultWorkSheet.getCell('E2').value = 'VID'
+    resultWorkSheet.getCell('E2').font = {
         bold: true,
         underline: true
     }
-    eventWorkSheet.getCell('E2').alignment = {
+    resultWorkSheet.getCell('E2').alignment = {
         vertical: 'middle',
         horizontal: 'center',
     }
-    eventWorkSheet.getCell('E2').fill = {
+    resultWorkSheet.getCell('E2').fill = {
         fgColor: {
             argb: 'FFD9D9D9'
         },
@@ -147,22 +148,22 @@ const testPrepare = (wb: Workbook) => {
         pattern: 'solid',
         type: 'pattern'
     }
-    eventWorkSheet.getCell('E2').border = {
+    resultWorkSheet.getCell('E2').border = {
         top: { style: 'thin' },
         left: { style: 'thin' },
         bottom: { style: 'thin' },
         right: { style: 'thin' },
     }
-    eventWorkSheet.getCell('F2').value = 'VID详情'
-    eventWorkSheet.getCell('F2').font = eventWorkSheet.getCell('E2').font
-    eventWorkSheet.getCell('F2').alignment = eventWorkSheet.getCell('E2').alignment
-    eventWorkSheet.getCell('F2').fill = eventWorkSheet.getCell('E2').fill
-    eventWorkSheet.getCell('F2').border = eventWorkSheet.getCell('E2').border
-    eventWorkSheet.views = [
+    resultWorkSheet.getCell('F2').value = 'VID详情'
+    resultWorkSheet.getCell('F2').font = resultWorkSheet.getCell('E2').font
+    resultWorkSheet.getCell('F2').alignment = resultWorkSheet.getCell('E2').alignment
+    resultWorkSheet.getCell('F2').fill = resultWorkSheet.getCell('E2').fill
+    resultWorkSheet.getCell('F2').border = resultWorkSheet.getCell('E2').border
+    resultWorkSheet.views = [
         { state: 'frozen', ySplit: 2, activeCell: 'A1' }
     ];
 
-    const eventRows = eventWorkSheet.getRows(3, eventWorkSheet.rowCount - 2);
+    const eventRows = resultWorkSheet.getRows(3, resultWorkSheet.rowCount - 2);
     if (!eventRows) throw new Error("Event List 数据行获取失败！");
     const reportRows = reportWorkSheet.getRows(3, reportWorkSheet.rowCount - 2);
     if (!reportRows) throw new Error("Report List 数据行获取失败！");

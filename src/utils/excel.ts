@@ -1,4 +1,4 @@
-import { Workbook, Worksheet } from "exceljs"
+import { Workbook, Worksheet } from "exceljs-enhance"
 
 const ExcelHelper = {
     insertWorkSheet: (wb: Workbook, ws: Worksheet, pos: number) => {
@@ -37,7 +37,7 @@ const changeWorkSheetPosition = (wb: Workbook, from: number, to: number) => {
     }
 }
 const copyWorksheet = (source: Worksheet, target: Worksheet)=>{
-    for(let j=1; j <= source.columnCount; j++){
+    for(let j=1; j <= source.actualColumnCount; j++){
         target.getColumn(j).style = source.getColumn(j).style;
         target.getColumn(j).width = source.getColumn(j).width;
         for(let i=1; i <= source.rowCount; i++){

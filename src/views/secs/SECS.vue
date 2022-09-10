@@ -5,7 +5,7 @@ import { ComponentInternalInstance, ref, getCurrentInstance } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { changeWorkSheetPosition, copyWorksheet } from '@/utils/excel';
 const remote = require('@electron/remote') as typeof import('@electron/remote');
-const Excel = require('exceljs') as typeof import('exceljs')
+const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
 // 在你的 setup 方法中
 const { appContext } = getCurrentInstance() as ComponentInternalInstance;
 

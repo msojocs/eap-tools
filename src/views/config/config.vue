@@ -7,7 +7,7 @@ import { ref } from 'vue'
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 // import { remote } from 'electron'
 // import * as remote from '@electron/remote'
-const Excel = require('exceljs') as typeof import('exceljs')
+const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
 
 const secsFile = ref(localStorage.getItem('secsFile'))
 const logFile = ref(localStorage.getItem('logFile'))

@@ -1,8 +1,8 @@
-import { Workbook, Worksheet } from 'exceljs';
+import { Workbook, Worksheet } from 'exceljs-enhance';
 import { getTextValue } from './common';
 import {changeWorkSheetPosition, copyWorksheet } from '@/utils/excel'
 
-const Excel = require('exceljs') as typeof import('exceljs')
+const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
 
 const FUNC = {
     parseEventList: (eventListSheet: Worksheet) => {
@@ -119,7 +119,7 @@ const testPrepare = (wb: Workbook) => {
         const type = col.values[2]?.toString()
         if (type)
             if (!needs.includes(type)) {
-                // console.log(i, type)
+                // console.log(i + 1, type)
                 resultWorkSheet.spliceColumns(i + 1, 1)
                 i--
             } else if (col.width && col.width > 30) {
@@ -253,7 +253,7 @@ const testPrepare = (wb: Workbook) => {
     }
     // console.log('rptMap', rptMap)
 
-    // 遍历Event List
+    // 遍历Event List, 开始写入数据
     for (let eventRow of eventRows) {
         const reportIDCell = eventRow.getCell(4)
         if (!reportIDCell.value) {
@@ -288,8 +288,10 @@ const testPrepare = (wb: Workbook) => {
         }
         // console.log(vids)
 
+        // vid详情
         let comment = []
         for (const vid of vids) {
+            if(varMap[vid])
             comment.push(...varMap[vid])
         }
         const commentCell = eventRow.getCell(6)

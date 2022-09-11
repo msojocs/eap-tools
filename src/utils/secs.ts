@@ -33,7 +33,7 @@ const FUNC = {
             } else if (typeof ridstr === 'number') {
                 rptIds.push(ridstr)
             } else {
-                console.error('无法识别的rpt id类型')
+                console.warn('无法识别的rpt id类型', typeof ridstr, ridstr)
             }
             // console.warn('rids:', rids)
             eid2rid[data[`${eidIndex}`]] = {

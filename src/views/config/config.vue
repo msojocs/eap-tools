@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import * as secs from '@/utils/secs'
-import * as logHandle from '@/utils/log'
+import * as logHandle from '@/utils/test-report'
 import * as storeConfig from '@/store/store'
 // import * as Excel from 'exceljs'
 import { ref } from 'vue'
@@ -11,6 +11,7 @@ const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
 
 const secsFile = ref(localStorage.getItem('secsFile'))
 const logFile = ref(localStorage.getItem('logFile'))
+const resultData = ref('')
 
 const selectSecsFile = async ()=>{
  
@@ -59,6 +60,8 @@ const parseSecs = async ()=>{
     const secsData = await secs.parse(secsFile.value as string)
     const fs = require('fs') as typeof import('fs')
     try {
+        console.log('result:', secsData);
+        resultData.value = JSON.stringify(secsData, null, 4)
         fs.mkdirSync(storeConfig.dataLoc, {
             recursive: true
         })
@@ -80,17 +83,21 @@ const parseLog = async ()=>{
 <template>
     <div>
         <h2>Config Page</h2>
-        <div>
+        <el-card>
             SECS文件：<span>{{ secsFile }}</span><br />
             <el-button @click="selectSecsFile" type="primary">选择文件</el-button>
             <el-button @click="parseSecs">解析</el-button>
-        </div>
-        <div>
+        </el-card>
+        <br />
+        <el-card>
             LOG文件：<span>{{ logFile }}</span><br />
             <el-button @click="selectLogFile" type="primary">选择文件</el-button>
             <el-button @click="parseLog">解析</el-button>
-        </div>
-
+        </el-card>
+        <br />
+        <el-card>
+            <pre>{{resultData}}</pre>
+        </el-card>
     </div>
     
 </template>

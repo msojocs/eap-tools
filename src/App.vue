@@ -10,27 +10,31 @@ console.log(router.getRoutes(), route)
 </script>
 
 <template>
-  <div class="layout">
-    <el-menu
-     :default-active="router.currentRoute.value.path"
-      class="el-menu-vertical-demo"
-       background-color="#545c64"
-       text-color="#fff"
-       :collapse="isCollapse"
-       router
-       >
-      
-      <el-menu-item v-for="r in router.getRoutes()" :key="r.path" :index="r.path">
-        <el-icon>
-          <component :is="r.meta.icon"></component>
-        </el-icon>
-        <template #title>
-          <span>{{r.meta.title}}</span>
-        </template>
-      </el-menu-item>
-    </el-menu>
-    <div class="right-area">
-      <div class="navbar">
+  <el-container class="layout">
+    <el-aside width="100" style="background-color:#545c64">
+      <el-scrollbar>
+        <el-menu
+        :default-active="router.currentRoute.value.path"
+          class="el-menu-vertical-demo"
+          background-color="#545c64"
+          text-color="#fff"
+          :collapse="isCollapse"
+          router
+          >
+          <el-menu-item v-for="r in router.getRoutes()" :key="r.path" :index="r.path">
+            <el-icon>
+              <component :is="r.meta.icon"></component>
+            </el-icon>
+            <template #title>
+              <span>{{r.meta.title}}</span>
+            </template>
+          </el-menu-item>
+        </el-menu>
+      </el-scrollbar>
+    </el-aside>
+
+    <el-container>
+      <el-header class="navbar">
         <!-- 左边按钮 -->
         <div style="width:50px;display: flex;align-items: center;cursor: pointer;" @click="isCollapse = !isCollapse">
           <el-icon v-if="isCollapse" :size="40"><Expand /></el-icon>
@@ -39,20 +43,21 @@ console.log(router.getRoutes(), route)
         <!-- 右边其它 -->
         <div>
         导航栏</div>
-      </div>
+      </el-header>
       <!-- 路由出口 -->
-      <div class="router-v">
+      <el-main>
         <!-- 路由匹配到的组件将渲染在这里 -->
         <router-view></router-view>
-      </div>
+      </el-main>
       
-    </div>
-  </div>
+    </el-container>
+  </el-container>
 </template>
 
 <style scoped>
 .layout {
-  display: flex;
+  /* display: flex; */
+  height: 100vh;
 }
 .el-menu-vertical-demo{
   height: 100vh;
@@ -67,6 +72,7 @@ console.log(router.getRoutes(), route)
   display: flex;
   box-shadow: #eee 0px 4px 5px;
   align-items: center;
+  z-index: 5;
 }
 .el-menu-vertical-demo:not(.el-menu--collapse) {
   width: 200px;

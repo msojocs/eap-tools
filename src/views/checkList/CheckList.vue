@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import * as logHandle from '@/utils/log'
+import * as logHandle from '@/utils/test-report'
 import { ComponentInternalInstance, getCurrentInstance, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 const remote = require('@electron/remote') as typeof import('@electron/remote');

@@ -1,4 +1,4 @@
-import { Border, Workbook, Worksheet } from "exceljs"
+import { Workbook, Worksheet } from "exceljs-enhance"
 import {getTextValue} from './common'
 
 /**
@@ -105,7 +105,7 @@ const genProcedureList = (wb: Workbook)=>{
                     resultCell = ws.getCell(rowNum + ++resultRowInc, 6)
                 }
                 
-                (target as Worksheet).addRow([, No, {
+                const newRow = (target as Worksheet).addRow([, No, {
                     richText: [{
                         text: ws.name,
                         font: {
@@ -123,7 +123,13 @@ const genProcedureList = (wb: Workbook)=>{
                 } , {
                     formula : `'${ws.name}'!${resultCell.address}`,
                     result: resultCell.value,
-                }])
+                }]);
+                const t = newRow.getCell(3)
+                // debugger
+                titleCell.value = {
+                    text: getTextValue(title),
+                    location: `'${target.name}'!${t.address}`
+                }
                 
                 itemLength++
             }

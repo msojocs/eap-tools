@@ -44,7 +44,7 @@ const routes = [
         path: "/mdb",
         component: MDB,
         meta: {
-            title: 'MDB编辑器 (开发中)',
+            title: 'MDB编辑器 (暂停开发)',
             icon: 'Edit'
         }
     },

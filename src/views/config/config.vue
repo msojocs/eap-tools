@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import * as secs from '@/utils/secs'
 import * as logHandle from '@/utils/test-report'
-import * as storeConfig from '@/store/store'
+import {useStore} from '@/store/store'
 // import * as Excel from 'exceljs'
 import { ref } from 'vue'
+
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 // import { remote } from 'electron'
 // import * as remote from '@electron/remote'
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
+
+const store = useStore()
 
 const secsFile = ref(localStorage.getItem('secsFile'))
 const logFile = ref(localStorage.getItem('logFile'))
@@ -62,14 +65,14 @@ const parseSecs = async ()=>{
     try {
         console.log('result:', secsData);
         resultData.value = JSON.stringify(secsData, null, 4)
-        fs.mkdirSync(storeConfig.dataLoc, {
+        fs.mkdirSync(store.state.dataLoc, {
             recursive: true
         })
     } catch (error) {
         
     }
-    console.log(`${storeConfig.dataLoc}/secs.json`)
-    fs.writeFileSync(`${storeConfig.dataLoc}/secs.json`, JSON.stringify(secs))
+    console.log(`${store.state.dataLoc}/secs.json`)
+    fs.writeFileSync(`${store.state.dataLoc}/secs.json`, JSON.stringify(secs))
 }
 const parseLog = async ()=>{
     const wb = new Excel.Workbook()

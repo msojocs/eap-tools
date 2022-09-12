@@ -7,6 +7,7 @@ import SECS from "@/views/secs/SECS.vue";
 import SERVER from "@/views/server/Server.vue";
 import CHANGELOG from "@/views/changelog/changelog.vue";
 import MDB from "@/views/mdb/mdb.vue";
+import DEBUG from "@/views/debug/debug.vue";
 
 // 1. 定义路由组件.
 // 也可以从其他文件导入
@@ -54,6 +55,14 @@ const routes = [
         meta: {
             title: '测试 (开发中)',
             icon: 'Compass'
+        }
+    },
+    {
+        path: "/debug",
+        component: DEBUG,
+        meta: {
+            title: '调试',
+            icon: 'CircleClose'
         }
     },
     {

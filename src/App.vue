@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
 import { ref } from 'vue'
+import {useStore} from '@/store/store'
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setups
 const isCollapse = ref(false)
 const router = useRouter()
 const route = useRoute()
+const store = useStore()
 console.log(router.getRoutes(), route)
 </script>
 
@@ -42,7 +44,8 @@ console.log(router.getRoutes(), route)
         </div>
         <!-- 右边其它 -->
         <div>
-        导航栏</div>
+        导航栏</div>&nbsp;|&nbsp;
+        <span>版本：v{{store.state.version}}</span>
       </el-header>
       <!-- 路由出口 -->
       <el-main>

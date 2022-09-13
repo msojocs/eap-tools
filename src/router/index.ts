@@ -1,6 +1,6 @@
 import * as VueRouter from "vue-router";
 import CheckList from "@/views/checkList/CheckList.vue";
-import TEST from "@/views/test/Test.vue";
+import TEST from "@/views/test/test.vue";
 import CONFIG from "@/views/config/Config.vue";
 import OUTPUT from "@/views/output/Output.vue";
 import SECS from "@/views/secs/SECS.vue";

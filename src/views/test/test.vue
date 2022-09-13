@@ -16,7 +16,7 @@
                     <el-row>连线初始化（Host Trigger）</el-row>
                     <el-divider></el-divider>
                     <el-row :align="'middle'">
-                        <el-col :span="12">
+                        <el-col :span="16">
                             <el-row :span="6" style="font-weight:bold">
                                 <el-col :span="6">Comment</el-col>
                                 <el-col :span="6">Host</el-col>
@@ -54,12 +54,9 @@
                             </el-row>
                         </el-col>
                         <el-col :span="4">
-                            <el-row>
+                            &nbsp;&nbsp;&nbsp;
                                 <el-button>记录log</el-button>
-                            </el-row>
-                            <el-row>
                                 <el-button type="danger">停止</el-button>
-                            </el-row>
                         </el-col>
                     </el-row>
                     <el-divider></el-divider>

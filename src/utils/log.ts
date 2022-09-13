@@ -18,7 +18,7 @@ const genEle:{
 		}
 		return {
 			type: 'LIST',
-			data: ret
+			value: ret
 		}
 	},
 	LIST: (data: Array<Array<string>>, ele: Array<string>)=>{
@@ -27,37 +27,52 @@ const genEle:{
 	U4: (data: Array<Array<string>>, ele: Array<string>)=>{
 		return {
 			type: 'U4',
-			data:parseInt(ele[2])
+			value:parseInt(ele[2])
 		}
+	},
+	B: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'B',
+			value: ele[2]
+		}
+	},
+	BIN: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return genEle.B(data, ele)
 	},
 	A: (data: Array<Array<string>>, ele: Array<string>)=>{
 		return {
 			type: 'A',
-			data: ele[2]
+			value: ele[2]
 		}
 	},
 	ASCII: (data: Array<Array<string>>, ele: Array<string>)=>{
 		return {
 			type: 'A',
-			data: ele[2]
+			value: ele[2]
+		}
+	},
+	U1: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'U1',
+			value: parseInt(ele[2])
 		}
 	},
 	UINT1: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return genEle.U1(data, ele)
+	},
+	U2: (data: Array<Array<string>>, ele: Array<string>)=>{
 		return {
-			type: 'U1',
-			data: parseInt(ele[2])
+			type: 'U2',
+			value: parseInt(ele[2])
 		}
 	},
 	UINT2: (data: Array<Array<string>>, ele: Array<string>)=>{
-		return {
-			type: 'U2',
-			data: parseInt(ele[2])
-		}
+		return genEle.U2(data, ele)
 	},
 	UINT4: (data: Array<Array<string>>, ele: Array<string>)=>{
 		return {
 			type: 'U4',
-			data:parseInt(ele[2])
+			value: parseInt(ele[2])
 		}
 	},
 }
@@ -65,11 +80,15 @@ const genEle:{
 // 日志解析
 function parse(str: string){
 	let match
-	if(/<([A-Z]\d?) \[(\d+)][ ]?([^>\n]*)/.test(str))
-		match = str.matchAll(/<([A-Z]\d?) \[(\d+)][ ]?([^>\n]*)/gm)
+	if(/<([A-Z]+\d?) \[(\d+)][ ]?([^>\n]*)/.test(str))
+		match = str.matchAll(/<([A-Z]+\d?) \[(\d+)][ ]?([^>\n]*)/gm)
 	else if(/([A-Z]+\d?),[ ]*(\d+),?[ ]?<?([^>\n]*)>?/.test(str))
 		match = str.matchAll(/([A-Z]+\d?),[ ]*(\d+),?[ ]?<?([^>\n]*)>?/gm)
-    if(!match)return;
+    if(!match){
+		console.warn('parse failed, original data:', str);
+		return;
+	}
+	// console.log(str)
 
 	const data = []
 	for(let m of match){
@@ -105,32 +124,44 @@ const parseLog = (logStr: string)=>{
 
 	const send:any[] = []
 	const reply:any[] = []
+	const other:any[] = []
 	// log结构解析
     for(let log of logArr){
         // S1F17 H2E Wbit(True) DeviceID(1) Systembytes(3)
         const data = log.split(/S(\d+)F(\d+) (H2E|E2H) Wbit\((True|False)\) DeviceID\((\d+)\) Systembytes\((\d+)\)/)
-		const actionM = data[0].match(/\[[A-Z]+\](Receive|Send) \[S\d+F\d+_(E|H)\]/)
+		const actionM = data[0].match(/\[[A-Z]+\](Receive|Send|T\d timeout) (\[S\d+F\d+_(E|H)\])?/)
 		const f = parseInt(data[2])
-		// console.log(data)
 
 		// f为奇数，send
-		if(f & 1){
+		// TODO: timeout
+		if(actionM && actionM[1] === 'Send'){
 			send.push({
 				s: data[1],
 				f: data[2],
 				direct: data[3],
-				action: actionM ? actionM[1]: 'Unknown',
+				action: 'Send',
+				Wbit: data[4] === 'True',
+				deviceId: parseInt(data[5]),
+				sbyte: data[6],
+				data: parse(data[7])
+			})
+		}else if(actionM && actionM[1] === 'Receive'){
+			reply.push({
+				s: data[1],
+				f: data[2],
+				direct: data[3],
+				action: 'Receive',
 				Wbit: data[4] === 'True',
 				deviceId: parseInt(data[5]),
 				sbyte: data[6],
 				data: parse(data[7])
 			})
 		}else{
-			reply.push({
+			other.push({
 				s: data[1],
 				f: data[2],
 				direct: data[3],
-				action: actionM ? actionM[1]: 'Unknown',
+				action: actionM ? actionM[1] : 'Unknown',
 				Wbit: data[4] === 'True',
 				deviceId: parseInt(data[5]),
 				sbyte: data[6],
@@ -141,7 +172,7 @@ const parseLog = (logStr: string)=>{
         // console.log(parse(data[7]))
     }
 
-	// console.log(send, reply)
+	console.warn('other:', other)
 
 	// reply配对
 	for(let s of send){
@@ -150,6 +181,11 @@ const parseLog = (logStr: string)=>{
 			const r = reply.filter(e=>e.s === s.s && e.direct !== s.direct && e.sbyte === s.sbyte)
 			if(r[0]){
 				s.reply = r[0];
+				continue
+			}
+			const o = other.filter(e=>e.s === s.s && e.sbyte === s.sbyte)
+			if(o[0]){
+				s.reply = o[0];
 			}
 		}
 	}

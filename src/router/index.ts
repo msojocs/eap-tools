@@ -42,27 +42,27 @@ const routes = [
         }
     },
     {
-        path: "/mdb",
-        component: MDB,
+        path: "/debug",
+        component: DEBUG,
         meta: {
-            title: 'MDB编辑器 (暂停开发)',
-            icon: 'Edit'
+            title: '调试',
+            icon: 'CircleClose'
         }
     },
     {
         path: "/test",
         component: TEST,
         meta: {
-            title: '测试 (开发中)',
+            title: '单机测试 (dev)',
             icon: 'Compass'
         }
     },
     {
-        path: "/debug",
-        component: DEBUG,
+        path: "/mdb",
+        component: MDB,
         meta: {
-            title: '调试',
-            icon: 'CircleClose'
+            title: 'MDB编辑器 (pause)',
+            icon: 'Edit'
         }
     },
     {

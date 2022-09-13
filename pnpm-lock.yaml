@@ -14,7 +14,7 @@ specifiers:
   electron-builder: ^23.3.3
   electron-devtools-installer: ^3.2.0
   element-plus: ^2.2.13
-  exceljs-enhance: 4.3.4
+  exceljs-enhance: 4.3.5
   express: ^4.18.1
   mock-aws-s3: ^4.0.2
   multer: 1.4.5-lts.1
@@ -37,7 +37,7 @@ dependencies:
   chokidar: 3.5.3
   electron-devtools-installer: 3.2.0
   element-plus: 2.2.16_vue@3.2.39
-  exceljs-enhance: 4.3.4
+  exceljs-enhance: 4.3.5
   express: 4.18.1
   multer: 1.4.5-lts.1
   odbc: 2.4.4
@@ -1880,8 +1880,8 @@ packages:
     engines: {node: '>=0.4.x'}
     dev: true
 
-  /exceljs-enhance/4.3.4:
-    resolution: {integrity: sha512-zCRk5uewzj7gfgL27DONPwF2Ug3qmSamSRDPbuHbXqkVxDTXl+7hjYemBYLaGOlt7AQ2G2/K9/D0pFwKCN9u/Q==}
+  /exceljs-enhance/4.3.5:
+    resolution: {integrity: sha512-+6U4btL2PqA1NlNRY4nwa+L+W5be/CKVkAgONQfIAFEGw06fyV0rJQdG8TxSLIEfe2om6FnJZ2HJ48UVKg3WZg==}
     engines: {node: '>=8.3.0'}
     dependencies:
       archiver: 5.3.1

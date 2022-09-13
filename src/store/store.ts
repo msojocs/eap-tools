@@ -1,9 +1,10 @@
 import { InjectionKey } from 'vue'
 import { createStore, useStore as baseUseStore,  Store } from 'vuex'
 
-const packageObj: any = require("./package.json");
-
 const {app} = require('@electron/remote') as typeof import('@electron/remote');
+
+const isDev = process.env.IS_DEV == "true" ? true : false;
+const packageObj: any = require(`${!isDev ? app.getAppPath() : '.'}/package.json`);
 
 // 为 store state 声明类型
 export interface State {

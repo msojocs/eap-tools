@@ -1,5 +1,18 @@
 <script setup lang="ts">
-
+const cmdList = [
+    {
+        direct: 'H2E',
+        s: 1,
+        f: 13,
+        comment: '13'
+    },
+    {
+        direct: 'E2H',
+        s: 1,
+        f: 14,
+        comment: '14'
+    },
+]
 </script>
 
 <template>
@@ -23,24 +36,20 @@
                                 <el-col :span="6">Equipment</el-col>
                                 <el-col :span="6">Comment</el-col>
                             </el-row>
-                            <el-row :span="6">
-                                <el-col :span="6">1</el-col>
-                                <el-col :span="6">S1F13-&gt;</el-col>
-                                <el-col :span="6"></el-col>
-                                <el-col :span="6">4</el-col>
-                            </el-row>
-                            <el-row :span="6">
-                                <el-col :span="6"></el-col>
-                                <el-col :span="6"></el-col>
-                                <el-col :span="6">&lt;-S1F14</el-col>
-                                <el-col :span="6">4</el-col>
-                            </el-row>
-                            <el-row :span="6">
-                                <el-col :span="6">1</el-col>
-                                <el-col :span="6">2</el-col>
-                                <el-col :span="6">3</el-col>
-                                <el-col :span="6">4</el-col>
-                            </el-row>
+                            <block v-for="cmd in cmdList">
+                                <el-row :span="6" v-if="cmd.direct === 'H2E'">
+                                    <el-col :span="6">{{cmd.comment}}</el-col>
+                                    <el-col :span="6">S{{cmd.s}}F{{cmd.f}}-&gt;</el-col>
+                                    <el-col :span="6"></el-col>
+                                    <el-col :span="6"></el-col>
+                                </el-row>
+                                <el-row :span="6" v-else>
+                                    <el-col :span="6"></el-col>
+                                    <el-col :span="6"></el-col>
+                                    <el-col :span="6">&lt;-S{{cmd.s}}F{{cmd.f}}</el-col>
+                                    <el-col :span="6">{{cmd.comment}}</el-col>
+                                </el-row>
+                            </block>
                         </el-col>
                         <el-col :span="4">
                             <el-row>

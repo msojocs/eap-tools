@@ -331,6 +331,23 @@ const fixDataForXMLFUNC = {
         }
         return `${mark}${num || ''}`
     },
+    fixColumn: (ws: Worksheet, colList: Array<String>) => {
+        const row = ws.getRow(2);
+        const {values} = row
+        
+        // console.log(values, row)
+        if(!values || !values.includes)return 'values 获取失败';
+
+        const upValues = (values as any[]).map(e=>e.toUpperCase())
+        const lostList: any[] = colList.filter(e=> !upValues.includes(e.toUpperCase()))
+        const colData = lostList.map(v=>[, v])
+        // console.log(lostList)
+        if(colData.length > 0)
+            ws.spliceColumns(ws.actualColumnCount < 10 ? ws.actualColumnCount : 10, 0, ...colData)
+        else
+            return 'ok'
+        return lostList.join(', ')
+    },
     fixUsedColumn: (ws: Worksheet) => {
         let str = ''
         // 定位Used所在列，可能找不到
@@ -427,48 +444,85 @@ const fixDataForXMLFUNC = {
  */
 const fixDataForXML = (wb: Workbook) => {
     // Event List
+    // const fixConfig = {
+    //     'Event List': ['Event ID', 'Description', 'Comment', 'Link Report ID', 'Alias', 'Used(O/X)'],
+    //     'Report List': ['Report ID', 'Description', 'Comment', 'Link VID', 'Alias', 'Used(O/X)'],
+    //     'Variables List': ['VID', 'Description', 'Type', 'Default', 'Max', 'Min', 'Length', 'Comment', 'Alias', 'Rule', 'Used(O/X)'],
+    //     'Remote Command List': ['ID', 'Command', 'RCMD(ASCII)', 'Link CPID', 'Length', 'Description', 'Alias', 'Used(O/X)'],
+    //     'Remote Command Parameter List': ['CPID', 'CPNAME', 'CPTYPE', 'CPAL', 'Length', 'Description', 'Alias', 'Rule', 'Used(O/X)'],
+    //     'Trace Data List': ['Sequence', 'SVID', 'Description', 'Type', 'Default', 'Max', 'Min', 'Length', 'Group', 'GroupName', 'Comment', 'Alias', 'Used(O/X)'],
+    //     'Recipe Parameter List': ['Sequence', 'PPARM', 'Description', 'Type', 'Default', 'Max', 'Min', 'Length', 'Comment', 'Alias', 'Used(O/X)', 'Group', 'GroupName'],
+    //     'Equipment Constant List': ['Sequence', 'ECID', 'Description', 'Type', 'Default', 'Max', 'Min', 'Length', 'Comment', 'Alias', 'Rule', 'Used(O/X)'],
+    //     'Alarm List': ['Sequence', 'Alarm ID', 'Alarm Type', 'Alarm Text Chinese', 'Alarm Text English', 'Used(O/X)'],
+    //     'Process Measure Data List': ['Sequence', 'DVName', 'Description', 'Type', 'Default', 'Max', 'Min', 'Length', 'Comment', 'Used(O/X)'],
+    //     } as {
+    //     [key: string]: Array<String>
+    // }
+    // let ret = ''
+    // for (let ws of wb.worksheets) {
+    //     const config = fixConfig[ws.name]
+    //     // 跳过未配置项目
+    //     if (!config) continue
+
+    //     ret += `${ws.name}处理：`
+    //     ret += fixDataForXMLFUNC.fixColumn(ws, config)
+    //     ret += '<br />\r\n'
+    // }
     const fixConfig = {
         'Event List': {
             used: true,
             alias: true,
+            columns: ['Event ID', 'Description', 'Comment', 'Link Report ID', 'Alias', 'Used(O/X)'],
         },
         'Report List': {
             used: true,
             alias: true,
+            columns: ['Report ID', 'Description', 'Comment', 'Link VID', 'Alias', 'Used(O/X)'],
         },
         'Variables List': {
             used: true,
             alias: true,
             type: 'Type',
+            columns: ['VID', 'Description', 'Type', 'Default', 'Max', 'Min', 'Length', 'Comment', 'Alias', 'Rule', 'Used(O/X)'],
         },
         'Remote Command List': {
             used: true,
             alias: true,
+            columns: ['ID', 'Command', 'RCMD(ASCII)', 'Link CPID', 'Length', 'Description', 'Alias', 'Used(O/X)'],
         },
         'Remote Command Parameter List': {
             used: true,
             type: 'CPTYPE',
+            columns: ['CPID', 'CPNAME', 'CPTYPE', 'CPAL', 'Length', 'Description', 'Alias', 'Rule', 'Used(O/X)'],
         },
         'Trace Data List': {
             used: true,
             type: 'Type',
+            columns: ['Sequence', 'SVID', 'Description', 'Type', 'Default', 'Max', 'Min', 'Length', 'Group', 'GroupName', 'Comment', 'Alias', 'Used(O/X)'],
         },
         'Recipe Parameter List': {
             used: true,
             type: 'Type',
+            columns: ['Sequence', 'PPARM', 'Description', 'Type', 'Default', 'Max', 'Min', 'Length', 'Comment', 'Alias', 'Used(O/X)', 'Group', 'GroupName'],
         },
-        'Equipment Constant List':{
+        'Equipment Constant List': {
             used: true,
             type: 'Type',
+            columns: ['Sequence', 'ECID', 'Description', 'Type', 'Default', 'Max', 'Min', 'Length', 'Comment', 'Alias', 'Rule', 'Used(O/X)'],
         },
-        'Alarm List':{
+        'Alarm List': {
             used: true,
+            columns: ['Sequence', 'Alarm ID', 'Alarm Type', 'Alarm Text Chinese', 'Alarm Text English', 'Used(O/X)'],
         },
+        'Process Measure Data List': {
+            columns: ['Sequence', 'DVName', 'Description', 'Type', 'Default', 'Max', 'Min', 'Length', 'Comment', 'Used(O/X)'],
+        }
     } as {
         [key: string]: {
             used?: boolean,
             alias?: boolean,
             type?: 'Type' | 'CPTYPE',
+            columns: string[]
         }
     }
     let ret = ''
@@ -477,9 +531,12 @@ const fixDataForXML = (wb: Workbook) => {
         // 跳过未配置项目
         if (!config) continue
 
-        if (config.used) ret += fixDataForXMLFUNC.fixUsedColumn(ws)
-        if (config.alias) ret += fixDataForXMLFUNC.fixAliasColumn(ws)
-        if (config.type) ret += fixDataForXMLFUNC.fixTypeColumn(ws, config.type)
+        ret += `${ws.name}处理：`
+        ret += fixDataForXMLFUNC.fixColumn(ws, config.columns)
+        // if (config.used) ret += fixDataForXMLFUNC.fixUsedColumn(ws)
+        // if (config.alias) ret += fixDataForXMLFUNC.fixAliasColumn(ws)
+        // if (config.type) ret += fixDataForXMLFUNC.fixTypeColumn(ws, config.type)
+        ret += '<br />\r\n'
     }
     return ret
 }

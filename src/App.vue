@@ -23,12 +23,12 @@ console.log(router.getRoutes(), route)
           :collapse="isCollapse"
           router
           >
-          <el-menu-item v-for="r in router.getRoutes()" :key="r.path" :index="r.path">
+          <el-menu-item v-for="r in router.options.routes" :key="r.path" :index="r.path">
             <el-icon>
-              <component :is="r.meta.icon"></component>
+              <component :is="r.meta?.icon"></component>
             </el-icon>
             <template #title>
-              <span>{{r.meta.title}}</span>
+              <span>{{r.meta?.title}}</span>
             </template>
           </el-menu-item>
         </el-menu>

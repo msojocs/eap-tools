@@ -162,8 +162,7 @@ const fixDataForXML = async ()=>{
             <div>
                 <ol>
                     <li>项目类型矫正</li>
-                    <li>Type</li>
-                    <li>Used</li>
+                    <li>列补全</li>
                 </ol>
                 <br />
                 <el-button @click="fixDataForXML" type="primary" :disabled="!secsFile">处理生成</el-button>

@@ -1,22 +1,31 @@
 const getTextValue = (value: any)=>{
     let result = ''
-    switch(typeof value){
-        case 'string':
-            result += value
-            break
-        case 'object':
-            if(value.richText)
-            for(let str of value.richText){
-                result += str.text
-            }
-            else if (value.result){
-                result += value.result
-            }
-            break
-        default:
-            console.warn('原样返回，unknown type:', typeof value, value)
-            return value
-            break;
+    if(!value)return result
+    
+    try{
+
+        switch(typeof value){
+            case 'string':
+                result += value
+                break
+            case 'object':
+                if(value?.richText){
+                    for(let str of value.richText){
+                        result += str.text
+                    }
+                }else if (value?.result){
+                    result += value.result
+                }
+                break
+            default:
+                console.warn('原样返回，unknown type:', typeof value, value)
+                return value
+                break;
+        }
+    }catch(err){
+        console.log('value:', value)
+        console.error(err)
+        return 'error'
     }
     return result
 }

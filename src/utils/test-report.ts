@@ -1,5 +1,6 @@
 import { Workbook, Worksheet } from "exceljs-enhance"
 import {getTextValue} from './common'
+import { LogData } from "./types"
 
 /**
  * 生成业务流程清单
@@ -225,22 +226,124 @@ const testPrepare = (wb: Workbook)=>{
     return true
 }
 
+// 字符串是否为StreamFunction
 const isSXFY = (ele: any)=>{
-    console.log('isSXFY:', ele)
+    // console.log('isSXFY:', ele)
     if(!ele)return false
-    switch (typeof ele) {
-        case 'string':
-            return ele.includes('S') && ele.includes('F') && ele.length < 10
-        case 'object':
-            for(let str of ele.richText){
-                if(/S\d+.*?F\d+/.test(str.text as string))return true
+    return ele.includes('S') && ele.includes('F') && ele.length < 10
+}
+
+// 字符串转StreamFunction
+const parseSXFY = (sf: string) => {
+    const s = sf.match(/S(\d+)/)
+    const f = sf.match(/F(\d+)/)
+    if(s && f)
+    return [s[1], f[1]]
+    return null
+}
+
+// 解析指定工作表的日志
+const parseLogItems = (ws: Worksheet)=>{
+
+    const logData:any = []
+    const resultColumn = ws.getColumn('F')
+    const rowCount = ws.actualRowCount;
+    
+    const resultRow: number[] = []
+    resultColumn.eachCell((cell, rowNum)=>{
+        if(cell.value === 'Result'){
+            resultRow.push(rowNum)
+        }
+    })
+
+    for (let rowCnt = 0; rowCnt < resultRow.length; rowCnt++) {
+        const curRow = resultRow[rowCnt];
+        const nextRow = rowCnt + 1 < resultRow.length ? resultRow[rowCnt + 1] : rowCount
+
+        const cell = ws.getCell(curRow, 6)
+        const logItem:LogData = {
+            title: "",
+            comment: "",
+            result: '',
+            sxfy: {
+                data: undefined
+            },
+            log: ""
+        }
+
+        logItem.title = getTextValue(ws.getCell(curRow - 1, 6).value)
+        logItem.comment = getTextValue(ws.getCell(curRow + 1, 2).value)
+        logItem.result = getTextValue(ws.getCell(curRow + 1, cell.col).value)
+        logItem.sxfy = {
+            data: []
+        }
+        let rowInc = 1
+        let resultCell = ws.getCell(curRow + rowInc, 6)
+        while (resultCell && !resultCell.isMerged && resultCell.value?.toString() !== 'Result') {
+            resultCell = ws.getCell(curRow + ++rowInc, 6)
+        }
+        
+        // sxfy
+        rowInc = 2
+        let row
+        do {
+            const ele:any = {}
+            row = ws.getRow(curRow + rowInc)
+            ele.comment = (row.values as Array<any>)[2] || (row.values as Array<any>)[5]
+
+            // 取纯文字
+            const xy3 = getTextValue((row.values as Array<any>)[3])
+            const xy4 = getTextValue((row.values as Array<any>)[4])
+            if(isSXFY(xy3)){
+                // host 2 eqp
+                const sf = parseSXFY(xy3)
+                ele.direct = 'H2E'
+                if(sf){
+                    ele.s = sf[0]
+                    ele.f = sf[1]
+                }
+            }else if(isSXFY(xy4)){
+                // eqp 2 host
+                const sf = parseSXFY(xy4)
+                ele.direct = 'E2H'
+                if(sf){
+                    ele.s = sf[0]
+                    ele.f = sf[1]
+                }
+            }else{
+                ele.direct = 'NONE'
             }
-            break
-        default:
-            console.error(`无法识别的类型: ${typeof ele}`)
-            break;
+            rowInc++
+            logItem.sxfy.data.push(ele)
+        } while (row.values.length && row.values.length > 0 && curRow + rowInc < nextRow);
+
+        // log data
+        if(logItem.result != 'NA'){
+            logItem.log = '';
+            rowInc = 1;
+            let ok = false
+            while(!ok && rowInc < 5){
+                const logCell = ws.getCell(curRow + rowInc, cell.col + 1)
+                const logText = getTextValue(logCell.value)
+                if(logText && logText.length > 0){
+                    logItem.log += logText;
+                }
+                const logCell2 = ws.getCell(curRow + rowInc++, cell.col + 2)
+                const logText2 = getTextValue(logCell2.value)
+                if(logText2 && logText2.length > 0){
+                    logItem.log += logText2;
+                }
+                if(logItem.log.length > 0)
+                    ok = true
+            }
+            if(logItem.log.length == 0){
+                console.warn('log not found:', logItem)
+            }
+        }
+        logData.push(logItem)
+
     }
-    return false;
+    return logData
 }
 
 /**
@@ -252,55 +355,13 @@ const parseProcessItem = (wb: Workbook)=>{
     const allLogData:any = {}
     for(let ws of wb.worksheets){
         if(ws.state !== 'visible')continue
-        if(ignoreList.includes(ws.name))continue
+        if(ignoreList.includes(ws.name.replaceAll(' ', '')))continue
         // console.log(ws.getSheetValues())
 
-        const logData:any = []
-        const resultColumn = ws.getColumn('F')
-        
-        resultColumn.eachCell((cell, rowNum)=>{
-            // console.log(rowNum)
-            
-            if(cell.value === 'Result'){
-                const logItem:any = {}
-                logItem.title = ws.getCell(rowNum - 1, 6).value
-                logItem.comment = ws.getCell(rowNum + 1, 2).value
-                logItem.sxfy = {
-                    data: []
-                }
-                let rowInc = 1
-                let resultCell = ws.getCell(rowNum + rowInc, 6)
-                while (resultCell && !resultCell.isMerged && resultCell.value?.toString() !== 'Result') {
-                    resultCell = ws.getCell(rowNum + ++rowInc, 6)
-                }
-                
-                // sxfy
-                rowInc = 2
-                let row
-                do {
-                    const ele:any = {}
-                    row = ws.getRow(rowNum + rowInc)
-                    ele.comment = (row.values as Array<any>)[2] || (row.values as Array<any>)[5]
-                    if(isSXFY((row.values as Array<any>)[3])){
-                        // host 2 eqp
-                        ele.type = 'h2e'
-                        ele.sf = (row.values as Array<any>)[3]
-                    }else if(isSXFY((row.values as Array<any>)[4])){
-                        // eqp 2 host
-                        ele.type = 'e2h'
-                        ele.sf = (row.values as Array<any>)[4]
-                    }else{
-                        ele.type = 'none'
-                    }
-                    rowInc++
-                    logItem.sxfy.data.push(ele)
-                } while (row.values.length && row.values.length > 0);
-                logData.push(logItem)
-            }
-        })
-        allLogData[ws.name] = logData
+        allLogData[ws.name] = parseLogItems(ws)
     }
-    console.log(allLogData)
+    // console.log(allLogData)
+    return allLogData
 }
 
 export {

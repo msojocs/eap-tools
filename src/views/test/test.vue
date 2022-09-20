@@ -36,7 +36,7 @@ const cmdList = [
                                 <el-col :span="6">Equipment</el-col>
                                 <el-col :span="6">Comment</el-col>
                             </el-row>
-                            <block v-for="cmd in cmdList">
+                            <template v-for="cmd in cmdList">
                                 <el-row :span="6" v-if="cmd.direct === 'H2E'">
                                     <el-col :span="6">{{cmd.comment}}</el-col>
                                     <el-col :span="6">S{{cmd.s}}F{{cmd.f}}-&gt;</el-col>
@@ -49,7 +49,7 @@ const cmdList = [
                                     <el-col :span="6">&lt;-S{{cmd.s}}F{{cmd.f}}</el-col>
                                     <el-col :span="6">{{cmd.comment}}</el-col>
                                 </el-row>
-                            </block>
+                            </template>
                         </el-col>
                         <el-col :span="4">
                             <el-row>

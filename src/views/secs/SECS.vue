@@ -78,7 +78,7 @@ const generatorMergeSECS = async ()=>{
 
     try {
             
-        secsHandle.testPrepare(wb)
+        secsHandle.testPrepareV2(wb)
         await wb.xlsx.writeFile(newSecsFile.value)
         ElMessage({
             type: 'success',

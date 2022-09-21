@@ -8,11 +8,11 @@
                 
                     <el-col :span="4">
                         <el-row>
-                            <el-select>
+                            <el-select v-model="log.result">
                                 <el-option label="NA" value="NA"></el-option>
-                                <el-option label="OK" value="OK"></el-option>
+                                <el-option label="OK手动" value="OK"></el-option>
                                 <el-option label="OK自动" value="OK2"></el-option>
-                                <el-option label="NG" value="NG"></el-option>
+                                <el-option label="NG手动" value="NG"></el-option>
                                 <el-option label="NG自动" value="NG2"></el-option>
                             </el-select>
                         </el-row>
@@ -30,23 +30,25 @@
                             <el-col :span="6">Comment</el-col>
                             <el-col :span="4">Host</el-col>
                             <el-col :span="4">Equipment</el-col>
-                            <el-col :span="10">Comment</el-col>
+                            <el-col :span="6">Comment</el-col>
+                            <el-col :span="4">Other</el-col>
                         </el-row>
-                        <template v-for="cmd in log.cmdList">
-                            <hr />
-                            <el-row :span="6" v-if="cmd.direct === 'E2H'" style="font-size: smaller">
-                                <el-col :span="6"></el-col>
-                                <el-col :span="4"></el-col>
-                                <el-col :span="4">{{cmd.s?`<-S${cmd.s}F${cmd.f}`:''}}</el-col>
-                                <el-col :span="10">{{cmd.comment}}</el-col>
-                            </el-row>
-                            <el-row :span="6" v-else style="font-size: smaller">
-                                <el-col :span="6">{{cmd.comment}}</el-col>
-                                <el-col :span="4">{{cmd.s?`S${cmd.s}F${cmd.f}->`:''}}</el-col>
-                                <el-col :span="4"></el-col>
-                                <el-col :span="10"></el-col>
-                            </el-row>
-                        </template>
+                        <el-row>
+                            <el-col :span="20">
+                                <template v-for="cmd in log.cmdList">
+                                    <hr />
+                                    <el-row :span="6" style="font-size: smaller">
+                                        <el-col :span="6">{{cmd.direct === 'E2H' ? '' : cmd.comment}}</el-col>
+                                        <el-col :span="4">{{cmd.direct === 'E2H' ? '' : (cmd.s?`S${cmd.s}F${cmd.f}->`:'')}}</el-col>
+                                        <el-col :span="4">{{cmd.direct === 'E2H' ? (cmd.s?`<-S${cmd.s}F${cmd.f}`:'') : ''}}</el-col>
+                                        <el-col :span="10">{{cmd.direct === 'E2H' ? cmd.comment : ''}}</el-col>
+                                    </el-row>
+                                </template>
+                            </el-col>
+                            <el-col :span="4">
+data
+                            </el-col>
+                        </el-row>
                     </el-col>
                 </el-row>
                 <el-divider></el-divider>

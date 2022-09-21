@@ -4,7 +4,7 @@ import {changeWorkSheetPosition, copyWorksheet } from '@/utils/excel'
 
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
 
-const FUNC = {
+const ParseFunc = {
     parseEventList: (eventListSheet: Worksheet) => {
 
         // Event - Link Report Id
@@ -43,43 +43,67 @@ const FUNC = {
         // console.log('eid2rid:', eid2rid)
         return eid2rid
     },
-    parseReportList: (reportListSheet: Worksheet) => {
-
-        // Report - Link Var Id
-        const reportListData = reportListSheet.getSheetValues()
-        const title = reportListData[1] as string[]
-        if (title === null || title === undefined || !title.includes("ReportID List")) {
-            throw new Error("ReportID List ERROR");
+    parseReportList: (reportWorkSheet: Worksheet)=>{
+    
+        const reportRows = reportWorkSheet.getRows(3, reportWorkSheet.rowCount - 2);
+        if (!reportRows) throw new Error("Report List 数据行获取失败！");
+    
+        // 遍历Report List
+        const rptMap = {
+    
+        } as {
+            [key: string]: any
         }
-        const ridIndex = (reportListData[2] as string[]).indexOf("Report ID")
-        let vidIndex = (reportListData[2] as string[]).indexOf("Link VID")
-        // console.log('Report ID list:',  ridIndex, vidIndex)
-
-        const rpt2vidMap: any = {}
-        let rData = reportListData.slice(3, reportListData.length)
-        for (let data of rData as Array<string>[]) {
-            // console.log('data:', data)
-            if (data === null || data === undefined) continue
-
-            if (typeof data.length !== "number") continue
-            const vIds = []
-            const vidstr = data[vidIndex]
-            if (typeof vidstr === 'string') {
-                const ridsM = vidstr.match(/\d+/g)
-                if (ridsM !== null)
-                    vIds.push(...ridsM)
-            } else if (typeof vidstr === 'number') {
-                vIds.push(vidstr)
-            } else {
-                console.error('无法识别的var id类型')
+        let vidIndex = 4
+        reportWorkSheet.getRow(2).eachCell((cell, colNum)=>{
+            if(getTextValue(cell.value).includes('VID')){
+                vidIndex = colNum
             }
-            // console.warn('rids:', rids)
-            rpt2vidMap[data[`${ridIndex}`]] = {
-                vIds
-            }
+        })
+        for (let row of reportRows) {
+            const rptCell = row.getCell(1)
+            const vidCell = row.getCell(vidIndex)
+            if (!rptCell.value) continue
+    
+            const rid = rptCell.value as string
+            rptMap[rid] = getTextValue(vidCell.value).match(/\d+/g)
         }
-        // console.log('rpt2vidMap:', rpt2vidMap)
-        return rpt2vidMap
+        return rptMap
+
+    },
+    parseVariableList: (varWorkSheet: Worksheet)=>{
+    
+        const varRows = varWorkSheet.getRows(3, varWorkSheet.rowCount - 2);
+        if (!varRows) throw new Error("Variables List 数据行获取失败！");
+    
+        const varHead = varWorkSheet.getRow(2)
+        const varIndexMap = {} as any;
+        varHead.eachCell((cell, colNum)=>{
+            if(cell.value)
+            varIndexMap[(cell.value as string).toLocaleLowerCase()] = colNum
+        })
+        // 遍历var List
+        const varMap = {} as {
+            [key: string]: any
+        }
+        for (let row of varRows) {
+            const vidCell = row.getCell(varIndexMap['vid'])
+            const descCell = row.getCell(varIndexMap['description'])
+            const typeCell = row.getCell(varIndexMap['type'])
+            const commentCell = row.getCell(varIndexMap['comment'])
+            if (!vidCell.value) continue
+    
+            const vid = vidCell.value as string
+            varMap[vid] = {
+                id: vid,
+                desc: getTextValue(descCell.value),
+                type: getTextValue(typeCell.value),
+                comment: getTextValue(commentCell.value),
+            }
+
+        }
+
+        return varMap
     }
 }
 const parse = async (filePath: string) => {
@@ -91,11 +115,13 @@ const parse = async (filePath: string) => {
     const reportListSheet = wb.getWorksheet("Report List")
     const varListSheet = wb.getWorksheet("Variables List")
 
-    const eid2rid = FUNC.parseEventList(eventListSheet);
-    const rid2vid = FUNC.parseReportList(reportListSheet);
+    const eid2rid = ParseFunc.parseEventList(eventListSheet);
+    const rid2vid = ParseFunc.parseReportList(reportListSheet);
+    const vidData = ParseFunc.parseVariableList(varListSheet);
     return {
         eid2rid,
-        rid2vid
+        rid2vid,
+        vidData,
     }
 };
 
@@ -294,6 +320,169 @@ const testPrepare = (wb: Workbook) => {
             if(varMap[vid])
             comment.push(...varMap[vid])
         }
+        const commentCell = eventRow.getCell(6)
+        commentCell.alignment = {
+            vertical: 'middle',
+            horizontal: 'left',
+            wrapText: true
+        }
+        // console.log(comment)
+        commentCell.value = {
+            richText: comment
+        }
+        commentCell.border = vidCell.border
+    }
+}
+const testPrepareV2 = (wb: Workbook) => {
+    const resultWorkSheet = wb.getWorksheet('ERV Merge List(整合表)')
+    if (!resultWorkSheet) throw new Error("ERV Merge List(整合表)工作表获取失败！");
+    const reportWorkSheet = wb.getWorksheet('Report List')
+    if (!reportWorkSheet) throw new Error("Report List工作表获取失败！");
+    const varWorkSheet = wb.getWorksheet('Variables List')
+    if (!varWorkSheet) throw new Error("Variables List工作表获取失败！");
+
+    const rptMap = ParseFunc.parseReportList(reportWorkSheet)
+    const varMap = ParseFunc.parseVariableList(varWorkSheet)
+    // 删除Event List无用列
+    const needs: (string | undefined)[] = ["Event ID", "Description", "Comment", "Link Report ID"]
+    for (let i = 0; i < resultWorkSheet.actualColumnCount; i++) {
+        const col = resultWorkSheet.columns[i];
+        if (!col.values) continue
+        const type = col.values[2]?.toString()
+        if (type)
+            if (!needs.includes(type)) {
+                // console.log(i + 1, type)
+                resultWorkSheet.spliceColumns(i + 1, 1)
+                i--
+            } else if (col.width && col.width > 30) {
+                col.width = 30
+            }
+
+    }
+    resultWorkSheet.getColumn(5).width = 20
+    resultWorkSheet.getColumn(6).width = 50
+    resultWorkSheet.getCell('E2').value = 'VID'
+    resultWorkSheet.getCell('E2').font = {
+        bold: true,
+        underline: true
+    }
+    resultWorkSheet.getCell('E2').alignment = {
+        vertical: 'middle',
+        horizontal: 'center',
+    }
+    resultWorkSheet.getCell('E2').fill = {
+        fgColor: {
+            argb: 'FFD9D9D9'
+        },
+        bgColor: {
+            argb: 'FF0000FF'
+        },
+        pattern: 'solid',
+        type: 'pattern'
+    }
+    resultWorkSheet.getCell('E2').border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' },
+    }
+    resultWorkSheet.getCell('F2').value = 'VID详情'
+    resultWorkSheet.getCell('F2').font = resultWorkSheet.getCell('E2').font
+    resultWorkSheet.getCell('F2').alignment = resultWorkSheet.getCell('E2').alignment
+    resultWorkSheet.getCell('F2').fill = resultWorkSheet.getCell('E2').fill
+    resultWorkSheet.getCell('F2').border = resultWorkSheet.getCell('E2').border
+    resultWorkSheet.views = [
+        { state: 'frozen', ySplit: 2, activeCell: 'A1' }
+    ];
+
+    const eventRows = resultWorkSheet.getRows(3, resultWorkSheet.rowCount - 2);
+    if (!eventRows) throw new Error("Event List 数据行获取失败！");
+    const reportRows = reportWorkSheet.getRows(3, reportWorkSheet.rowCount - 2);
+    if (!reportRows) throw new Error("Report List 数据行获取失败！");
+    const varRows = varWorkSheet.getRows(3, varWorkSheet.rowCount - 2);
+    if (!varRows) throw new Error("Variables List 数据行获取失败！");
+
+    const varHead = varWorkSheet.getRow(2)
+    const varIndexMap = {} as any;
+    varHead.eachCell((cell, colNum)=>{
+        if(cell.value)
+        varIndexMap[(cell.value as string).toLocaleLowerCase()] = colNum
+    })
+    // 遍历Event List, 开始写入数据
+    for (let eventRow of eventRows) {
+        const reportIDCell = eventRow.getCell(4)
+        if (!reportIDCell.value) {
+            continue
+        }
+
+        // 从Report List找vid
+        let vid = rptMap[getTextValue(reportIDCell.value)].join('\r\n')
+        if (!vid || vid.length === 0) {
+            console.warn(`未找到Report ID${reportIDCell.value}对应的VID！`);
+            continue
+        }
+        vid = `${vid}`
+        const vidCell = eventRow.getCell(5)
+        vidCell.value = vid.replaceAll(',', '\r\n')
+        vidCell.alignment = {
+            vertical: 'middle',
+            horizontal: 'left',
+            wrapText: true
+        }
+        vidCell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+        }
+        const vids = vid.match(/(\d+)/g)
+        if (!vids) {
+            console.warn(`vid${vid}解析失败！`);
+            continue
+        }
+        // console.log(vids)
+
+        // vid详情
+        let comment = []
+        for (const vid of vids) {
+            const varData = varMap[vid]
+            if(varData){
+                const data = [
+                    {
+                        'font': {
+                            'color': { 'argb': 'FFFF3300' }
+                        },
+                        'text': `vid${vid}`
+                    },
+                    {
+                        'font': {
+                            'color': { 'argb': 'FF660000' }
+                        },
+                        'text': `, ${varData.desc}`
+                    },
+                    {
+                        'font': {
+                            'color': { 'argb': 'FF116600' }
+                        },
+                        'text': `, 类型${varData.type}`
+                    },
+                    {
+                        'font': {
+                            'color': { 'argb': 'FF0000FF' }
+                        },
+                        'text': `, 取值:\r\n${varData.comment}`
+                    },
+                    {
+                        'font': {
+                            'color': { 'argb': 'FF0000FF' }
+                        },
+                        'text': `\r\n`
+                    },
+                ]
+                comment.push(...data)
+            }
+        }
+        comment.pop()
         const commentCell = eventRow.getCell(6)
         commentCell.alignment = {
             vertical: 'middle',
@@ -543,5 +732,6 @@ const fixDataForXML = (wb: Workbook) => {
 export {
     parse,
     testPrepare,
+    testPrepareV2,
     fixDataForXML,
 }

@@ -244,7 +244,7 @@ const parseSXFY = (sf: string) => {
 
 // 解析指定工作表的日志
 const parseLogItems = (ws: Worksheet)=>{
-    if(ws.name.includes('设备控制模式切换'))debugger
+    // if(ws.name.includes('设备控制模式切换'))debugger
 
     const logData:any = []
     const resultColumn = ws.getColumn('F')

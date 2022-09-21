@@ -1,4 +1,4 @@
-const getTextValue = (value: any)=>{
+const getTextValue = (value: any): string=>{
     let result = ''
     if(!value)return result
     

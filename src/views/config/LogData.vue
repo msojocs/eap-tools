@@ -31,7 +31,7 @@
                             <el-col :span="4">Host</el-col>
                             <el-col :span="4">Equipment</el-col>
                             <el-col :span="6">Comment</el-col>
-                            <el-col :span="4">Other</el-col>
+                            <el-col :span="4">Analyze</el-col>
                         </el-row>
                         <el-row>
                             <el-col :span="20">
@@ -46,7 +46,7 @@
                                 </template>
                             </el-col>
                             <el-col :span="4">
-data
+                                <div v-html="log.analyze"></div>
                             </el-col>
                         </el-row>
                     </el-col>

@@ -24,21 +24,9 @@ const ParseFunc = {
             if (data === null || data === undefined) continue
 
             if (typeof data.length !== "number") continue
-            const rptIds = []
-            const ridstr = data[ridIndex]
-            if (typeof ridstr === 'string') {
-                const ridsM = ridstr.match(/\d+/g)
-                if (ridsM !== null)
-                    rptIds.push(...ridsM)
-            } else if (typeof ridstr === 'number') {
-                rptIds.push(ridstr)
-            } else {
-                console.warn('无法识别的rpt id类型', typeof ridstr, ridstr)
-            }
+            const ridStr = '' + data[ridIndex]
             // console.warn('rids:', rids)
-            eid2rid[data[`${eidIndex}`]] = {
-                rptIds
-            }
+            eid2rid[data[`${eidIndex}`]] = ridStr.match(/\d+/g)
         }
         // console.log('eid2rid:', eid2rid)
         return eid2rid
@@ -106,11 +94,7 @@ const ParseFunc = {
         return varMap
     }
 }
-const parse = async (filePath: string) => {
-    console.log('path: ', filePath)
-    const wb = new Excel.Workbook()
-    await wb.xlsx.readFile(filePath)
-    console.log(wb)
+const parse = (wb: Workbook) => {
     const eventListSheet = wb.getWorksheet("Event List")
     const reportListSheet = wb.getWorksheet("Report List")
     const varListSheet = wb.getWorksheet("Variables List")

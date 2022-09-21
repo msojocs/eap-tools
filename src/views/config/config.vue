@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import * as secs from '@/utils/secs'
+import { analyze } from '@/utils/log'
 import * as logHandle from '@/utils/test-report'
-import {useStore} from '@/store/store'
+import { useStore } from '@/store/store'
 // import * as Excel from 'exceljs'
 import { ref } from 'vue'
 import LogData from './LogData.vue';
@@ -15,7 +16,7 @@ const store = useStore()
 
 const secsFile = ref(localStorage.getItem('secsFile'))
 const logFile = ref(localStorage.getItem('logFile'))
-const resultData = ref('')
+const targetTab = ref('联线初始化')
 
 const reportData = ref<{
     [key: string]: any
@@ -68,28 +69,47 @@ const selectLogFile = async ()=>{
 // 解析SECS
 const parseSecs = async ()=>{
     console.log('parse secs: ', secsFile.value)
-    const secsData = await secs.parse(secsFile.value as string)
+    const wb = new Excel.Workbook()
+    await wb.xlsx.readFile(secsFile.value as string)
+    console.log(wb)
+    const secsData = await secs.parse(wb)
     const fs = require('fs') as typeof import('fs')
-    try {
-        console.log('result:', secsData);
-        resultData.value = JSON.stringify(secsData, null, 4)
-        fs.mkdirSync(store.state.dataLoc, {
-            recursive: true
-        })
-    } catch (error) {
-        
+    console.log('result:', secsData);
+    console.log('reportData:', reportData)
+    for(let k in reportData.value){
+        // console.log('k:', k, reportData.value[k])
+        const testList = reportData.value[k]
+        for(let item of testList){
+            console.log('item:', item)
+            item.analyze = `<h1>testttttt</h1>`
+        }
     }
-    console.log(`${store.state.dataLoc}/secs.json`)
-    fs.writeFileSync(`${store.state.dataLoc}/secs.json`, JSON.stringify(secs))
 }
 
 // 解析报告
 const parseReport = async ()=>{
+    console.log('parse secs: ', secsFile.value)
+    const wb1 = new Excel.Workbook()
+    await wb1.xlsx.readFile(secsFile.value as string)
+    // console.log(wb1)
+    const secsData = await secs.parse(wb1)
+    
     const wb = new Excel.Workbook()
     await wb.xlsx.readFile(logFile.value as string)
-    console.log('解析报告:', wb)
-    reportData.value = logHandle.parseLogData(wb)
-    console.log(reportData.value)
+    // console.log('解析报告:', wb)
+    const logData = logHandle.parseLogData(wb)
+
+    // 分析
+    for(let k in logData){
+        // console.log('k:', k, reportData.value[k])
+        const testList = logData[k]
+        for(let item of testList){
+            item.analyze = analyze(item, secsData)
+        }
+    }
+    reportData.value = logData
+    
+    // console.log(reportData.value)
     // window.wb = wb
 }
 
@@ -113,10 +133,10 @@ const parseReport = async ()=>{
                 <el-button @click="parseReport">解析</el-button>
             </el-card>
             <br />
-            <el-tabs>
+            <el-tabs v-model="targetTab">
                 <template v-for="(data, reportName) in reportData">
-                    <el-tab-pane :label="'' + reportName">
-                        <log-data :data="data"></log-data>
+                    <el-tab-pane :label="'' + reportName" :name="'' + reportName">
+                        <log-data v-if="targetTab == reportName" :data="data"></log-data>
                     </el-tab-pane>
                 </template>
             </el-tabs>

@@ -130,32 +130,34 @@ const parseLog = (logStr: string)=>{
         // S1F17 H2E Wbit(True) DeviceID(1) Systembytes(3)
         const data = log.split(/S(\d+)F(\d+) (H2E|E2H) Wbit\((True|False)\) DeviceID\((\d+)\) Systembytes\((\d+)\)/)
 		const actionM = data[0].match(/\[[A-Z]+\](Receive|Send|T\d timeout) (\[S\d+F\d+_(E|H)\])?/)
-		const f = parseInt(data[2])
-
+		
 		// f为奇数，send
 		// TODO: timeout
-		if(actionM && actionM[1] === 'Send'){
-			send.push({
-				s: data[1],
-				f: data[2],
-				direct: data[3],
-				action: 'Send',
-				Wbit: data[4] === 'True',
-				deviceId: parseInt(data[5]),
-				sbyte: data[6],
-				data: parse(data[7])
-			})
-		}else if(actionM && actionM[1] === 'Receive'){
-			reply.push({
-				s: data[1],
-				f: data[2],
-				direct: data[3],
-				action: 'Receive',
-				Wbit: data[4] === 'True',
-				deviceId: parseInt(data[5]),
-				sbyte: data[6],
-				data: parse(data[7])
-			})
+		if(data[2]){
+			const f = parseInt(data[2])
+			if(f % 2 === 1){
+				send.push({
+					s: data[1],
+					f: data[2],
+					direct: data[3],
+					action: 'Send',
+					Wbit: data[4] === 'True',
+					deviceId: parseInt(data[5]),
+					sbyte: data[6],
+					data: parse(data[7])
+				})
+			}else{
+				reply.push({
+					s: data[1],
+					f: data[2],
+					direct: data[3],
+					action: 'Receive',
+					Wbit: data[4] === 'True',
+					deviceId: parseInt(data[5]),
+					sbyte: data[6],
+					data: parse(data[7])
+				})
+			}
 		}else{
 			other.push({
 				s: data[1],
@@ -165,7 +167,8 @@ const parseLog = (logStr: string)=>{
 				Wbit: data[4] === 'True',
 				deviceId: parseInt(data[5]),
 				sbyte: data[6],
-				data: parse(data[7])
+				data: parse(data[7]),
+				original: log
 			})
 		}
 		
@@ -264,7 +267,61 @@ class LogWatcher {
 	}
 }
 
+const getAnalyzeStr = (secsData: any, eId: string): string=>{
+	let result = `Event ID: ${eId}<br />`
+	const {
+		eid2rid,
+		rid2vid,
+		vidData,
+	} = secsData
+
+	const rIds = eid2rid[eId]
+	if(!rIds)return 'eId未找到'
+
+	// console.log(rIds)
+	for(let rId of rIds){
+		const vIds = rid2vid[rId]
+		result += `Report ID: ${rId}`
+		for(let vId of vIds){
+			const data = vidData[vId]
+			result += `<span style="color:red;">Variables ID: ${vId} </span> - <span style="color:green;"> ${data.desc} </span> - <span style="color:blue;"> 类型：${data.type} </span> - <span style="color: #b7107c;"> 取值：${data.comment}</span><br />`
+		}
+	}
+	return result
+}
+const analyze = (testItem: any, secsData: any): string=>{
+	let result = ''
+	if(testItem.result === 'NA')return result;
+
+	// console.log('item:', testItem)
+	const logData = parseLog(testItem.log)
+	// console.log('secsData:', secsData)
+	const s6f11 = logData.filter(e=>e.s == '6' && e.f == '11')
+	if(s6f11.length > 0){
+		for(let sf of s6f11){
+			const sfData = sf.data
+			// console.log('sf:', sfData)
+			const eData = sfData.value;
+			const eId = eData[1].value
+			result += getAnalyzeStr(secsData, eId)
+			// console.log('eId:', eId)
+			// const rDataList = eData[2].value
+			// for(let rDataItem of rDataList){
+			// 	console.log('rDataItem:', rDataItem)
+			// 	const rData = rDataItem.value
+			// 	console.log('rData:', rData)
+			// 	const rId = rData[0].value
+			// 	console.log('rId:', rId)
+			// 	const vValueList = rData[1].value
+			// 	console.log('vValueList:', vValueList)
+			// }
+		}
+	}
+	return result
+}
+
 export {
 	parseLog,
-	LogWatcher
+	analyze,
+	LogWatcher,
 }

@@ -507,11 +507,14 @@ const fixDataForXMLFUNC = {
     fixColumn: (ws: Worksheet, colList: Array<String>) => {
         const row = ws.getRow(2);
         const {values} = row
-        
+        if(row.getCell(1).isMerged){
+            return '在第二行检测到非预期的合并单元格！';
+        }
         // console.log(values, row)
         if(!values || !values.includes)return 'values 获取失败';
 
-        const upValues = (values as any[]).map(e=>e.toUpperCase())
+        const upValues = (values as any[]).map(e=>getTextValue(e).toUpperCase().trim())
+        // 缺失的项目
         const lostList: any[] = colList.filter(e=> !upValues.includes(e.toUpperCase()))
         const colData = lostList.map(v=>[, v])
         // console.log(lostList)
@@ -611,6 +614,7 @@ const fixDataForXMLFUNC = {
         return str
     }
 }
+
 /**
  * 转XML预处理矫正
  * 

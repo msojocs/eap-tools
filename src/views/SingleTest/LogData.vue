@@ -58,7 +58,7 @@
                     :disabled="true"
                     :value="log.log"
                     >
-                </el-input>
+                    </el-input>
                 </el-row>
             </el-col>
         </el-card>

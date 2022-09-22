@@ -1,7 +1,7 @@
 import * as VueRouter from "vue-router";
 import CheckList from "@/views/checkList/CheckList.vue";
 import TEST from "@/views/test/test.vue";
-import CONFIG from "@/views/config/config.vue";
+import SingleTest from "@/views/SingleTest/SingleTest.vue";
 import OUTPUT from "@/views/output/Output.vue";
 import SECS from "@/views/secs/SECS.vue";
 import SERVER from "@/views/server/Server.vue";
@@ -50,11 +50,19 @@ const routes = [
         }
     },
     {
-        path: "/test",
-        component: TEST,
+        path: "/single-test",
+        component: SingleTest,
         meta: {
             title: '单机测试 (dev)',
             icon: 'Compass'
+        }
+    },
+    {
+        path: "/test",
+        component: TEST,
+        meta: {
+            title: '测试页面 (dev)',
+            icon: 'Setting'
         }
     },
     {
@@ -63,14 +71,6 @@ const routes = [
         meta: {
             title: 'MDB编辑器 (pause)',
             icon: 'Edit'
-        }
-    },
-    {
-        path: "/config",
-        component: CONFIG,
-        meta: {
-            title: '配置 (开发中)',
-            icon: 'Setting'
         }
     },
     {

@@ -7,6 +7,14 @@
         <el-timeline>
             <el-timeline-item timestamp="2022/9/17" placement="top">
                 <el-card>
+                    <h4>版本：v1.1.0</h4>
+                    <ul>
+                        <li>报告：优化转XML预处理的列补全</li>
+                    </ul>
+                </el-card>
+            </el-timeline-item>
+            <el-timeline-item timestamp="2022/9/17" placement="top">
+                <el-card>
                     <h4>版本：v1.0.14</h4>
                     <ul>
                         <li>SECS文件处理：优化转XML预处理的列补全</li>

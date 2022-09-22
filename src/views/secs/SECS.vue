@@ -121,6 +121,7 @@ const fixDataForXML = async ()=>{
             message: '操作完成'
         }, appContext)
     } catch (error: any) {
+        console.log(error)
         appContext.config.globalProperties.$message.error(error?.message ?? 'error')
     }
 }

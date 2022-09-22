@@ -230,7 +230,7 @@ const testPrepare = (wb: Workbook)=>{
 const isSXFY = (ele: any)=>{
     // console.log('isSXFY:', ele)
     if(!ele)return false
-    return ele.includes('S') && ele.includes('F') && ele.length < 10
+    return ele.includes('S') && ele.includes('F') && ele.length < 15
 }
 
 // 字符串转StreamFunction

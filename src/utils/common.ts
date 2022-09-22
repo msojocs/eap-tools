@@ -17,9 +17,12 @@ const getTextValue = (value: any): string=>{
                     result += value.result
                 }
                 break
+            case 'number':
+                result = `${value}`
+                break
             default:
                 console.warn('原样返回，unknown type:', typeof value, value)
-                return value
+                return `${value}`
                 break;
         }
     }catch(err){

@@ -24,21 +24,6 @@ const genEle:{
 	LIST: (data: Array<Array<string>>, ele: Array<string>)=>{
 		return genEle.L(data, ele)
 	},
-	U4: (data: Array<Array<string>>, ele: Array<string>)=>{
-		return {
-			type: 'U4',
-			value:parseInt(ele[2])
-		}
-	},
-	B: (data: Array<Array<string>>, ele: Array<string>)=>{
-		return {
-			type: 'B',
-			value: ele[2]
-		}
-	},
-	BIN: (data: Array<Array<string>>, ele: Array<string>)=>{
-		return genEle.B(data, ele)
-	},
 	A: (data: Array<Array<string>>, ele: Array<string>)=>{
 		return {
 			type: 'A',
@@ -49,6 +34,44 @@ const genEle:{
 		return {
 			type: 'A',
 			value: ele[2]
+		}
+	},
+	// Bool
+	B: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'B',
+			value: ele[2]
+		}
+	},
+	// Binary
+	BIN: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'BIN',
+			value: ele[2]
+		}
+	},
+	I1: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'I1',
+			value: parseInt(ele[2])
+		}
+	},
+	I2: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'I2',
+			value: parseInt(ele[2])
+		}
+	},
+	I4: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'I4',
+			value: parseInt(ele[2])
+		}
+	},
+	I8: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'I8',
+			value: parseInt(ele[2])
 		}
 	},
 	U1: (data: Array<Array<string>>, ele: Array<string>)=>{
@@ -69,10 +92,46 @@ const genEle:{
 	UINT2: (data: Array<Array<string>>, ele: Array<string>)=>{
 		return genEle.U2(data, ele)
 	},
+	U4: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'U4',
+			value: parseInt(ele[2])
+		}
+	},
 	UINT4: (data: Array<Array<string>>, ele: Array<string>)=>{
 		return {
 			type: 'U4',
 			value: parseInt(ele[2])
+		}
+	},
+	U8: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'U8',
+			value: parseInt(ele[2])
+		}
+	},
+	F4: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'F4',
+			value: parseFloat(ele[2])
+		}
+	},
+	F8: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'F8',
+			value: parseFloat(ele[2])
+		}
+	},
+	JIS: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'JIS',
+			value: ele[2]
+		}
+	},
+	ANY: (data: Array<Array<string>>, ele: Array<string>)=>{
+		return {
+			type: 'ANY',
+			value: ele[2]
 		}
 	},
 }

@@ -5,11 +5,15 @@
 <template>
     <div>
         <el-timeline>
-            <el-timeline-item timestamp="2022/9/17" placement="top">
+            <el-timeline-item timestamp="2022/9/22" placement="top">
                 <el-card>
                     <h4>版本：v1.1.0</h4>
                     <ul>
-                        <li>报告：优化转XML预处理的列补全</li>
+                        <li>报告：测试报告解析</li>
+                    </ul>
+                    <h4>版本：v1.1.1</h4>
+                    <ul>
+                        <li>报告：强化日志解析</li>
                     </ul>
                 </el-card>
             </el-timeline-item>

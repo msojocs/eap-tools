@@ -6,6 +6,7 @@ import { useStore } from '@/store/store'
 // import * as Excel from 'exceljs'
 import { ref } from 'vue'
 import LogData from './LogData.vue';
+import { OpenCC } from 'opencc';
 
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 // import { remote } from 'electron'
@@ -17,8 +18,12 @@ const store = useStore()
 const secsFile = ref(localStorage.getItem('secsFile'))
 const logFile = ref(localStorage.getItem('logFile'))
 const targetTab = ref('联线初始化')
+const eventList = ref<Array<any>>()
 
 const reportData = ref<{
+    [key: string]: any
+}>({})
+const secsData = ref<{
     [key: string]: any
 }>({})
 
@@ -73,17 +78,7 @@ const parseSecs = async ()=>{
     await wb.xlsx.readFile(secsFile.value as string)
     console.log(wb)
     const secsData = await secs.parse(wb)
-    const fs = require('fs') as typeof import('fs')
     console.log('result:', secsData);
-    console.log('reportData:', reportData)
-    for(let k in reportData.value){
-        // console.log('k:', k, reportData.value[k])
-        const testList = reportData.value[k]
-        for(let item of testList){
-            console.log('item:', item)
-            item.analyze = `<h1>testttttt</h1>`
-        }
-    }
 }
 
 // 解析报告
@@ -92,7 +87,16 @@ const parseReport = async ()=>{
     const wb1 = new Excel.Workbook()
     await wb1.xlsx.readFile(secsFile.value as string)
     // console.log(wb1)
-    const secsData = await secs.parse(wb1)
+    secsData.value = await secs.parse(wb1)
+    // secsData
+    eventList.value = []
+    const eData = secsData.value.eid2rid
+    for(let eId in eData){
+        eventList.value.push({
+            value: eId,
+            label: `${eData[eId].comment} ${eData[eId].description}`
+        })
+    }
     
     const wb = new Excel.Workbook()
     await wb.xlsx.readFile(logFile.value as string)
@@ -104,7 +108,9 @@ const parseReport = async ()=>{
         // console.log('k:', k, reportData.value[k])
         const testList = logData[k]
         for(let item of testList){
-            item.analyze = analyze(item, secsData)
+            const [eId, analyzeStr] = analyze(item, secsData.value)
+            item.eventId = eId
+            item.analyze = analyzeStr
         }
     }
     reportData.value = logData
@@ -136,7 +142,7 @@ const parseReport = async ()=>{
             <el-tabs v-model="targetTab">
                 <template v-for="(data, reportName) in reportData">
                     <el-tab-pane :label="'' + reportName" :name="'' + reportName">
-                        <log-data v-if="targetTab == reportName" :data="data"></log-data>
+                        <log-data v-if="targetTab == reportName" v-for="log in data" :log="log" :event-list="eventList" :secs-data="secsData"></log-data>
                     </el-tab-pane>
                 </template>
             </el-tabs>

@@ -326,30 +326,35 @@ class LogWatcher {
 	}
 }
 
-const getAnalyzeStr = (secsData: any, eId: string): string=>{
-	let result = `Event ID: ${eId}<br />`
-	const {
-		eid2rid,
-		rid2vid,
-		vidData,
-	} = secsData
+export const AnalyzeFunc = {
+	getAnalyzeStr611: (secsData: any, eId: string): string=>{
+		const {
+			eid2rid,
+			rid2vid,
+			vidData,
+		} = secsData
 
-	const rIds = eid2rid[eId]
-	if(!rIds)return 'eId未找到'
+		const eData = eid2rid[eId]
+		if(!eData)return 'eId未找到'
 
-	// console.log(rIds)
-	for(let rId of rIds){
-		const vIds = rid2vid[rId]
-		result += `Report ID: ${rId}`
-		for(let vId of vIds){
-			const data = vidData[vId]
-			result += `<span style="color:red;">Variables ID: ${vId} </span> - <span style="color:green;"> ${data.desc} </span> - <span style="color:blue;"> 类型：${data.type} </span> - <span style="color: #b7107c;"> 取值：${data.comment}</span><br />`
+		let result = `Event ID: ${eId} ${eData.comment}<br />`
+		if(eData.rptIds){
+			for(let rId of eData.rptIds){
+				const vIds = rid2vid[rId]
+				result += `Report ID: ${rId}<br />`
+				for(let vId of vIds){
+					const data = vidData[vId]
+					result += `<span style="color:red;">Variables ID: ${vId} </span> - <span style="color:green;"> ${data.desc} </span> - <span style="color:blue;"> 类型：${data.type} </span> - <span style="color: #b7107c;"> 取值：${data.comment}</span><br />`
+				}
+			}
+		}else{
+			result += `<span style="color:red">没有Report ID</span>`
 		}
+		return result
 	}
-	return result
 }
-const analyze = (testItem: any, secsData: any): string=>{
-	let result = ''
+const analyze = (testItem: any, secsData: any): string[]=>{
+	let result = ['', '']
 	if(testItem.result === 'NA')return result;
 
 	// console.log('item:', testItem)
@@ -362,7 +367,8 @@ const analyze = (testItem: any, secsData: any): string=>{
 			// console.log('sf:', sfData)
 			const eData = sfData.value;
 			const eId = eData[1].value
-			result += getAnalyzeStr(secsData, eId)
+			result[0] += eId
+			result[1] += AnalyzeFunc.getAnalyzeStr611(secsData, eId)
 			// console.log('eId:', eId)
 			// const rDataList = eData[2].value
 			// for(let rDataItem of rDataList){

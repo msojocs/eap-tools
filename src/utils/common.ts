@@ -15,6 +15,8 @@ const getTextValue = (value: any): string=>{
                     }
                 }else if (value?.result){
                     result += value.result
+                }else if (value?.text){
+                    result += value.text
                 }
                 break
             case 'number':

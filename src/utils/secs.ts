@@ -2,6 +2,7 @@ import { Workbook, Worksheet } from 'exceljs-enhance';
 import { getTextValue } from './common';
 import {changeWorkSheetPosition, copyWorksheet } from '@/utils/excel'
 
+var Chinese = require('chinese-s2t')
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
 
 const ParseFunc = {
@@ -14,19 +15,25 @@ const ParseFunc = {
             throw new Error("CEID List ERROR");
         }
         const eidIndex = (eventListData[2] as string[]).indexOf("Event ID")
-        let ridIndex = (eventListData[2] as string[]).indexOf("Link Report ID")
+        const descIndex = (eventListData[2] as string[]).indexOf("Description")
+        const cmtIndex = (eventListData[2] as string[]).indexOf("Comment")
+        const ridIndex = (eventListData[2] as string[]).indexOf("Link Report ID")
         // console.log('event list:',  eidIndex, ridIndex)
 
         const eid2rid: any = {}
         let tData = eventListData.slice(3, eventListData.length)
         for (let data of tData as Array<string>[]) {
             // console.log('data:', data)
-            if (data === null || data === undefined) continue
+            if (!data) continue
 
             if (typeof data.length !== "number") continue
             const ridStr = '' + data[ridIndex]
             // console.warn('rids:', rids)
-            eid2rid[data[`${eidIndex}`]] = ridStr.match(/\d+/g)
+            eid2rid[data[`${eidIndex}`]] = {
+                description: Chinese.t2s(data[descIndex]),
+                comment: Chinese.t2s(data[cmtIndex]),
+                rptIds: ridStr.match(/\d+/g)
+            }
         }
         // console.log('eid2rid:', eid2rid)
         return eid2rid
@@ -84,9 +91,9 @@ const ParseFunc = {
             const vid = vidCell.value as string
             varMap[vid] = {
                 id: vid,
-                desc: getTextValue(descCell.value),
+                desc: Chinese.t2s(getTextValue(descCell.value)),
                 type: getTextValue(typeCell.value),
-                comment: getTextValue(commentCell.value),
+                comment: Chinese.t2s(getTextValue(commentCell.value)),
             }
 
         }

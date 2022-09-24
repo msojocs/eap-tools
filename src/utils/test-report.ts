@@ -275,10 +275,6 @@ const parseLogItems = (ws: Worksheet)=>{
         logItem.result = getTextValue(ws.getCell(curRow + 1, cell.col).value)
         logItem.cmdList = []
         let rowInc = 1
-        let resultCell = ws.getCell(curRow + rowInc, 6)
-        while (resultCell && !resultCell.isMerged && resultCell.value?.toString() !== 'Result') {
-            resultCell = ws.getCell(curRow + ++rowInc, 6)
-        }
         
         // sxfy
         rowInc = 1
@@ -358,7 +354,7 @@ const parseLogItems = (ws: Worksheet)=>{
  * 解析测试项目
  * @param wb 工作簿
  */
-const parseProcessItem = (wb: Workbook)=>{
+const parseReport = (wb: Workbook)=>{
     const ignoreList = ['标题', '测试信息', 'Stream Function List', '业务流程清单', 'test']
     const allLogData:any = {}
     for(let ws of wb.worksheets){
@@ -372,8 +368,80 @@ const parseProcessItem = (wb: Workbook)=>{
     return allLogData
 }
 
+// 导出指定工作表的日志
+const exportLogItems = (ws: Worksheet, logResultList: any[])=>{
+    // if(ws.name.includes('设备控制模式切换'))debugger
+
+    const logData:any = []
+    const resultColumn = ws.getColumn('F')
+    const rowCount = ws.rowCount;
+    
+    const resultRow: number[] = []
+    resultColumn.eachCell((cell, rowNum)=>{
+        if(cell.value === 'Result'){
+            resultRow.push(rowNum)
+        }
+    })
+
+    for (let rowCnt = 0; rowCnt < resultRow.length; rowCnt++) {
+        const curRow = resultRow[rowCnt];
+        const nextRow = rowCnt + 1 < resultRow.length ? resultRow[rowCnt + 1] : rowCount
+
+        const cell = ws.getCell(curRow, 6)
+
+        // 标题
+        const itemTitle = getTextValue(ws.getCell(curRow - 1, 6).value)
+        const ret = logResultList.filter(e=>e.title == itemTitle)
+        if(!ret || ret.length === 0){
+            console.warn('未找到测试项目的结果:', itemTitle)
+            return
+        }
+        const retData = ret[0]
+        // 结果
+        const resultCell = ws.getCell(curRow + 1, cell.col)
+        const itemResult = getTextValue(resultCell.value)
+
+        // log data
+        if(itemResult != 'NA'){
+            resultCell.value = retData.result
+            const logCell = ws.getCell(curRow + 1, cell.col + 1)
+            // 清空附近日志
+            for(let i=curRow + 1; i< nextRow; i++){
+                for(let j=1; j < 3; j++){
+                    ws.getCell(i, cell.col + j).value = ''
+                }
+            }
+            logCell.value = retData.log
+        }
+    }
+}
+
+/**
+ * 导出报告
+ * @param wb 
+ */
+const exportReport = (wb: Workbook, logData: any)=>{
+    
+    const ignoreList = ['标题', '测试信息', 'Stream Function List', '业务流程清单', 'test']
+    const allLogData:any = {}
+    console.log('logData:', logData)
+    for(let ws of wb.worksheets){
+        if(ws.state !== 'visible')continue
+        if(ignoreList.includes(ws.name.trim()))continue
+        // console.log(ws.getSheetValues())
+
+        const resultList = logData[ws.name]
+        if(!resultList){
+            console.warn('没有找到报告结果:', ws.name)
+            continue
+        }
+        allLogData[ws.name] = exportLogItems(ws, resultList)
+    }
+}
+
 export {
     genProcedureList,
     testPrepare,
-    parseProcessItem as parseLogData
+    parseReport,
+    exportReport
 }

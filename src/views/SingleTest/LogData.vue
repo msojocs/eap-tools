@@ -103,6 +103,7 @@ const log = ref(props.log)
 const watcherStatus = ref<'run'|'pause'|'down'>('down')
 
 const watcher = new LogWatcher();
+// 启动监听
 const startWatch = ()=>{
     if(watcherStatus.value == 'pause'){
         
@@ -117,13 +118,15 @@ const startWatch = ()=>{
         }
     }
     log.value.log = ''
-    // TODO: 配置化
+    // TODO: 路径配置化
+    // /HBFP-DES-003-L/20220912/Trace
     watcher.start(`D:/Log/EAP/**/${new Date().getFullYear()}${(new Date().getMonth()+1 + '').padStart(2, '0')}${new Date().getDate()}/Trace/*`, function (newData: string, filename: string){
         // console.log('call callback')
         console.log(...arguments)
         // 暂停不记录
         if(watcherStatus.value == 'pause')return
 
+        // 记录新的日志
         if(!log.value){
             log.value= {
                 log: ''
@@ -131,17 +134,24 @@ const startWatch = ()=>{
         }
         log.value.log += newData
         // console.log(parseLog(logStr.value))
+
+        // TODO: 自动分析
     })
 }
+
+// 暂停记录
 const pauseWatch = ()=>{
     
     watcherStatus.value = 'pause'
 }
+
+// 停止监听
 const stopWatch = ()=>{
     
     watcherStatus.value = 'down'
     watcher.stop()
 }
+
 // 手动变更事件
 const eventTypeChange = (value: string[])=>{
     // console.log('eventTypeChange:', value)

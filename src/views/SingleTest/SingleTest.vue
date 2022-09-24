@@ -22,7 +22,9 @@ const eventList = ref<Array<any>>()
 
 const reportData = ref<{
     [key: string]: any
-}>({})
+}>({
+    '联线初始化': {}
+})
 const secsData = ref<{
     [key: string]: any
 }>({})
@@ -71,16 +73,6 @@ const selectLogFile = async ()=>{
     }
 }
 
-// 解析SECS
-const parseSecs = async ()=>{
-    console.log('parse secs: ', secsFile.value)
-    const wb = new Excel.Workbook()
-    await wb.xlsx.readFile(secsFile.value as string)
-    console.log(wb)
-    const secsData = await secs.parse(wb)
-    console.log('result:', secsData);
-}
-
 // 解析报告
 const parseReport = async ()=>{
     console.log('parse secs: ', secsFile.value)
@@ -101,7 +93,7 @@ const parseReport = async ()=>{
     const wb = new Excel.Workbook()
     await wb.xlsx.readFile(logFile.value as string)
     // console.log('解析报告:', wb)
-    const logData = logHandle.parseLogData(wb)
+    const logData = logHandle.parseReport(wb)
 
     // 分析
     for(let k in logData){
@@ -119,6 +111,15 @@ const parseReport = async ()=>{
     // window.wb = wb
 }
 
+// TODO: 导出报告
+const exportReport = async ()=>{
+
+    const wb = new Excel.Workbook()
+    await wb.xlsx.readFile(logFile.value as string)
+    logHandle.exportReport(wb, reportData.value)
+    wb.xlsx.writeFile((logFile.value as string).replace('.xlsx', ' - export.xlsx'))
+}
+
 </script>
 
 <template>
@@ -129,23 +130,35 @@ const parseReport = async ()=>{
         </el-header>
         <el-main>
             <el-card>
+                <template #header>
+                    <span>SECS文件及测试报告</span>
+                </template>
                 SECS文件：<span>{{ secsFile }}</span><br />
                 <!-- <el-input type="file"></el-input> -->
-                <el-button @click="selectSecsFile" type="primary">选择文件</el-button>
-            <br />
-                LOG文件：<span>{{ logFile }}</span><br />
+                <el-button @click="selectSecsFile" type="primary">选择SECS文件</el-button>
+                <br /><br />
+                报告文件：<span>{{ logFile }}</span><br />
                 <el-button @click="selectLogFile" type="primary">选择文件</el-button>
+                <br /><br />
                 <el-button @click="parseReport">解析</el-button>
+                <el-button @click="exportReport">导出</el-button>
             </el-card>
             <br />
-            <el-tabs v-model="targetTab">
-                <template v-for="(data, reportName) in reportData">
-                    <el-tab-pane :label="'' + reportName" :name="'' + reportName">
-                        <log-data v-if="targetTab == reportName" v-for="log in data" :log="log" :event-list="eventList" :secs-data="secsData"></log-data>
-                    </el-tab-pane>
+            <el-card>
+                <template #header>
+                    <span>测试项目</span>
                 </template>
-            </el-tabs>
+                <el-tabs v-model="targetTab">
+                    <template v-for="(data, reportName) in reportData">
+                        <el-tab-pane :label="'' + reportName" :name="'' + reportName">
+                            <log-data v-if="targetTab == reportName" v-for="log in data" :log="log" :event-list="eventList" :secs-data="secsData"></log-data>
+                        </el-tab-pane>
+                    </template>
+                </el-tabs>
+            </el-card>
         </el-main>
+        <span class="test" style="height: 100vh;"></span>
+        <el-backtop target=".el-main" :visibility-height="500" ></el-backtop>
     </el-container>
     
 </template>

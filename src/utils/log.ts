@@ -266,6 +266,8 @@ class LogWatcher {
 	}
 
 	start(logDir: string, callback: Function){
+		if(this.watch)return;
+		
 		this.logLength = {}
 		this.watcher = chokidar.watch(logDir)
 		this.watcher.on('add', (filename) => {
@@ -353,8 +355,14 @@ export const AnalyzeFunc = {
 		return result
 	}
 }
-const analyze = (testItem: any, secsData: any): string[]=>{
-	let result = ['', '']
+const analyze = (testItem: any, secsData: any): {
+	eList: string[],
+	analyzeStr: string
+}=>{
+	let result = {
+		eList: [] as string[],
+		analyzeStr: ''
+	}
 	if(testItem.result === 'NA')return result;
 
 	// console.log('item:', testItem)
@@ -366,9 +374,11 @@ const analyze = (testItem: any, secsData: any): string[]=>{
 			const sfData = sf.data
 			// console.log('sf:', sfData)
 			const eData = sfData.value;
-			const eId = eData[1].value
-			result[0] += eId
-			result[1] += AnalyzeFunc.getAnalyzeStr611(secsData, eId)
+			const eId = '' + eData[1].value
+			if(!result.eList.includes(eId)){
+				result.eList.push(eId)
+				result.analyzeStr += AnalyzeFunc.getAnalyzeStr611(secsData, eId)
+			}
 			// console.log('eId:', eId)
 			// const rDataList = eData[2].value
 			// for(let rDataItem of rDataList){

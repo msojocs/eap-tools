@@ -11,6 +11,8 @@
                         @change="eventTypeChange"
                         placeholder="Select"
                         v-if="isInclude611"
+                        style="width: 100%;"
+                        multiple
                         >
                             <el-option
                             v-for="item in eventList"
@@ -33,9 +35,15 @@
                         </el-row>
                     </el-col>
                     <el-col :span="4">
-                        &nbsp;&nbsp;&nbsp;
-                            <el-button :disabled="true">记录log</el-button>
-                            <el-button type="danger" :disabled="true">停止</el-button>
+                        <el-button circle v-if="watcherStatus == 'down' || watcherStatus == 'pause'" @click="startWatch">
+                            <iconfont icon-name="start" style="font-size: 0.9rem;"></iconfont>
+                        </el-button>
+                        <el-button circle  v-if="watcherStatus == 'run'" @click="pauseWatch">
+                            <iconfont icon-name="pause" style="font-size: 0.9rem;"></iconfont>
+                        </el-button>
+                        <el-button circle v-if="watcherStatus == 'run' || watcherStatus == 'pause'" type="danger" @click="stopWatch">
+                            <iconfont icon-name="stop" style="font-size: 0.9rem;"></iconfont>
+                        </el-button>
                     </el-col>
                 </el-row>
                 <el-divider></el-divider>
@@ -51,7 +59,7 @@
                         <el-row>
                             <el-col :span="20">
                                 <template v-for="cmd in log.cmdList">
-                                    <hr />
+                                    <!-- <hr /> -->
                                     <el-row :span="6" style="font-size: smaller">
                                         <el-col :span="7">{{cmd.direct === 'E2H' ? '' : cmd.comment}}</el-col>
                                         <el-col :span="5">{{cmd.direct === 'E2H' ? '' : (cmd.s?`S${cmd.s}F${cmd.f}->`:'')}}</el-col>
@@ -70,8 +78,8 @@
                 <el-row>
                     <el-input
                     type="textarea"
-                    :disabled="true"
-                    :value="log.log"
+                    v-model="log.log"
+                    :rows="10"
                     >
                     </el-input>
                 </el-row>
@@ -81,7 +89,8 @@
 </template>
 
 <script setup lang="ts">
-import { AnalyzeFunc } from '@/utils/log';
+import { AnalyzeFunc, LogWatcher } from '@/utils/log';
+import Iconfont from '@/components/iconfont.vue';
 
 const props = defineProps({
     log: Object,
@@ -90,14 +99,60 @@ const props = defineProps({
 })
 
 const log = ref(props.log)
+// 日志监视器状态
+const watcherStatus = ref<'run'|'pause'|'down'>('down')
 
-const eventTypeChange = (value: string)=>{
-    console.log('eventTypeChange:', value)
+const watcher = new LogWatcher();
+const startWatch = ()=>{
+    if(watcherStatus.value == 'pause'){
+        
+        watcherStatus.value = 'run'
+        return
+    }
+    watcherStatus.value = 'run'
+    
+    if(!log.value){
+        log.value= {
+            log: ''
+        }
+    }
+    log.value.log = ''
+    // TODO: 配置化
+    watcher.start(`D:/Log/EAP/**/${new Date().getFullYear()}${(new Date().getMonth()+1 + '').padStart(2, '0')}${new Date().getDate()}/Trace/*`, function (newData: string, filename: string){
+        // console.log('call callback')
+        console.log(...arguments)
+        // 暂停不记录
+        if(watcherStatus.value == 'pause')return
+
+        if(!log.value){
+            log.value= {
+                log: ''
+            }
+        }
+        log.value.log += newData
+        // console.log(parseLog(logStr.value))
+    })
+}
+const pauseWatch = ()=>{
+    
+    watcherStatus.value = 'pause'
+}
+const stopWatch = ()=>{
+    
+    watcherStatus.value = 'down'
+    watcher.stop()
+}
+// 手动变更事件
+const eventTypeChange = (value: string[])=>{
+    // console.log('eventTypeChange:', value)
     if(log.value && props.secsData){
-        log.value.analyze = AnalyzeFunc.getAnalyzeStr611(props.secsData, value)
+        log.value.analyze = ''
+        for(let v of value)
+        log.value.analyze += AnalyzeFunc.getAnalyzeStr611(props.secsData, v)
     }
 }
 
+// 指令是否包含S6F11
 const isInclude611 = computed(()=>{
     if(log.value){
         const ret = log.value?.cmdList?.filter((e: { s: string; f: string; })=>e.s == '6' && e.f == '11')

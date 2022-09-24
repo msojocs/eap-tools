@@ -15,9 +15,8 @@
 </template>
 
 <script setup lang="ts">
-import {LogWatcher} from '@/utils/log'
+import { LogWatcher, parseLog } from '@/utils/log'
 import { ref } from 'vue';
-import { parseLog } from '@/utils/log'
 
 const watcher = new LogWatcher();
 

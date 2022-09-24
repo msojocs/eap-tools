@@ -23,6 +23,6 @@ process.on('uncaughtException', (err)=>{
     console.error('uncaughtException->', err)
     ElMessage({
         type: 'error',
-        message: err.message
+        message: err.message || '未知错误'
     }, app._context)
 })

@@ -6,7 +6,7 @@ import { useStore } from '@/store/store'
 // import * as Excel from 'exceljs'
 import { ref } from 'vue'
 import LogData from './LogData.vue';
-import { OpenCC } from 'opencc';
+import iconfont from '@/components/iconfont.vue'
 
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 // import { remote } from 'electron'
@@ -94,7 +94,7 @@ const parseReport = async ()=>{
     for(let eId in eData){
         eventList.value.push({
             value: eId,
-            label: `${eData[eId].comment} ${eData[eId].description}`
+            label: `${eId} ${eData[eId].comment} ${eData[eId].description}`
         })
     }
     
@@ -108,8 +108,8 @@ const parseReport = async ()=>{
         // console.log('k:', k, reportData.value[k])
         const testList = logData[k]
         for(let item of testList){
-            const [eId, analyzeStr] = analyze(item, secsData.value)
-            item.eventId = eId
+            const {eList, analyzeStr} = analyze(item, secsData.value)
+            item.eventId = eList
             item.analyze = analyzeStr
         }
     }
@@ -125,15 +125,14 @@ const parseReport = async ()=>{
     <el-container>
         <el-header>
             <h2>Config Page</h2>
+            
         </el-header>
         <el-main>
             <el-card>
                 SECS文件：<span>{{ secsFile }}</span><br />
+                <!-- <el-input type="file"></el-input> -->
                 <el-button @click="selectSecsFile" type="primary">选择文件</el-button>
-                <el-button @click="parseSecs">解析</el-button>
-            </el-card>
             <br />
-            <el-card>
                 LOG文件：<span>{{ logFile }}</span><br />
                 <el-button @click="selectLogFile" type="primary">选择文件</el-button>
                 <el-button @click="parseReport">解析</el-button>

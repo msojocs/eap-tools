@@ -5,8 +5,9 @@ import * as logHandle from '@/utils/test-report'
 import { useStore } from '@/store/store'
 // import * as Excel from 'exceljs'
 import { ref } from 'vue'
-import LogData from './LogData.vue';
-import iconfont from '@/components/iconfont.vue'
+import LogDataItem from './LogDataItem.vue';
+import type {LogData, SecsData} from '@/utils/types'
+import { EventListData } from './types'
 
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 // import { remote } from 'electron'
@@ -18,16 +19,18 @@ const store = useStore()
 const secsFile = ref(localStorage.getItem('secsFile'))
 const logFile = ref(localStorage.getItem('logFile'))
 const targetTab = ref('联线初始化')
-const eventList = ref<Array<any>>()
+const eventList = ref<EventListData[]>([])
 
 const reportData = ref<{
-    [key: string]: any
+    [key: string]: LogData[]
 }>({
-    '联线初始化': {}
+    '联线初始化': []
 })
-const secsData = ref<{
-    [key: string]: any
-}>({})
+const secsData = ref<SecsData>({
+    eid2rid: {},
+    rid2vid: {},
+    vidData: {}
+})
 
 // 选择文件
 const selectSecsFile = async ()=>{
@@ -51,7 +54,9 @@ const selectSecsFile = async ()=>{
         localStorage.setItem('secsFile', secsFile.value as string)
     }
 }
-const selectLogFile = async ()=>{
+
+// 选择报告文件
+const selectReportFile = async ()=>{
  
     const result = await remote.dialog.showOpenDialog({
         properties: ['openFile'],
@@ -82,6 +87,7 @@ const parseReport = async ()=>{
     secsData.value = await secs.parse(wb1)
     // secsData
     eventList.value = []
+    // 转为可供选择的EventList
     const eData = secsData.value.eid2rid
     for(let eId in eData){
         eventList.value.push({
@@ -111,7 +117,7 @@ const parseReport = async ()=>{
     // window.wb = wb
 }
 
-// TODO: 导出报告
+// 导出报告
 const exportReport = async ()=>{
 
     const wb = new Excel.Workbook()
@@ -138,7 +144,7 @@ const exportReport = async ()=>{
                 <el-button @click="selectSecsFile" type="primary">选择SECS文件</el-button>
                 <br /><br />
                 报告文件：<span>{{ logFile }}</span><br />
-                <el-button @click="selectLogFile" type="primary">选择文件</el-button>
+                <el-button @click="selectReportFile" type="primary">选择文件</el-button>
                 <br /><br />
                 <el-button @click="parseReport">解析</el-button>
                 <el-button @click="exportReport">导出</el-button>
@@ -151,7 +157,7 @@ const exportReport = async ()=>{
                 <el-tabs v-model="targetTab">
                     <template v-for="(data, reportName) in reportData">
                         <el-tab-pane :label="'' + reportName" :name="'' + reportName">
-                            <log-data v-if="targetTab == reportName" v-for="log in data" :log="log" :event-list="eventList" :secs-data="secsData"></log-data>
+                            <log-data-item v-if="targetTab == reportName" v-for="log in data" :log="log" :event-list="eventList" :secs-data="secsData"></log-data-item>
                         </el-tab-pane>
                     </template>
                 </el-tabs>

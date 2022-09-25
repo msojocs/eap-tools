@@ -267,7 +267,9 @@ const parseLogItems = (ws: Worksheet)=>{
             comment: "",
             result: '',
             cmdList: [],
-            log: ""
+            log: "",
+            analyze: "",
+            eventId: []
         }
 
         logItem.title = getTextValue(ws.getCell(curRow - 1, 6).value)

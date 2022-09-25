@@ -1,23 +1,22 @@
 import { Workbook, Worksheet } from "exceljs-enhance"
 
-const ExcelHelper = {
-    insertWorkSheet: (wb: Workbook, ws: Worksheet, pos: number) => {
-        const wsNum = wb.worksheets.length
-        if (pos > wsNum) {
-            pos = wsNum
-        } else if (pos < 0) {
-            pos = 0
+const insertWorkSheet = (wb: Workbook, ws: Worksheet, pos: number) => {
+    const wsNum = wb.worksheets.length
+    if (pos > wsNum) {
+        pos = wsNum
+    } else if (pos < 0) {
+        pos = 0
+    }
+    for (let i = 0; i < wb.worksheets.length; i++) {
+        if (i >= pos) {
+            (wb.worksheets[i] as any).orderNo++
         }
-        for (let i = 0; i < wb.worksheets.length; i++) {
-            if (i >= pos) {
-                (wb.worksheets[i] as any).orderNo++
-            }
 
-        }
-        wb.worksheets.push(ws);
-        (ws as any).orderNo = pos
-    },
+    }
+    wb.worksheets.push(ws);
+    (ws as any).orderNo = pos
 }
+
 const changeWorkSheetPosition = (wb: Workbook, from: number, to: number) => {
     let inc = 1;
     const wss = wb.worksheets;
@@ -47,7 +46,7 @@ const copyWorksheet = (source: Worksheet, target: Worksheet)=>{
     }
 }
 export {
-    ExcelHelper,
+    insertWorkSheet,
     changeWorkSheetPosition,
     copyWorksheet
 }

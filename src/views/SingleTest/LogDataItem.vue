@@ -89,14 +89,16 @@
 </template>
 
 <script setup lang="ts">
-import { AnalyzeFunc, LogWatcher } from '@/utils/log';
+import { AnalyzeFunc, LogWatcher, parseLog } from '@/utils/log';
+import type { LogData, SecsData } from '@/utils/types';
 import Iconfont from '@/components/iconfont.vue';
+import { EventListData } from './types';
 
-const props = defineProps({
-    log: Object,
-    secsData: Object,
-    eventList: Array<any>
-})
+const props = defineProps<{
+    log: LogData,
+    secsData: SecsData,
+    eventList: EventListData[]
+}>()
 
 const log = ref(props.log)
 // 日志监视器状态
@@ -112,11 +114,6 @@ const startWatch = ()=>{
     }
     watcherStatus.value = 'run'
     
-    if(!log.value){
-        log.value= {
-            log: ''
-        }
-    }
     log.value.log = ''
     // TODO: 路径配置化
     // /HBFP-DES-003-L/20220912/Trace
@@ -127,15 +124,18 @@ const startWatch = ()=>{
         if(watcherStatus.value == 'pause')return
 
         // 记录新的日志
-        if(!log.value){
-            log.value= {
-                log: ''
-            }
-        }
         log.value.log += newData
         // console.log(parseLog(logStr.value))
 
         // TODO: 自动分析
+        /**
+         * 需要的数据：已收集到的日志，指令列表
+         * 1. 解析收集到的日志
+         * 2. 根据指令列表检测
+         * 
+         */
+        const logDataObj = parseLog(log.value.log)
+        console.log(log.value, logDataObj)
     })
 }
 
@@ -165,7 +165,7 @@ const eventTypeChange = (value: string[])=>{
 // 指令是否包含S6F11
 const isInclude611 = computed(()=>{
     if(log.value){
-        const ret = log.value?.cmdList?.filter((e: { s: string; f: string; })=>e.s == '6' && e.f == '11')
+        const ret = log.value?.cmdList?.filter(e=>e.s == '6' && e.f == '11')
         if(ret){
             return ret.length > 0
         }

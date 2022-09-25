@@ -136,8 +136,8 @@ const genEle:{
 	},
 }
 
-// 日志解析
-function parse(str: string){
+// 解析日志SF内容
+function parseSF(str: string){
 	let match
 	if(/<([A-Z]+\d?) \[(\d+)][ ]?([^>\n]*)/.test(str))
 		match = str.matchAll(/<([A-Z]+\d?) \[(\d+)][ ]?([^>\n]*)/gm)
@@ -161,7 +161,8 @@ function parse(str: string){
 	root = genEle[ele[0]](data, ele)
 	return root
 }
-// 日志解析
+
+// 日志字符串解析为对象
 const parseLog = (logStr: string)=>{
         
     let logArr = logStr.split(/(\d{4}-\d{2}-\d{2})/)
@@ -203,7 +204,7 @@ const parseLog = (logStr: string)=>{
 					Wbit: data[4] === 'True',
 					deviceId: parseInt(data[5]),
 					sbyte: data[6],
-					data: parse(data[7])
+					data: parseSF(data[7])
 				})
 			}else{
 				reply.push({
@@ -214,7 +215,7 @@ const parseLog = (logStr: string)=>{
 					Wbit: data[4] === 'True',
 					deviceId: parseInt(data[5]),
 					sbyte: data[6],
-					data: parse(data[7])
+					data: parseSF(data[7])
 				})
 			}
 		}else{
@@ -226,7 +227,7 @@ const parseLog = (logStr: string)=>{
 				Wbit: data[4] === 'True',
 				deviceId: parseInt(data[5]),
 				sbyte: data[6],
-				data: parse(data[7]),
+				data: parseSF(data[7]),
 				original: log
 			})
 		}
@@ -255,7 +256,7 @@ const parseLog = (logStr: string)=>{
 	return send;
 }
 
-// 日志监控
+// 日志监控器
 class LogWatcher {
 	private watch = false;
 	private watcher:FSWatcher|null = null;

@@ -1,12 +1,12 @@
 import { Workbook, Worksheet } from 'exceljs-enhance';
 import { getTextValue } from './common';
-import {changeWorkSheetPosition, copyWorksheet } from '@/utils/excel'
+import { SecsData, SecsEventIdData, SecsReportIdData, SecsVarIdData } from './types';
 
 var Chinese = require('chinese-s2t')
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
 
 const ParseFunc = {
-    parseEventList: (eventListSheet: Worksheet) => {
+    parseEventList: (eventListSheet: Worksheet): SecsEventIdData => {
 
         // Event - Link Report Id
         const eventListData = eventListSheet.getSheetValues();
@@ -20,7 +20,7 @@ const ParseFunc = {
         const ridIndex = (eventListData[2] as string[]).indexOf("Link Report ID")
         // console.log('event list:',  eidIndex, ridIndex)
 
-        const eid2rid: any = {}
+        const eid2rid: SecsEventIdData = {}
         let tData = eventListData.slice(3, eventListData.length)
         for (let data of tData as Array<string>[]) {
             // console.log('data:', data)
@@ -32,23 +32,19 @@ const ParseFunc = {
             eid2rid[data[`${eidIndex}`]] = {
                 description: Chinese.t2s(data[descIndex]),
                 comment: Chinese.t2s(data[cmtIndex]),
-                rptIds: ridStr.match(/\d+/g)
+                rptIds: ridStr.match(/\d+/g) || []
             }
         }
         // console.log('eid2rid:', eid2rid)
         return eid2rid
     },
-    parseReportList: (reportWorkSheet: Worksheet)=>{
+    parseReportList: (reportWorkSheet: Worksheet): SecsReportIdData=>{
     
         const reportRows = reportWorkSheet.getRows(3, reportWorkSheet.rowCount - 2);
         if (!reportRows) throw new Error("Report List 数据行获取失败！");
     
         // 遍历Report List
-        const rptMap = {
-    
-        } as {
-            [key: string]: any
-        }
+        const rptMap: SecsReportIdData = {}
         let vidIndex = 4
         reportWorkSheet.getRow(2).eachCell((cell, colNum)=>{
             if(getTextValue(cell.value).includes('VID')){
@@ -61,12 +57,12 @@ const ParseFunc = {
             if (!rptCell.value) continue
     
             const rid = rptCell.value as string
-            rptMap[rid] = getTextValue(vidCell.value).match(/\d+/g)
+            rptMap[rid] = getTextValue(vidCell.value).match(/\d+/g) || []
         }
         return rptMap
 
     },
-    parseVariableList: (varWorkSheet: Worksheet)=>{
+    parseVariableList: (varWorkSheet: Worksheet): SecsVarIdData=>{
     
         const varRows = varWorkSheet.getRows(3, varWorkSheet.rowCount - 2);
         if (!varRows) throw new Error("Variables List 数据行获取失败！");
@@ -77,10 +73,10 @@ const ParseFunc = {
             if(cell.value)
             varIndexMap[(cell.value as string).toLocaleLowerCase()] = colNum
         })
+
         // 遍历var List
-        const varMap = {} as {
-            [key: string]: any
-        }
+        const varMap: SecsVarIdData = {}
+
         for (let row of varRows) {
             const vidCell = row.getCell(varIndexMap['vid'])
             const descCell = row.getCell(varIndexMap['description'])
@@ -101,7 +97,7 @@ const ParseFunc = {
         return varMap
     }
 }
-const parse = (wb: Workbook) => {
+const parse = (wb: Workbook): SecsData => {
     const eventListSheet = wb.getWorksheet("Event List")
     const reportListSheet = wb.getWorksheet("Report List")
     const varListSheet = wb.getWorksheet("Variables List")

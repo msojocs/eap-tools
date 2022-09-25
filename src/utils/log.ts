@@ -462,30 +462,72 @@ const CheckFunc: {
 	 * @param secsData SECS数据
 	 * @returns 
 	 */
-	 117: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
-		/**
-		 * 0 = OK, Accepted.
-			1 = NG, Not Permit.
-			2 = NG, Already On-Line, Not Accepted.
-			3~63 = Error, Not Accepted.
-		 */
-		for(let log of targetLog){
+	117: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
+	/**
+	 * 0 = OK, Accepted.
+		1 = NG, Not Permit.
+		2 = NG, Already On-Line, Not Accepted.
+		3~63 = Error, Not Accepted.
+		*/
+	for(let log of targetLog){
+		if(log.reply){
+			const {data} = log.reply
+			if(data){
+				if(data.value == '0' || data.value == '2'){
+					return {
+						ok: true,
+					}
+				}
+			}
+		}
+	}
+	return {
+		ok: false,
+		reason: 'S1F18没有一个是回复0或2的'
+	}
+	},
+  
+	/**
+	 * S2F17 时间同步 - 获取设备/EAP的时间 双向 H2E
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param secsData SECS数据
+	 * @param reportData 报告的数据
+	 * @param cmd 当前指令数据
+	 * @returns 
+	 */
+	217: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		const timeLog = targetLog.filter(e=>e.direct == cmd.direct)
+		if(timeLog.length === 0){
+			
+			return {
+				ok: false,
+				reason: `没有找到 S2F17 ${cmd.direct}的日志`
+			}
+		}
+
+		// 向EAP询问直接OK
+		if(cmd.direct === 'E2H'){
+			return {
+				ok: true,
+			}
+		}
+		for(let log of timeLog){
 			if(log.reply){
-				const {data} = log.reply
-				if(data){
-					if(data.value == '0' || data.value == '2'){
-						return {
-							ok: true,
-						}
+				const {data} = log.reply;
+				const timeM = (data?.value as string).match(/\d+/)
+				if(timeM && timeM[0].length > 5){
+					return {
+						ok: true,
 					}
 				}
 			}
 		}
 		return {
 			ok: false,
-			reason: 'S1F18没有一个是回复0或2的'
+			reason: 'S2F17 回复的时间格式不正确'
 		}
-	 },
+	},
 	  
 	/**
 	 * S2F33 Define/Delete Report检查 单向 H2E
@@ -546,6 +588,32 @@ const CheckFunc: {
 		return {
 			ok: false,
 			reason: `S2F33 ${mode}没有一个是回复0的`
+		}
+	},
+  
+	/**
+	 * S2F31 时间同步 - 设置设备的时间 单向 H2E
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param secsData SECS数据
+	 * @param reportData 报告的数据
+	 * @param cmd 当前指令数据
+	 * @returns 
+	 */
+	231: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		for(let log of targetLog){
+			if(log.reply){
+				const {data} = log.reply;
+				if(data?.value == '0'){
+					return {
+						ok: true,
+					}
+				}
+			}
+		}
+		return {
+			ok: false,
+			reason: 'S2F31 没有找到一个是回复0的'
 		}
 	},
 
@@ -802,6 +870,8 @@ export const checkLog = (reportData: ReportItemData, logData: LogSendData[], sec
 	let reason = ''
 	for(let cmd of cmdList){
 		if(!cmd.s || !cmd.f)continue;
+		// 奇数指令才进行处理
+		if(parseInt(cmd.f) % 2 === 0)continue;
 
 		// console.log('要检查的指令数据:', cmd)
 		const targetLog = logData.filter(e=>e.s == cmd.s && e.f == cmd.f)
@@ -813,10 +883,12 @@ export const checkLog = (reportData: ReportItemData, logData: LogSendData[], sec
 			ok &&= ret.ok
 			if(!ret.ok && ret.reason)
 				reason += `${ret.reason}\r\n`
+			console.log('检测结果：', ret.ok, reason, ok)
 		}else{
 			ok = false
 			console.warn('无法找到处理方案:', `S${cmd.s}F${cmd.f}`)
 		}
+		// debugger
 	}
 	return {
 		ok,

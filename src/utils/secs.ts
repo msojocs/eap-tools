@@ -1,6 +1,6 @@
 import { Workbook, Worksheet } from 'exceljs-enhance';
 import { getTextValue } from './common';
-import { SecsData, SecsEventIdData, SecsReportIdData, SecsVarIdData } from './types';
+import { AlarmData, RCMDData, RCPData, SecsData, SecsEventIdData, SecsReportIdData, SecsVarIdData } from './types';
 
 var Chinese = require('chinese-s2t')
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
@@ -14,10 +14,16 @@ const ParseFunc = {
         if (title === null || title === undefined || !title.includes("CEID List")) {
             throw new Error("CEID List ERROR");
         }
-        const eidIndex = (eventListData[2] as string[]).indexOf("Event ID")
-        const descIndex = (eventListData[2] as string[]).indexOf("Description")
-        const cmtIndex = (eventListData[2] as string[]).indexOf("Comment")
-        const ridIndex = (eventListData[2] as string[]).indexOf("Link Report ID")
+        const eventHead = eventListSheet.getRow(2)
+        const eventIndexMap = {} as any;
+        eventHead.eachCell((cell, colNum)=>{
+            if(cell.value)
+            eventIndexMap[getTextValue(cell.value).toLocaleLowerCase().trim()] = colNum
+        })
+        const eidIndex = eventIndexMap["event id"]
+        const descIndex = eventIndexMap["description"]
+        const cmtIndex = eventIndexMap["comment"]
+        const ridIndex = eventIndexMap["link report id"]
         // console.log('event list:',  eidIndex, ridIndex)
 
         const eid2rid: SecsEventIdData = {}
@@ -29,7 +35,7 @@ const ParseFunc = {
             if (typeof data.length !== "number") continue
             const ridStr = '' + data[ridIndex]
             // console.warn('rids:', rids)
-            eid2rid[data[`${eidIndex}`]] = {
+            eid2rid[data[eidIndex]] = {
                 description: Chinese.t2s(data[descIndex]),
                 comment: Chinese.t2s(data[cmtIndex]),
                 rptIds: ridStr.match(/\d+/g) || []
@@ -71,7 +77,7 @@ const ParseFunc = {
         const varIndexMap = {} as any;
         varHead.eachCell((cell, colNum)=>{
             if(cell.value)
-            varIndexMap[(cell.value as string).toLocaleLowerCase()] = colNum
+            varIndexMap[getTextValue(cell.value).toLocaleLowerCase()] = colNum
         })
 
         // 遍历var List
@@ -95,20 +101,132 @@ const ParseFunc = {
         }
 
         return varMap
-    }
+    },
+    parseRCMDList: (cmdWorkSheet: Worksheet): RCMDData=>{
+    
+        const cmdRows = cmdWorkSheet.getRows(3, cmdWorkSheet.rowCount - 2);
+        if (!cmdRows) throw new Error("Remote Command List 数据行获取失败！");
+    
+        const cmdHead = cmdWorkSheet.getRow(2)
+        const cmdIndexMap = {} as any;
+        cmdHead.eachCell((cell, colNum)=>{
+            if(cell.value)
+            cmdIndexMap[getTextValue(cell.value).toLocaleLowerCase().trim()] = colNum
+        })
+
+        // 遍历cmd List
+        const cmdMap: RCMDData = {}
+
+        for (let row of cmdRows) {
+            const cmdCell = row.getCell(cmdIndexMap['command'])
+            const descCell = row.getCell(cmdIndexMap['description'])
+            const linkCell = row.getCell(cmdIndexMap['link cpid'])
+            const rcmdCell = row.getCell(cmdIndexMap['rcmd(ascii)'])
+            if (!cmdCell.value) continue
+    
+            const cmd = getTextValue(cmdCell.value)
+            cmdMap[cmd] = {
+                command: cmd,
+                description: Chinese.t2s(getTextValue(descCell.value)),
+                rcmd: getTextValue(rcmdCell.value),
+                cpIds: getTextValue(linkCell.value).match(/\d+/) || [],
+            }
+
+        }
+
+        return cmdMap
+    },
+    parseRCPList: (rcpWorkSheet: Worksheet): RCPData=>{
+    
+        const rcpRows = rcpWorkSheet.getRows(3, rcpWorkSheet.rowCount - 2);
+        if (!rcpRows) throw new Error("Remote Command Parameter List 数据行获取失败！");
+    
+        const rcpHead = rcpWorkSheet.getRow(2)
+        const rcpIndexMap = {} as any;
+        rcpHead.eachCell((cell, colNum)=>{
+            if(cell.value)
+            rcpIndexMap[getTextValue(cell.value).toLocaleLowerCase().trim()] = colNum
+        })
+
+        // 遍历rcp List
+        const rcpMap: RCPData = {}
+
+        for (let row of rcpRows) {
+            const idCell = row.getCell(rcpIndexMap['cpid'])
+            const nameCell = row.getCell(rcpIndexMap['cpname'])
+            const descCell = row.getCell(rcpIndexMap['description'])
+            const typeCell = row.getCell(rcpIndexMap['cptype'])
+            if (!idCell.value) continue
+    
+            const id = getTextValue(idCell.value)
+            rcpMap[id] = {
+                id,
+                name: getTextValue(nameCell.value),
+                description: Chinese.t2s(getTextValue(descCell.value)),
+                type: getTextValue(typeCell.value),
+            }
+
+        }
+
+        return rcpMap
+    },
+    parseAlarmList: (alarmWorkSheet: Worksheet): AlarmData=>{
+    
+        const alarmRows = alarmWorkSheet.getRows(3, alarmWorkSheet.rowCount - 2);
+        if (!alarmRows) throw new Error("Alarm List 数据行获取失败！");
+    
+        const alarmHead = alarmWorkSheet.getRow(2)
+        const alarmIndexMap = {} as any;
+        alarmHead.eachCell((cell, colNum)=>{
+            if(cell.value)
+            alarmIndexMap[getTextValue(cell.value).toLocaleLowerCase().trim()] = colNum
+        })
+
+        // 遍历rcp List
+        const alarmMap: AlarmData = {}
+
+        console.log('alarmIndexMap:', alarmIndexMap)
+        for (let row of alarmRows) {
+            const idCell = row.getCell(alarmIndexMap['alarm id'])
+            const chsCell = row.getCell(alarmIndexMap['alarm text chinese'])
+            const engCell = row.getCell(alarmIndexMap['alarm text english'])
+            const typeCell = row.getCell(alarmIndexMap['alarm type'])
+            if (!idCell.value) continue
+    
+            const id = getTextValue(idCell.value)
+            alarmMap[id] = {
+                id,
+                type: getTextValue(typeCell.value),
+                chinese: getTextValue(chsCell.value),
+                english: Chinese.t2s(getTextValue(engCell.value)),
+            }
+
+        }
+
+        return alarmMap
+    },
 }
 const parse = (wb: Workbook): SecsData => {
     const eventListSheet = wb.getWorksheet("Event List")
     const reportListSheet = wb.getWorksheet("Report List")
     const varListSheet = wb.getWorksheet("Variables List")
+    const rcmdSheet = wb.getWorksheet("Remote Command List")
+    const rcpSheet = wb.getWorksheet("Remote Command Parameter List")
+    const alarmSheet = wb.getWorksheet("Alarm List")
 
     const eid2rid = ParseFunc.parseEventList(eventListSheet);
     const rid2vid = ParseFunc.parseReportList(reportListSheet);
     const vidData = ParseFunc.parseVariableList(varListSheet);
+    const rcmd2cpid = ParseFunc.parseRCMDList(rcmdSheet)
+    const rcpData = ParseFunc.parseRCPList(rcpSheet)
+    const alarmData = ParseFunc.parseAlarmList(alarmSheet)
     return {
         eid2rid,
         rid2vid,
         vidData,
+        rcmd2cpid,
+        rcpData,
+        alarmData,
     }
 };
 

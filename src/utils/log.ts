@@ -359,6 +359,7 @@ export const AnalyzeFunc = {
 		return result
 	}
 }
+
 const analyze = (testItem: any, secsData: any): {
 	eList: string[],
 	analyzeStr: string
@@ -455,6 +456,39 @@ const CheckFunc: {
 	},
 
 	/**
+	 * S1F15检查 单向 H2E
+	 * EAP控制设备切换offline
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param reportData 报告的数据
+	 * @param secsData SECS数据
+	 * @returns 
+	 */
+	115: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		/*
+		0 = OK, Accepted.
+		1 = NG, Already Off-Line, Not Accepted.
+		2~63 = Error, Not Accepted
+		*/
+		for(let log of targetLog){
+			if(log.reply){
+				const {data} = log.reply
+				if(data){
+					if(data.value == '0' || data.value == '1'){
+						return {
+							ok: true,
+						}
+					}
+				}
+			}
+		}
+		return {
+			ok: false,
+			reason: 'S1F15 设备没有一个是回复0或1的'
+		}
+	},
+
+	/**
 	 * S1F17 online检查 单向 H2E
 	 * 
 	 * @param targetLog 要检查的日志
@@ -463,28 +497,28 @@ const CheckFunc: {
 	 * @returns 
 	 */
 	117: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
-	/**
-	 * 0 = OK, Accepted.
-		1 = NG, Not Permit.
-		2 = NG, Already On-Line, Not Accepted.
-		3~63 = Error, Not Accepted.
-		*/
-	for(let log of targetLog){
-		if(log.reply){
-			const {data} = log.reply
-			if(data){
-				if(data.value == '0' || data.value == '2'){
-					return {
-						ok: true,
+		/**
+		 * 0 = OK, Accepted.
+			1 = NG, Not Permit.
+			2 = NG, Already On-Line, Not Accepted.
+			3~63 = Error, Not Accepted.
+			*/
+		for(let log of targetLog){
+			if(log.reply){
+				const {data} = log.reply
+				if(data){
+					if(data.value == '0' || data.value == '2'){
+						return {
+							ok: true,
+						}
 					}
 				}
 			}
 		}
-	}
-	return {
-		ok: false,
-		reason: 'S1F18没有一个是回复0或2的'
-	}
+		return {
+			ok: false,
+			reason: 'S1F18没有一个是回复0或2的'
+		}
 	},
   
 	/**
@@ -689,56 +723,132 @@ const CheckFunc: {
 	 * @returns 
 	 */
 	237: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
-	// 要区别检查两个模式，Enable/Disable
-	let mode = ''
-	if(cmd.comment.toLowerCase().includes('disable')){
-		mode = 'disable'
-	}else if(cmd.comment.toLowerCase().includes('enable')){
-		mode = 'enable'
-	}else{
-		return {
-			ok: false,
-			reason: 'S2F37无法识别指令是Enable还是Disable'
+		// 要区别检查两个模式，Enable/Disable
+		let mode = ''
+		if(cmd.comment.toLowerCase().includes('disable')){
+			mode = 'disable'
+		}else if(cmd.comment.toLowerCase().includes('enable')){
+			mode = 'enable'
+		}else{
+			return {
+				ok: false,
+				reason: 'S2F37无法识别指令是Enable还是Disable'
+			}
 		}
-	}
 
-	// 过滤指定模式的日志
-	const checkLog = targetLog.filter(e=>{
-		const {data} = e
-		console.log(e.data)
-		if(data){
-			let dataLen = data.value[1].value.length
-			return mode === 'disable' ? dataLen === 0 : dataLen !== 0
-		}
-		return false
-	})
-
-	// 没有指定模式的日志
-	if(checkLog.length === 0){
-		
-		return {
-			ok: false,
-			reason: `S2F37缺少${mode}模式的日志`
-		}
-	}
-
-	for(let log of checkLog){
-		if(log.reply){
-			const {data} = log.reply
+		// 过滤指定模式的日志
+		const checkLog = targetLog.filter(e=>{
+			const {data} = e
+			console.log(e.data)
 			if(data){
-				// 有一个通过即可
-				if(data.value == '0'){
-					return {
-						ok: true,
+				let dataLen = data.value[1].value.length
+				return mode === 'disable' ? dataLen === 0 : dataLen !== 0
+			}
+			return false
+		})
+
+		// 没有指定模式的日志
+		if(checkLog.length === 0){
+			
+			return {
+				ok: false,
+				reason: `S2F37缺少${mode}模式的日志`
+			}
+		}
+
+		for(let log of checkLog){
+			if(log.reply){
+				const {data} = log.reply
+				if(data){
+					// 有一个通过即可
+					if(data.value == '0'){
+						return {
+							ok: true,
+						}
 					}
 				}
 			}
 		}
-	}
-	return {
-		ok: false,
-		reason: `S2F37 ${mode}没有一个是回复0的`
-	}
+		return {
+			ok: false,
+			reason: `S2F37 ${mode}没有一个是回复0的`
+		}
+	},
+
+	/**
+	 * S2F41 EAP下发远程指令 单向 H2E
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param secsData SECS数据
+	 * @param reportData 报告的数据
+	 * @param cmd 当前指令数据
+	 * @returns 
+	 */
+	241: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		
+		return {
+			ok: false,
+			reason: 'todo'
+		}
+	},
+	
+	/**
+	 * S5F1 设备发出报警信息 单向 E2H
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param secsData SECS数据
+	 * @param reportData 报告的数据
+	 * @param cmd 当前指令数据
+	 * @returns 
+	 */
+	51: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		let mode = ''
+		if(reportData.title.includes('发生')){
+			mode = 'alarm'
+		}else if(reportData.title.includes('解除')){
+			mode = 'release'
+		}else{
+			return {
+				ok: false,
+				reason: 'S5F1 无法识别是解除警报还是发生警报'
+			}
+		}
+
+		const alarmLog = targetLog.filter(e=>{
+			const {data} = e
+			const alcdData = data?.value[0]
+			const alcd = parseInt(alcdData.value)
+			
+			return mode == 'alarm' ? alcd >= 128 : alcd < 128
+		})
+		if(alarmLog.length === 0){
+			
+			return {
+				ok: false,
+				reason: `S5F1 没有找到报警的${mode == 'alarm' ? '发生' : '解除'}日志`
+			}
+		}
+
+		for(let log of alarmLog){
+			if(log){
+				const {data} = log
+				const alidData = data?.value[1]
+				const textData = data?.value[2]
+				const alid = parseInt(alidData.value)
+				const text = textData.value
+				const alarm = secsData.alarmData[alid]
+				// console.log(log, alarm, text)
+				if(alarm.english != text){
+					return {
+						ok: false,
+						reason: 'S5F1 警报文本与SECS资料不符'
+					}
+				}
+			}
+		}
+		return {
+			ok: true,
+		}
 	},
 
 	/**

@@ -3,6 +3,9 @@ export interface SecsData {
     eid2rid: SecsEventIdData,
     rid2vid: SecsReportIdData,
     vidData: SecsVarIdData,
+    rcmd2cpid: RCMDData,
+    rcpData: RCPData,
+    alarmData: AlarmData,
 }
 
 /**
@@ -35,6 +38,45 @@ export interface SecsVarIdData {
         comment: string
     }
     
+}
+
+/**
+ * 远程指令
+ */
+export interface RCMDData{
+
+    [ket: string]: {
+        command: string
+        rcmd: string
+        description: string
+        cpIds: string[]
+    }
+}
+
+/**
+ * 远程指令参数
+ */
+export interface RCPData{
+
+    [ket: string]: {
+        id: string
+        name: string
+        description: string
+        type: string
+    }
+}
+
+/**
+ * 警报数据
+ */
+export interface AlarmData{
+
+    [ket: string]: {
+        id: string
+        type: string
+        chinese: string
+        english: string
+    }
 }
 
 /************************测试报告相关数据类型************************* */

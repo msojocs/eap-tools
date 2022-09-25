@@ -6,7 +6,7 @@ import { useStore } from '@/store/store'
 // import * as Excel from 'exceljs'
 import { ref } from 'vue'
 import LogDataItem from './LogDataItem.vue';
-import type {LogData, SecsData} from '@/utils/types'
+import type {ReportItemData, SecsData} from '@/utils/types'
 import { EventListData } from './types'
 
 const remote = require('@electron/remote') as typeof import('@electron/remote');
@@ -22,14 +22,17 @@ const targetTab = ref('联线初始化')
 const eventList = ref<EventListData[]>([])
 
 const reportData = ref<{
-    [key: string]: LogData[]
+    [key: string]: ReportItemData[]
 }>({
     '联线初始化': []
 })
 const secsData = ref<SecsData>({
     eid2rid: {},
     rid2vid: {},
-    vidData: {}
+    vidData: {},
+    rcmd2cpid: {},
+    rcpData: {},
+    alarmData: {},
 })
 
 // 选择文件
@@ -84,6 +87,8 @@ const parseReport = async ()=>{
     const wb1 = new Excel.Workbook()
     await wb1.xlsx.readFile(secsFile.value as string)
     // console.log(wb1)
+    // console.log('secs data:', await secs.parse(wb1))
+    // return
     secsData.value = await secs.parse(wb1)
     // secsData
     eventList.value = []

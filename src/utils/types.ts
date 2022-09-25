@@ -42,7 +42,7 @@ export interface SecsVarIdData {
 export interface CmdData {
     s: string,
     f: string,
-    direct: string,
+    direct: 'H2E' | 'E2H' | 'NONE',
     comment: string,
 }
 

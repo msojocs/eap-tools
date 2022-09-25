@@ -1,5 +1,5 @@
 import { FSWatcher } from 'chokidar';
-import { CheckResult, LogReplyData, LogSendData, LogTypeData, ReportItemData, SecsData } from './types';
+import { CheckResult, CmdData, LogReplyData, LogSendData, LogTypeData, ReportItemData, SecsData } from './types';
 const chokidar = require('chokidar') as typeof import('chokidar');
 const fs = require('fs') as typeof import('fs')
 const path = require('path') as typeof import('path')
@@ -405,13 +405,309 @@ const CheckFunc: {
 	[key: string]: Function
 } = {
 	/**
+	 * S1F13检查 双向
+	 * 
+	 * TODO: 验证匹配方向
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param reportData 报告的数据
+	 * @param secsData SECS数据
+	 * @returns 
+	 */
+	113: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		const {cmdList} = reportData
+		const log113 = targetLog.filter(e=>e.direct == cmd.direct)
+		console.log('log113:', log113)
+		if(log113.length == 0){
+			return {
+				ok: false,
+				reason: `未找到S1F13的相关日志\r\n`
+			}
+		}
+		const reply = log113[0].reply
+		if(!reply){
+			
+			return {
+				ok: false,
+				reason: `设备没有对S1F13做出响应\r\n`
+			}
+		}
+		const replyData = reply.data
+		console.log('log113 data:', replyData)
+		if(!replyData){
+			
+			return {
+				ok: false,
+				reason: `设备的S1F14响应为空\r\n`
+			}
+		}
+		const commack = replyData.value[0].value
+		if(commack != '0'){
+			return {
+				ok: false,
+				reason: `设备的S1F14响应COMMACK值非0\r\n`
+			}
+
+		}
+		return {
+			ok: true
+		}
+	},
+
+	/**
+	 * S1F17 online检查 单向 H2E
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param reportData 报告的数据
+	 * @param secsData SECS数据
+	 * @returns 
+	 */
+	 117: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
+		/**
+		 * 0 = OK, Accepted.
+			1 = NG, Not Permit.
+			2 = NG, Already On-Line, Not Accepted.
+			3~63 = Error, Not Accepted.
+		 */
+		for(let log of targetLog){
+			if(log.reply){
+				const {data} = log.reply
+				if(data){
+					if(data.value == '0' || data.value == '2'){
+						return {
+							ok: true,
+						}
+					}
+				}
+			}
+		}
+		return {
+			ok: false,
+			reason: 'S1F18没有一个是回复0或2的'
+		}
+	 },
+	  
+	/**
+	 * S2F33 Define/Delete Report检查 单向 H2E
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param secsData SECS数据
+	 * @param reportData 报告的数据
+	 * @param cmd 当前指令数据
+	 * @returns 
+	 */
+	233: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		// 要区别检查两个模式，Enable/Disable
+		let mode = ''
+		if(cmd.comment.toLowerCase().includes('delete')){
+			mode = 'delete'
+		}else if(cmd.comment.toLowerCase().includes('define')){
+			mode = 'define'
+		}else{
+			return {
+				ok: false,
+				reason: 'S2F33无法识别指令是Define还是Delete'
+			}
+		}
+
+		// 过滤指定模式的日志
+		const checkLog = targetLog.filter(e=>{
+			const {data} = e
+			console.log(e.data)
+			if(data){
+				let dataLen = data.value[1].value.length
+				return mode === 'delete' ? dataLen === 0 : dataLen !== 0
+			}
+			return false
+		})
+
+		// 没有指定模式的日志
+		if(checkLog.length === 0){
+			
+			return {
+				ok: false,
+				reason: `S2F33缺少${mode}模式的日志`
+			}
+		}
+
+		for(let log of checkLog){
+			if(log.reply){
+				const {data} = log.reply
+				if(data){
+					// 有一个通过即可
+					if(data.value == '0'){
+						return {
+							ok: true,
+						}
+					}
+				}
+			}
+		}
+		return {
+			ok: false,
+			reason: `S2F33 ${mode}没有一个是回复0的`
+		}
+	},
+
+	/**
+	 * S2F35 Define/Delete Report Link检查 单向 H2E
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param secsData SECS数据
+	 * @param reportData 报告的数据
+	 * @param cmd 当前指令数据
+	 * @returns 
+	 */
+	235: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		// 要区别检查两个模式，Enable/Disable
+		let mode = ''
+		if(cmd.comment.toLowerCase().includes('delete')){
+			mode = 'delete'
+		}else if(cmd.comment.toLowerCase().includes('define')){
+			mode = 'define'
+		}else{
+			return {
+				ok: false,
+				reason: 'S2F35无法识别指令是Define还是Delete'
+			}
+		}
+
+		// 过滤指定模式的日志
+		const checkLog = targetLog.filter(e=>{
+			const {data} = e
+			console.log(e.data)
+			if(data){
+				let dataLen = data.value[1].value.length
+				return mode === 'delete' ? dataLen === 0 : dataLen !== 0
+			}
+			return false
+		})
+
+		// 没有指定模式的日志
+		if(checkLog.length === 0){
+			
+			return {
+				ok: false,
+				reason: `S2F35缺少${mode}模式的日志`
+			}
+		}
+
+		for(let log of checkLog){
+			if(log.reply){
+				const {data} = log.reply
+				if(data){
+					// 有一个通过即可
+					if(data.value == '0'){
+						return {
+							ok: true,
+						}
+					}
+				}
+			}
+		}
+		return {
+			ok: false,
+			reason: `S2F35 ${mode}没有一个是回复0的`
+		}
+	},
+
+	/**
+	 * S2F37 Enable/Disable Event检查 单向 H2E
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param secsData SECS数据
+	 * @param reportData 报告的数据
+	 * @param cmd 当前指令数据
+	 * @returns 
+	 */
+	237: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+	// 要区别检查两个模式，Enable/Disable
+	let mode = ''
+	if(cmd.comment.toLowerCase().includes('disable')){
+		mode = 'disable'
+	}else if(cmd.comment.toLowerCase().includes('enable')){
+		mode = 'enable'
+	}else{
+		return {
+			ok: false,
+			reason: 'S2F37无法识别指令是Enable还是Disable'
+		}
+	}
+
+	// 过滤指定模式的日志
+	const checkLog = targetLog.filter(e=>{
+		const {data} = e
+		console.log(e.data)
+		if(data){
+			let dataLen = data.value[1].value.length
+			return mode === 'disable' ? dataLen === 0 : dataLen !== 0
+		}
+		return false
+	})
+
+	// 没有指定模式的日志
+	if(checkLog.length === 0){
+		
+		return {
+			ok: false,
+			reason: `S2F37缺少${mode}模式的日志`
+		}
+	}
+
+	for(let log of checkLog){
+		if(log.reply){
+			const {data} = log.reply
+			if(data){
+				// 有一个通过即可
+				if(data.value == '0'){
+					return {
+						ok: true,
+					}
+				}
+			}
+		}
+	}
+	return {
+		ok: false,
+		reason: `S2F37 ${mode}没有一个是回复0的`
+	}
+	},
+
+	/**
+	 * S5F3 启用或关闭所有报警检查 单向 H2E
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param secsData SECS数据
+	 * @param reportData 报告的数据
+	 * @param cmd 当前指令数据
+	 * @returns 
+	 */
+	53: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		for(let log of targetLog){
+			if(log.reply){
+				const {data} = log.reply
+				if(data?.value == '0'){
+					
+					return {
+						ok: true
+					}
+				}
+			}
+		}
+		return {
+			ok: false,
+			reason: `S5F3 没有一个是回复0的`
+		}
+	},
+
+	/**
 	 * S6F11检查
 	 * @param needLog 要检查的日志
 	 * @param reportData 报告的数据
 	 * @param secsData SECS数据
 	 * @returns 
 	 */
-	611: (needLog: LogSendData[], reportData: ReportItemData, secsData: SecsData): CheckResult=>{
+	611: (needLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
 		const eventIdList = reportData.eventId
 		for(let eventId of eventIdList){
 			// 查日志
@@ -429,7 +725,7 @@ const CheckFunc: {
 			if(eventLog.length == 0){
 				return {
 					ok: false,
-					reason: `未找到Event Id${eventId}的相关日志\r\n`
+					reason: `未找到Event Id${eventId}的相关日志`
 				}
 			}
 			// 有日志，检查正确性
@@ -444,7 +740,7 @@ const CheckFunc: {
 					if(rptIdListData.value.length !== rptIds.length){
 						return {
 							ok: false,
-							reason: `Report Id数量与SECS定义不一致\r\n`
+							reason: `Report Id数量与SECS定义不一致n`
 						}
 					}
 
@@ -456,7 +752,7 @@ const CheckFunc: {
 							
 							return {
 								ok: false,
-								reason: `绑定的Report Id与SECS定义不匹配\r\n`
+								reason: `绑定的Report Id与SECS定义不匹配`
 							}
 						}
 						const secsVIds = secsData.rid2vid[rptIdData.value]
@@ -466,7 +762,7 @@ const CheckFunc: {
 						if(logVids.length !== secsVIds.length){
 							return {
 								ok: false,
-								reason: `Variable Id数量与SECS定义不一致\r\n`
+								reason: `Variable Id数量与SECS定义不一致`
 							}
 						}
 						for (let j = 0; j < logVids.length; j++) {
@@ -477,7 +773,7 @@ const CheckFunc: {
 								
 								return {
 									ok: false,
-									reason: `Variable Id类型与SECS定义不一致\r\n`
+									reason: `Variable Id类型与SECS定义不一致`
 								}
 							}
 						}
@@ -508,11 +804,15 @@ export const checkLog = (reportData: ReportItemData, logData: LogSendData[], sec
 		if(!cmd.s || !cmd.f)continue;
 
 		// console.log('要检查的指令数据:', cmd)
-		const needLog = logData.filter(e=>e.s == cmd.s && e.f == cmd.f)
-		if(CheckFunc[`${cmd.s}${cmd.f}`]){
-			const ret = CheckFunc[`${cmd.s}${cmd.f}`](needLog, reportData, secsData)
+		const targetLog = logData.filter(e=>e.s == cmd.s && e.f == cmd.f)
+		if(targetLog.length === 0){
+			ok = false
+			// reason += `缺少日志: S${cmd.s}F${cmd.f}\r\n`
+		}else if(CheckFunc[`${cmd.s}${cmd.f}`]){
+			const ret = CheckFunc[`${cmd.s}${cmd.f}`](targetLog, secsData, reportData, cmd)
 			ok &&= ret.ok
-			reason += ret.reason
+			if(!ret.ok && ret.reason)
+				reason += `${ret.reason}\r\n`
 		}else{
 			ok = false
 			console.warn('无法找到处理方案:', `S${cmd.s}F${cmd.f}`)

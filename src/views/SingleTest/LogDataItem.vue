@@ -181,6 +181,7 @@ watch(
             console.log(reportData.value, logDataObj)
             const checkResult = checkLog(reportData.value, logDataObj, props.secsData)
             console.log('checkResult:', checkResult)
+            reportData.value.result = checkResult.ok ? 'OK2' : 'NG2'
         }
     }
 )

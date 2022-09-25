@@ -47,7 +47,7 @@ export interface CmdData {
 }
 
 /**测试项数据类型*/
-export interface LogData {
+export interface ReportItemData {
     title: string,
     comment: string,
     result: string,
@@ -55,4 +55,45 @@ export interface LogData {
     log: string,
     analyze: string,
     eventId: string[],
+}
+
+
+/************************日志相关数据类型************************* */
+export interface LogTypeData {
+    type: string
+    value: any
+}
+
+/**
+ * 发送的数据类型
+ */
+export interface LogSendData {
+    s: string
+    f: string
+    direct: string
+    action: 'Send'
+    deviceId: number
+    sbyte: string
+    Wbit: boolean
+    reply: LogReplyData | null
+    data: LogTypeData | null
+}
+
+/**
+ * 接收的数据类型
+ */
+export interface LogReplyData {
+    s: string
+    f: string
+    direct: string
+    action: 'Receive'
+    deviceId: number
+    sbyte: string
+    Wbit: boolean
+    data: LogTypeData | null
+}
+
+export interface CheckResult {
+    ok: boolean,
+    reason?: string
 }

@@ -1,4 +1,5 @@
 import { FSWatcher } from 'chokidar';
+import { CheckResult, LogReplyData, LogSendData, LogTypeData, ReportItemData, SecsData } from './types';
 const chokidar = require('chokidar') as typeof import('chokidar');
 const fs = require('fs') as typeof import('fs')
 const path = require('path') as typeof import('path')
@@ -6,7 +7,7 @@ const path = require('path') as typeof import('path')
 const genEle:{
     [key: string]: Function;
 } = {
-	L: (data: Array<Array<string>>, ele: Array<string>)=>{
+	L: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		const len = parseInt(ele[1])
 		const ret = []
 		for(let i=0; i<len; i++){
@@ -21,114 +22,114 @@ const genEle:{
 			value: ret
 		}
 	},
-	LIST: (data: Array<Array<string>>, ele: Array<string>)=>{
+	LIST: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return genEle.L(data, ele)
 	},
-	A: (data: Array<Array<string>>, ele: Array<string>)=>{
+	A: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'A',
 			value: ele[2]
 		}
 	},
-	ASCII: (data: Array<Array<string>>, ele: Array<string>)=>{
+	ASCII: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'A',
 			value: ele[2]
 		}
 	},
 	// Bool
-	B: (data: Array<Array<string>>, ele: Array<string>)=>{
+	B: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'B',
 			value: ele[2]
 		}
 	},
 	// Binary
-	BIN: (data: Array<Array<string>>, ele: Array<string>)=>{
+	BIN: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'BIN',
 			value: ele[2]
 		}
 	},
-	I1: (data: Array<Array<string>>, ele: Array<string>)=>{
+	I1: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'I1',
 			value: parseInt(ele[2])
 		}
 	},
-	I2: (data: Array<Array<string>>, ele: Array<string>)=>{
+	I2: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'I2',
 			value: parseInt(ele[2])
 		}
 	},
-	I4: (data: Array<Array<string>>, ele: Array<string>)=>{
+	I4: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'I4',
 			value: parseInt(ele[2])
 		}
 	},
-	I8: (data: Array<Array<string>>, ele: Array<string>)=>{
+	I8: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'I8',
 			value: parseInt(ele[2])
 		}
 	},
-	U1: (data: Array<Array<string>>, ele: Array<string>)=>{
+	U1: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'U1',
 			value: parseInt(ele[2])
 		}
 	},
-	UINT1: (data: Array<Array<string>>, ele: Array<string>)=>{
+	UINT1: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return genEle.U1(data, ele)
 	},
-	U2: (data: Array<Array<string>>, ele: Array<string>)=>{
+	U2: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'U2',
 			value: parseInt(ele[2])
 		}
 	},
-	UINT2: (data: Array<Array<string>>, ele: Array<string>)=>{
+	UINT2: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return genEle.U2(data, ele)
 	},
-	U4: (data: Array<Array<string>>, ele: Array<string>)=>{
+	U4: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'U4',
 			value: parseInt(ele[2])
 		}
 	},
-	UINT4: (data: Array<Array<string>>, ele: Array<string>)=>{
+	UINT4: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'U4',
 			value: parseInt(ele[2])
 		}
 	},
-	U8: (data: Array<Array<string>>, ele: Array<string>)=>{
+	U8: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'U8',
 			value: parseInt(ele[2])
 		}
 	},
-	F4: (data: Array<Array<string>>, ele: Array<string>)=>{
+	F4: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'F4',
 			value: parseFloat(ele[2])
 		}
 	},
-	F8: (data: Array<Array<string>>, ele: Array<string>)=>{
+	F8: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'F8',
 			value: parseFloat(ele[2])
 		}
 	},
-	JIS: (data: Array<Array<string>>, ele: Array<string>)=>{
+	JIS: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'JIS',
 			value: ele[2]
 		}
 	},
-	ANY: (data: Array<Array<string>>, ele: Array<string>)=>{
+	ANY: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'ANY',
 			value: ele[2]
@@ -137,7 +138,7 @@ const genEle:{
 }
 
 // 解析日志SF内容
-function parseSF(str: string){
+function parseSF(str: string): LogTypeData | null{
 	let match
 	if(/<([A-Z]+\d?) \[(\d+)][ ]?([^>\n]*)/.test(str))
 		match = str.matchAll(/<([A-Z]+\d?) \[(\d+)][ ]?([^>\n]*)/gm)
@@ -145,7 +146,7 @@ function parseSF(str: string){
 		match = str.matchAll(/([A-Z]+\d?),[ ]*(\d+),?[ ]?<?([^>\n]*)>?/gm)
     if(!match){
 		console.warn('parse failed, original data:', str);
-		return;
+		return null;
 	}
 	// console.log(str)
 
@@ -182,9 +183,9 @@ const parseLog = (logStr: string)=>{
 
     // console.log(JSON.stringify(logArr, null, 4))
 
-	const send:any[] = []
-	const reply:any[] = []
-	const other:any[] = []
+	const send: LogSendData[] = []
+	const reply: LogReplyData[] = []
+	const other: any[] = []
 	// log结构解析
     for(let log of logArr){
         // S1F17 H2E Wbit(True) DeviceID(1) Systembytes(3)
@@ -204,7 +205,8 @@ const parseLog = (logStr: string)=>{
 					Wbit: data[4] === 'True',
 					deviceId: parseInt(data[5]),
 					sbyte: data[6],
-					data: parseSF(data[7])
+					data: parseSF(data[7]),
+					reply: null
 				})
 			}else{
 				reply.push({
@@ -235,7 +237,8 @@ const parseLog = (logStr: string)=>{
         // console.log(parse(data[7]))
     }
 
-	console.warn('other:', other)
+	if(other.length > 0)
+		console.warn('other:', other)
 
 	// reply配对
 	for(let s of send){
@@ -373,6 +376,8 @@ const analyze = (testItem: any, secsData: any): {
 	if(s6f11.length > 0){
 		for(let sf of s6f11){
 			const sfData = sf.data
+			if(!sfData)continue
+			
 			// console.log('sf:', sfData)
 			const eData = sfData.value;
 			const eId = '' + eData[1].value
@@ -394,6 +399,129 @@ const analyze = (testItem: any, secsData: any): {
 		}
 	}
 	return result
+}
+
+const CheckFunc: {
+	[key: string]: Function
+} = {
+	/**
+	 * S6F11检查
+	 * @param needLog 要检查的日志
+	 * @param reportData 报告的数据
+	 * @param secsData SECS数据
+	 * @returns 
+	 */
+	611: (needLog: LogSendData[], reportData: ReportItemData, secsData: SecsData): CheckResult=>{
+		const eventIdList = reportData.eventId
+		for(let eventId of eventIdList){
+			// 查日志
+			const eventLog = needLog.filter(e=>{
+				const {data} = e
+				const eData = data?.value[1]
+				if(eData){
+					const eId = eData.value
+					if(eId == eventId)return true
+				}
+				return false
+			})
+			console.log('eventId:', eventId, ' - log:', eventLog)
+			// 无日志，不通过
+			if(eventLog.length == 0){
+				return {
+					ok: false,
+					reason: `未找到Event Id${eventId}的相关日志\r\n`
+				}
+			}
+			// 有日志，检查正确性
+			else{
+				for(let log of eventLog){
+					const sf611 = log.data
+					const eIdData = sf611?.value[1]
+					const {rptIds} = secsData.eid2rid[eIdData.value]
+					const rptIdListData = sf611?.value[2]
+
+					console.log('rptIdListData:', rptIdListData)
+					if(rptIdListData.value.length !== rptIds.length){
+						return {
+							ok: false,
+							reason: `Report Id数量与SECS定义不一致\r\n`
+						}
+					}
+
+					for(let i=0; i < rptIdListData.value.length; i++){
+						const rptIdItemData = rptIdListData.value[i]
+						const rptIdData = rptIdItemData.value[0]
+						// console.log(rptIdItemData, rptIds)
+						if(rptIdData.value != rptIds[i]){
+							
+							return {
+								ok: false,
+								reason: `绑定的Report Id与SECS定义不匹配\r\n`
+							}
+						}
+						const secsVIds = secsData.rid2vid[rptIdData.value]
+						const vIdListData = rptIdItemData.value[1]
+						const logVids = vIdListData.value
+						// console.log(vIdListData, logVids, secsVIds)
+						if(logVids.length !== secsVIds.length){
+							return {
+								ok: false,
+								reason: `Variable Id数量与SECS定义不一致\r\n`
+							}
+						}
+						for (let j = 0; j < logVids.length; j++) {
+							const logVidData = logVids[j];
+							const secsVid = secsData.vidData[secsVIds[j]]
+							// console.log(logVids, logVidData, secsVIds, secsVid)
+							if(logVidData.type !== secsVid.type){
+								
+								return {
+									ok: false,
+									reason: `Variable Id类型与SECS定义不一致\r\n`
+								}
+							}
+						}
+						
+					}
+				}
+			}
+		}
+		return {
+			ok: true
+		}
+	}
+}
+/**
+ * 检查日志是否与测试项目匹配
+ * 
+ * @param reportData 测试项目数据
+ * @param logData 日志数据
+ * 
+ */
+export const checkLog = (reportData: ReportItemData, logData: LogSendData[], secsData: SecsData): CheckResult=>{
+	let {cmdList, eventId} = reportData
+	cmdList = JSON.parse(JSON.stringify(cmdList))
+	eventId = JSON.parse(JSON.stringify(eventId))
+	let ok = true
+	let reason = ''
+	for(let cmd of cmdList){
+		if(!cmd.s || !cmd.f)continue;
+
+		// console.log('要检查的指令数据:', cmd)
+		const needLog = logData.filter(e=>e.s == cmd.s && e.f == cmd.f)
+		if(CheckFunc[`${cmd.s}${cmd.f}`]){
+			const ret = CheckFunc[`${cmd.s}${cmd.f}`](needLog, reportData, secsData)
+			ok &&= ret.ok
+			reason += ret.reason
+		}else{
+			ok = false
+			console.warn('无法找到处理方案:', `S${cmd.s}F${cmd.f}`)
+		}
+	}
+	return {
+		ok,
+		reason
+	}
 }
 
 export {

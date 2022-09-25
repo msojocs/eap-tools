@@ -1,6 +1,6 @@
 import { Workbook, Worksheet } from "exceljs-enhance"
 import {getTextValue} from './common'
-import { CmdData, LogData } from "./types"
+import { CmdData, ReportItemData } from "./types"
 
 /**
  * 生成业务流程清单
@@ -262,7 +262,7 @@ const parseLogItems = (ws: Worksheet)=>{
         const nextRow = rowCnt + 1 < resultRow.length ? resultRow[rowCnt + 1] : rowCount
 
         const cell = ws.getCell(curRow, 6)
-        const logItem:LogData = {
+        const logItem:ReportItemData = {
             title: "",
             comment: "",
             result: '',
@@ -405,7 +405,7 @@ const exportLogItems = (ws: Worksheet, logResultList: any[])=>{
 
         // log data
         if(itemResult != 'NA'){
-            resultCell.value = retData.result
+            resultCell.value = retData.result.substr(0, 2)
             const logCell = ws.getCell(curRow + 1, cell.col + 1)
             // 清空附近日志
             for(let i=curRow + 1; i< nextRow; i++){

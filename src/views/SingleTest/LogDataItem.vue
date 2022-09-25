@@ -1,12 +1,12 @@
 <template>
-        <el-card v-if="log">
+        <el-card v-if="reportData">
             <el-col>
                 <el-row>
-                    <el-col :span="4">{{log.title}}</el-col>
+                    <el-col :span="4">{{reportData.title}}</el-col>
 
                     <el-col :span="12">
                         <el-select
-                        v-model="log.eventId"
+                        v-model="reportData.eventId"
                         filterable
                         @change="eventTypeChange"
                         placeholder="Select"
@@ -25,7 +25,7 @@
                 
                     <el-col :span="4">
                         <el-row>
-                            <el-select v-model="log.result">
+                            <el-select v-model="reportData.result">
                                 <el-option label="NA" value="NA"></el-option>
                                 <el-option label="OK手动" value="OK"></el-option>
                                 <el-option label="OK自动" value="OK2"></el-option>
@@ -58,7 +58,7 @@
                         </el-row>
                         <el-row>
                             <el-col :span="20">
-                                <template v-for="cmd in log.cmdList">
+                                <template v-for="cmd in reportData.cmdList">
                                     <!-- <hr /> -->
                                     <el-row :span="6" style="font-size: smaller">
                                         <el-col :span="7">{{cmd.direct === 'E2H' ? '' : cmd.comment}}</el-col>
@@ -69,7 +69,7 @@
                                 </template>
                             </el-col>
                             <el-col :span="4">
-                                <div v-html="log.analyze"></div>
+                                <div v-html="reportData.analyze"></div>
                             </el-col>
                         </el-row>
                     </el-col>
@@ -78,7 +78,7 @@
                 <el-row>
                     <el-input
                     type="textarea"
-                    v-model="log.log"
+                    v-model="reportData.log"
                     :rows="10"
                     >
                     </el-input>
@@ -89,18 +89,18 @@
 </template>
 
 <script setup lang="ts">
-import { AnalyzeFunc, LogWatcher, parseLog } from '@/utils/log';
-import type { LogData, SecsData } from '@/utils/types';
+import { AnalyzeFunc, checkLog, LogWatcher, parseLog } from '@/utils/log';
+import type { ReportItemData, SecsData } from '@/utils/types';
 import Iconfont from '@/components/iconfont.vue';
 import { EventListData } from './types';
 
 const props = defineProps<{
-    log: LogData,
+    log: ReportItemData,
     secsData: SecsData,
     eventList: EventListData[]
 }>()
 
-const log = ref(props.log)
+const reportData = ref(props.log)
 // 日志监视器状态
 const watcherStatus = ref<'run'|'pause'|'down'>('down')
 
@@ -114,7 +114,7 @@ const startWatch = ()=>{
     }
     watcherStatus.value = 'run'
     
-    log.value.log = ''
+    reportData.value.log = ''
     // TODO: 路径配置化
     // /HBFP-DES-003-L/20220912/Trace
     watcher.start(`D:/Log/EAP/**/${new Date().getFullYear()}${(new Date().getMonth()+1 + '').padStart(2, '0')}${new Date().getDate()}/Trace/*`, function (newData: string, filename: string){
@@ -124,18 +124,9 @@ const startWatch = ()=>{
         if(watcherStatus.value == 'pause')return
 
         // 记录新的日志
-        log.value.log += newData
+        reportData.value.log += newData
         // console.log(parseLog(logStr.value))
 
-        // TODO: 自动分析
-        /**
-         * 需要的数据：已收集到的日志，指令列表
-         * 1. 解析收集到的日志
-         * 2. 根据指令列表检测
-         * 
-         */
-        const logDataObj = parseLog(log.value.log)
-        console.log(log.value, logDataObj)
     })
 }
 
@@ -155,17 +146,17 @@ const stopWatch = ()=>{
 // 手动变更事件
 const eventTypeChange = (value: string[])=>{
     // console.log('eventTypeChange:', value)
-    if(log.value && props.secsData){
-        log.value.analyze = ''
+    if(reportData.value && props.secsData){
+        reportData.value.analyze = ''
         for(let v of value)
-        log.value.analyze += AnalyzeFunc.getAnalyzeStr611(props.secsData, v)
+        reportData.value.analyze += AnalyzeFunc.getAnalyzeStr611(props.secsData, v)
     }
 }
 
 // 指令是否包含S6F11
 const isInclude611 = computed(()=>{
-    if(log.value){
-        const ret = log.value?.cmdList?.filter(e=>e.s == '6' && e.f == '11')
+    if(reportData.value){
+        const ret = reportData.value?.cmdList?.filter(e=>e.s == '6' && e.f == '11')
         if(ret){
             return ret.length > 0
         }
@@ -174,10 +165,30 @@ const isInclude611 = computed(()=>{
 })
 
 watch(
+    ()=>reportData.value.log,
+    (newValue)=>{
+        console.log('日志数据更新')
+        if(newValue){
+
+            // TODO: 自动分析
+            /**
+             * 需要的数据：已收集到的日志，指令列表
+             * 1. 解析收集到的日志
+             * 2. 根据指令列表检测
+             * 
+             */
+            const logDataObj = parseLog(reportData.value.log)
+            console.log(reportData.value, logDataObj)
+            const checkResult = checkLog(reportData.value, logDataObj, props.secsData)
+            console.log('checkResult:', checkResult)
+        }
+    }
+)
+watch(
     ()=>props.log,
     (newLog)=>{
         if(newLog){
-            log.value = newLog
+            reportData.value = newLog
         }
     }
 )

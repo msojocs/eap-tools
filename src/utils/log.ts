@@ -406,6 +406,22 @@ const CheckFunc: {
 	[key: string]: Function
 } = {
 	/**
+	 * S1F3 检查 单向 H2E
+	 * 
+	 * TODO: 
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param reportData 报告的数据
+	 * @param secsData SECS数据
+	 * @returns 
+	 */
+	13: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		return {
+			ok: false
+		}
+	},
+
+	/**
 	 * S1F13检查 双向
 	 * 
 	 * TODO: 验证匹配方向
@@ -563,6 +579,102 @@ const CheckFunc: {
 		}
 	},
 	  
+	/**
+	 * S2F23 Trace Data 检查
+	 * S6F1 也在这里检查
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param secsData SECS数据
+	 * @param reportData 报告的数据
+	 * @param cmd 当前指令数据
+	 * @returns 
+	 */
+	223: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData, logData: LogSendData[]): CheckResult=>{
+		
+		// 有一组ok即可
+
+		// 非启动TD，返回
+		if(!cmd.comment.includes('TOTSMP > 0'))
+		return {ok: true};
+
+		// 过滤出启动Trace Data的log
+		const startTD = targetLog.filter(e=>parseInt(e.data?.value[2].value[0]) != 0)
+		const stopTD = targetLog.filter(e=>parseInt(e.data?.value[2].value[0]) == 0)
+		// console.log('startTD:', startTD)
+		let reason = ''
+
+		for(let start of startTD){
+			const {data} = start
+			const replyData = start.reply?.data
+			if(!replyData){
+				// 响应为空
+				reason += '启动S2F23 响应为空'
+				continue
+			}
+			if(replyData.value != '0'){
+				// 响应非0
+				reason += '启动S2F23 响应非0'
+				continue
+			}
+
+			// 取TRID
+			const trid = data?.value[0].value[0]
+			// console.log('trid:', trid)
+			// 取DSPER
+			const dsper = data?.value[1].value
+			// console.log('dsper:', dsper)
+			// 取REPGSZ
+			const groupSize = data?.value[3].value[0]
+			// console.log('groupSize:', groupSize)
+			// 取SVID列表
+			const svidList = data?.value[4].value
+			// console.log('svidList:', svidList)
+
+			// 过滤出匹配的S6F1
+			const sf61LogList = logData.filter(e=>e.s == '6' && e.f == '1' && e.data?.value[0].value == trid)
+			if(sf61LogList.length === 0){
+				// console.warn('S6F1 缺少日志')
+				reason += 'S6F1 缺少日志'
+				continue
+			}
+			let reason_t = ''
+			for(let sf61 of sf61LogList){
+				// TODO: 检查时间间隔是否正确
+				// 检测数量
+				if(sf61.data?.value[3].value.length != svidList.length){
+					// console.warn('数量不一致')
+					reason_t += 'S6F1 上报的数量不一致'
+					break;
+				}
+			}
+			if(reason_t.length > 0){
+				reason += reason_t;
+				continue
+			}
+
+			// 检测stop
+			const sf61stopList = stopTD.filter(e=>e.data?.value[0].value == trid)
+			if(sf61stopList.length == 0){
+				reason += '缺少 S2F23 停止指令'
+				continue;
+			}
+			const stopCmd = sf61stopList[0]
+			if(stopCmd.reply?.data?.value != '0'){
+				reason += '停止S2F24 响应非0'
+				continue;
+			}
+
+			// 有一组通过
+			return {
+				ok: true
+			}
+		}
+		return {
+			ok: false,
+			reason
+		}
+	},
+
 	/**
 	 * S2F33 Define/Delete Report检查 单向 H2E
 	 * 
@@ -882,10 +994,6 @@ const CheckFunc: {
 	/**
 	 * S5F5 设备警报收集-查詢 单向 H2E
 	 * 
-	 * TODO:
-	 * 如果有查询所有的指令，至少有一条通过即可
-	 * 如果有查询指定的指令，至少有一条通过
-	 * 至少有一种指令
 	 * 
 	 * @param targetLog 要检查的日志
 	 * @param secsData SECS数据
@@ -997,6 +1105,21 @@ const CheckFunc: {
 	},
 
 	/**
+	 * S6F1 检查
+	 * Trace Data上报数据，由S2F23检查，此处直接返回OK
+	 * 
+	 * @param needLog 要检查的日志
+	 * @param reportData 报告的数据
+	 * @param secsData SECS数据
+	 * @returns 
+	 */
+	61: (needLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
+		return {
+			ok: true
+		}
+	},
+
+	/**
 	 * S6F11检查
 	 * @param needLog 要检查的日志
 	 * @param reportData 报告的数据
@@ -1088,6 +1211,7 @@ const CheckFunc: {
  * 
  * @param reportData 测试项目数据
  * @param logData 日志数据
+ * @param secsData SECS数据
  * 
  */
 export const checkLog = (reportData: ReportItemData, logData: LogSendData[], secsData: SecsData): CheckResult=>{
@@ -1107,7 +1231,7 @@ export const checkLog = (reportData: ReportItemData, logData: LogSendData[], sec
 			ok = false
 			// reason += `缺少日志: S${cmd.s}F${cmd.f}\r\n`
 		}else if(CheckFunc[`${cmd.s}${cmd.f}`]){
-			const ret = CheckFunc[`${cmd.s}${cmd.f}`](targetLog, secsData, reportData, cmd)
+			const ret = CheckFunc[`${cmd.s}${cmd.f}`](targetLog, secsData, reportData, cmd, logData)
 			ok &&= ret.ok
 			if(!ret.ok && ret.reason)
 				reason += `${ret.reason}\r\n`

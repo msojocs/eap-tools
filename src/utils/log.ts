@@ -18,7 +18,7 @@ const genEle:{
             }
 		}
 		return {
-			type: 'LIST',
+			type: 'L',
 			value: ret
 		}
 	},
@@ -1267,7 +1267,7 @@ const CheckFunc: {
 								
 								return {
 									ok: false,
-									reason: `Variable Id类型与SECS定义不一致`
+									reason: `Variable Id类型与SECS定义不一致 ${logVidData.type} - ${secsVid.type}`
 								}
 							}
 						}
@@ -1314,7 +1314,7 @@ export const checkLog = (reportData: ReportItemData, logData: LogSendData[], sec
 			// console.log('检测结果：', ret.ok, reason, ok)
 		}else{
 			ok = false
-			reason += '无法找到处理方案:', `S${cmd.s}F${cmd.f}`
+			reason += `无法找到处理方案:S${cmd.s}F${cmd.f}`
 			console.warn('无法找到处理方案:', `S${cmd.s}F${cmd.f}`)
 		}
 		// debugger

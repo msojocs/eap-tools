@@ -54,31 +54,31 @@ const genEle:{
 	I1: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'I1',
-			value: parseInt(ele[2])
+			value: ele[2].match(/\d+/g)
 		}
 	},
 	I2: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'I2',
-			value: parseInt(ele[2])
+			value: ele[2].match(/\d+/g)
 		}
 	},
 	I4: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'I4',
-			value: parseInt(ele[2])
+			value: ele[2].match(/\d+/g)
 		}
 	},
 	I8: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'I8',
-			value: parseInt(ele[2])
+			value: ele[2].match(/\d+/g)
 		}
 	},
 	U1: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'U1',
-			value: parseInt(ele[2])
+			value: ele[2].match(/\d+/g)
 		}
 	},
 	UINT1: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
@@ -87,7 +87,7 @@ const genEle:{
 	U2: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'U2',
-			value: parseInt(ele[2])
+			value: ele[2].match(/\d+/g)
 		}
 	},
 	UINT2: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
@@ -96,31 +96,31 @@ const genEle:{
 	U4: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'U4',
-			value: parseInt(ele[2])
+			value: ele[2].match(/\d+/g)
 		}
 	},
 	UINT4: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'U4',
-			value: parseInt(ele[2])
+			value: ele[2].match(/\d+/g)
 		}
 	},
 	U8: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'U8',
-			value: parseInt(ele[2])
+			value: ele[2].match(/\d+/g)
 		}
 	},
 	F4: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'F4',
-			value: parseFloat(ele[2])
+			value: ele[2].match(/\d+/g)
 		}
 	},
 	F8: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'F8',
-			value: parseFloat(ele[2])
+			value: ele[2].match(/\d+/g)
 		}
 	},
 	JIS: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
@@ -739,7 +739,7 @@ const CheckFunc: {
 		// 过滤指定模式的日志
 		const checkLog = targetLog.filter(e=>{
 			const {data} = e
-			console.log(e.data)
+			// console.log(e.data)
 			if(data){
 				let dataLen = data.value[1].value.length
 				return mode === 'disable' ? dataLen === 0 : dataLen !== 0
@@ -777,6 +777,8 @@ const CheckFunc: {
 
 	/**
 	 * S2F41 EAP下发远程指令 单向 H2E
+	 * 
+	 * TODO:
 	 * 
 	 * @param targetLog 要检查的日志
 	 * @param secsData SECS数据
@@ -830,21 +832,20 @@ const CheckFunc: {
 		}
 
 		for(let log of alarmLog){
-			if(log){
-				const {data} = log
-				const alidData = data?.value[1]
-				const textData = data?.value[2]
-				const alid = parseInt(alidData.value)
-				const text = textData.value
-				const alarm = secsData.alarmData[alid]
-				// console.log(log, alarm, text)
-				if(alarm.english != text){
-					return {
-						ok: false,
-						reason: 'S5F1 警报文本与SECS资料不符'
-					}
+			const {data} = log
+			const alidData = data?.value[1]
+			const textData = data?.value[2]
+			const alid = parseInt(alidData.value)
+			const text = textData.value
+			const alarm = secsData.alarmData[alid]
+			// console.log(log, alarm, text)
+			if(alarm.english != text){
+				return {
+					ok: false,
+					reason: 'S5F1 警报文本与SECS资料不符'
 				}
 			}
+			
 		}
 		return {
 			ok: true,
@@ -876,6 +877,123 @@ const CheckFunc: {
 			ok: false,
 			reason: `S5F3 没有一个是回复0的`
 		}
+	},
+
+	/**
+	 * S5F5 设备警报收集-查詢 单向 H2E
+	 * 
+	 * TODO:
+	 * 如果有查询所有的指令，至少有一条通过即可
+	 * 如果有查询指定的指令，至少有一条通过
+	 * 至少有一种指令
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param secsData SECS数据
+	 * @param reportData 报告的数据
+	 * @param cmd 当前指令数据
+	 * @returns 
+	 */
+	55: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		// 是否有查询所有 [有没有, 是否有ok的]
+		let queryAll = {
+			has: false,
+			hasOk: false,
+			reason: ''
+		};
+		// 是否有查询指定
+		let querySpecify = {
+			has: false,
+			hasOk: false,
+			reason: ''
+		};
+
+		for(let log of targetLog){
+			const {data} = log
+			const replyData = log?.reply?.data
+			if(!replyData){
+				continue
+			}
+			let mode = ''
+			const checkIds = []
+			console.log(data, replyData)
+			if(data?.value.length > 0){
+				querySpecify.has = true
+				mode = 'specify'
+				// 查询指定Alarm ID
+				// 1. 比对，响应数量是否与请求的一致
+				if(data?.value.length !== replyData.value.length){
+					querySpecify.reason += 'S5F5 查询所有 响应数量与定义的不一致'
+					continue
+				}
+				checkIds.push(...data?.value)
+
+				// 2. 比对，是否响应指定ID的数据
+
+
+			}else{
+				queryAll.has = true
+				mode = 'all'
+				// 查询所有Alarm ID
+				// 1. 比对，响应数量是否与SECS定义一致
+				if(Object.keys(secsData.alarmData).length !== replyData.value.length){
+					
+					querySpecify.reason += 'S5F5 查询指定ID 响应数量与定义的不一致'
+					continue
+				}
+				
+				checkIds.push(...Object.keys(secsData.alarmData))
+
+			}
+
+			// 2. 比对，ID的文本是否与SECS定义一致
+			let matchOk = true
+			for(let id of checkIds){
+				const replyIdData = replyData.value.filter((e: { value: { value: any; }[]; })=>e.value[1].value == id)
+				console.log('检测id:', id, replyIdData)
+				if(replyIdData.length == 0){
+					matchOk = false
+					querySpecify.reason += `S5F5 缺少ID ${id} 的响应数据`
+					continue
+				}
+
+				const secsIdData = secsData.alarmData[id]
+				console.log(secsIdData, replyIdData)
+				if(secsIdData.english != replyIdData[0].value[2].value){
+					
+					matchOk = false
+					querySpecify.reason += `S5F5 ${id} 的响应文本与SECS定义不一致`
+					continue
+				}
+			}
+			if(!matchOk){
+				continue
+			}
+			if(mode == 'specify'){
+				querySpecify.hasOk ||= true
+			}else if(mode == 'all'){
+				queryAll.hasOk ||= true
+			}
+		}
+
+		let result = {
+			ok: true,
+			reason: ''
+		}
+		console.log(queryAll, querySpecify)
+		if(queryAll.has){
+			result.ok = queryAll.hasOk
+			if(!queryAll.hasOk){
+				result.reason = queryAll.reason
+			}
+		}
+		if(querySpecify.has){
+			if(result.ok)
+				result.ok = querySpecify.hasOk
+			if(!querySpecify.hasOk){
+				result.reason += querySpecify.reason
+			}
+		}
+		return result
 	},
 
 	/**
@@ -911,10 +1029,10 @@ const CheckFunc: {
 				for(let log of eventLog){
 					const sf611 = log.data
 					const eIdData = sf611?.value[1]
-					const {rptIds} = secsData.eid2rid[eIdData.value]
+					const {rptIds} = secsData.eid2rid[eIdData.value[0]]
 					const rptIdListData = sf611?.value[2]
 
-					console.log('rptIdListData:', rptIdListData)
+					// console.log('rptIdListData:', rptIdListData)
 					if(rptIdListData.value.length !== rptIds.length){
 						return {
 							ok: false,
@@ -933,7 +1051,7 @@ const CheckFunc: {
 								reason: `绑定的Report Id与SECS定义不匹配`
 							}
 						}
-						const secsVIds = secsData.rid2vid[rptIdData.value]
+						const secsVIds = secsData.rid2vid[rptIdData.value[0]]
 						const vIdListData = rptIdItemData.value[1]
 						const logVids = vIdListData.value
 						// console.log(vIdListData, logVids, secsVIds)
@@ -993,7 +1111,7 @@ export const checkLog = (reportData: ReportItemData, logData: LogSendData[], sec
 			ok &&= ret.ok
 			if(!ret.ok && ret.reason)
 				reason += `${ret.reason}\r\n`
-			console.log('检测结果：', ret.ok, reason, ok)
+			// console.log('检测结果：', ret.ok, reason, ok)
 		}else{
 			ok = false
 			console.warn('无法找到处理方案:', `S${cmd.s}F${cmd.f}`)

@@ -7,6 +7,14 @@
         <el-timeline>
             <el-timeline-item timestamp="2022/9/24" placement="top">
                 <el-card>
+                    <h4>版本：v1.3.0</h4>
+                    <ul>
+                        <li>报告：部分自动化核验</li>
+                    </ul>
+                </el-card>
+            </el-timeline-item>
+            <el-timeline-item timestamp="2022/9/24" placement="top">
+                <el-card>
                     <h4>版本：v1.2.0</h4>
                     <ul>
                         <li>报告：整合日志监听</li>

@@ -1093,13 +1093,13 @@ const CheckFunc: {
 			let mode = ''
 			const checkIds = []
 			console.log(data, replyData)
-			if(data?.value.length > 0){
+			if(data?.value?.length > 0){
 				querySpecify.has = true
 				mode = 'specify'
 				// 查询指定Alarm ID
 				// 1. 比对，响应数量是否与请求的一致
 				if(data?.value.length !== replyData.value.length){
-					querySpecify.reason += 'S5F5 查询所有 响应数量与定义的不一致'
+					querySpecify.reason += 'S5F5 查询指定ID 响应数量与查询的数量不一致\r\n'
 					continue
 				}
 				checkIds.push(...data?.value)
@@ -1114,7 +1114,7 @@ const CheckFunc: {
 				// 1. 比对，响应数量是否与SECS定义一致
 				if(Object.keys(secsData.alarmData).length !== replyData.value.length){
 					
-					querySpecify.reason += 'S5F5 查询指定ID 响应数量与定义的不一致'
+					queryAll.reason += 'S5F5 查询所有 响应数量与SECS定义的不一致\r\n'
 					continue
 				}
 				
@@ -1129,7 +1129,7 @@ const CheckFunc: {
 				console.log('检测id:', id, replyIdData)
 				if(replyIdData.length == 0){
 					matchOk = false
-					querySpecify.reason += `S5F5 缺少ID ${id} 的响应数据`
+					querySpecify.reason += `S5F5 缺少ID ${id} 的响应数据\r\n`
 					continue
 				}
 
@@ -1138,7 +1138,7 @@ const CheckFunc: {
 				if(secsIdData.english != replyIdData[0].value[2].value){
 					
 					matchOk = false
-					querySpecify.reason += `S5F5 ${id} 的响应文本与SECS定义不一致`
+					querySpecify.reason += `S5F5 ${id} 的响应文本与SECS定义不一致\r\n`
 					continue
 				}
 			}

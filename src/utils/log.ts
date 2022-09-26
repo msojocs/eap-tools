@@ -428,7 +428,6 @@ const CheckFunc: {
 	/**
 	 * S1F3 检查 单向 H2E
 	 * 
-	 * TODO: 
 	 * 
 	 * @param targetLog 要检查的日志
 	 * @param reportData 报告的数据
@@ -436,9 +435,36 @@ const CheckFunc: {
 	 * @returns 
 	 */
 	13: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		// 区分是搜集指定的还是全部的
+		for(let log of targetLog){
+			const len = log.data?.value.length
+			const replyLen = log.reply?.data?.value.length
+			const secsTraceLen = Object.keys(secsData.traceData).length
+			const secsVarLen = Object.keys(secsData.vidData).length
+			const mode = len > 0 ? 'specify' : 'all'
+			if(len > 0){
+				// 特定SVID，检查响应数量
+				if(replyLen != len){
+					return {
+						ok: false,
+						reason: 'S1F3 指定SVID响应数量与请求不一致'
+					}
+				}
+
+			}else{
+				// 搜索SVID，检查数量
+				if(!(replyLen == secsTraceLen || replyLen == secsVarLen || replyLen == (secsTraceLen + secsVarLen))){
+					return {
+						ok: false,
+						reason: 'S1F3 查询所有SVID响应数量与SECS定义数量不一致'
+					}
+
+				}
+
+			}
+		}
 		return {
-			ok: false,
-			reason: '暂未实现'
+			ok: true
 		}
 	},
 

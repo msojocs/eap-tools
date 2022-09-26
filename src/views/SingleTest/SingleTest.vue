@@ -8,6 +8,7 @@ import { ref } from 'vue'
 import LogDataItem from './LogDataItem.vue';
 import type {ReportItemData, SecsData} from '@/utils/types'
 import { EventListData, RcmdListData } from './types'
+import { ElMessage } from 'element-plus'
 
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 // import { remote } from 'electron'
@@ -34,6 +35,7 @@ const secsData = ref<SecsData>({
     rcmd2cpid: {},
     rcpData: {},
     alarmData: {},
+    traceData: {},
 })
 
 // 选择文件
@@ -84,51 +86,57 @@ const selectReportFile = async ()=>{
 
 // 解析报告
 const parseReport = async ()=>{
-    console.log('parse secs: ', secsFile.value)
-    const wb1 = new Excel.Workbook()
-    await wb1.xlsx.readFile(secsFile.value as string)
-    // console.log(wb1)
-    // console.log('secs data:', await secs.parse(wb1))
-    // return
-    secsData.value = await secs.parse(wb1)
-    // secsData
-    eventList.value = []
-    // 转为可供选择的EventList
-    const eData = secsData.value.eid2rid
-    for(let eId in eData){
-        eventList.value.push({
-            value: eId,
-            label: `${eId} ${eData[eId].comment} ${eData[eId].description}`
-        })
-    }
-    rcmdList.value = []
-    // 转为可供选择的EventList
-    const rcmdData = secsData.value.rcmd2cpid
-    for(let rcmdId in rcmdData){
-        rcmdList.value.push({
-            value: rcmdId,
-            label: `${rcmdId} ${rcmdData[rcmdId].command} ${rcmdData[rcmdId].description}`
-        })
-    }
-    
-    const wb = new Excel.Workbook()
-    await wb.xlsx.readFile(logFile.value as string)
-    // console.log('解析报告:', wb)
-    const logData = logHandle.parseReport(wb)
-
-    // 分析
-    for(let k in logData){
-        // console.log('k:', k, reportData.value[k])
-        const testList = logData[k]
-        for(let item of testList){
-            const {eventIdList, analyzeStr, rcmdList} = analyze(item, secsData.value)
-            item.eventIdList = eventIdList
-            item.rcmdList = rcmdList
-            item.analyze = analyzeStr
+    try{
+        console.log('parse secs: ', secsFile.value)
+        const wb1 = new Excel.Workbook()
+        await wb1.xlsx.readFile(secsFile.value as string)
+        // console.log(wb1)
+        // console.log('secs data:', await secs.parse(wb1))
+        // return
+        secsData.value = await secs.parse(wb1)
+        // secsData
+        eventList.value = []
+        // 转为可供选择的EventList
+        const eData = secsData.value.eid2rid
+        for(let eId in eData){
+            eventList.value.push({
+                value: eId,
+                label: `${eId} ${eData[eId].comment} ${eData[eId].description}`
+            })
         }
+        rcmdList.value = []
+        // 转为可供选择的EventList
+        const rcmdData = secsData.value.rcmd2cpid
+        for(let rcmdId in rcmdData){
+            rcmdList.value.push({
+                value: rcmdId,
+                label: `${rcmdId} ${rcmdData[rcmdId].command} ${rcmdData[rcmdId].description}`
+            })
+        }
+        
+        const wb = new Excel.Workbook()
+        await wb.xlsx.readFile(logFile.value as string)
+        // console.log('解析报告:', wb)
+        const logData = logHandle.parseReport(wb)
+
+        // 分析
+        for(let k in logData){
+            // console.log('k:', k, reportData.value[k])
+            const testList = logData[k]
+            for(let item of testList){
+                const {eventIdList, analyzeStr, rcmdList} = analyze(item, secsData.value)
+                item.eventIdList = eventIdList
+                item.rcmdList = rcmdList
+                item.analyze = analyzeStr
+            }
+        }
+        reportData.value = logData
+    }catch(err: any){
+        console.error(err)
+        ElMessage.error({
+            message: err?.message || '未知错误, 请查看控制台'
+        })
     }
-    reportData.value = logData
-    
     // console.log(reportData.value)
     // window.wb = wb
 }

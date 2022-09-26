@@ -1,6 +1,6 @@
 import { Workbook, Worksheet } from 'exceljs-enhance';
 import { getTextValue } from './common';
-import { AlarmData, RCMDData, RCPData, SecsData, SecsEventIdData, SecsReportIdData, SecsVarIdData } from './types';
+import { AlarmData, RCMDData, RCPData, SecsData, SecsEventIdData, SecsReportIdData, SecsVarIdData, TraceData } from './types';
 
 var Chinese = require('chinese-s2t')
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
@@ -187,7 +187,7 @@ const ParseFunc = {
 
         // console.log('alarmIndexMap:', alarmIndexMap)
         for (let row of alarmRows) {
-            const idCell = row.getCell(alarmIndexMap['alarm id'])
+            const idCell = row.getCell(alarmIndexMap['alarm id'] || alarmIndexMap['sequence'])
             const chsCell = row.getCell(alarmIndexMap['alarm text chinese'])
             const engCell = row.getCell(alarmIndexMap['alarm text english'])
             const typeCell = row.getCell(alarmIndexMap['alarm type'])
@@ -205,6 +205,41 @@ const ParseFunc = {
 
         return alarmMap
     },
+    parseTraceDataList: (traceWorkSheet: Worksheet): TraceData=>{
+    
+        const traceRows = traceWorkSheet.getRows(3, traceWorkSheet.rowCount - 2);
+        if (!traceRows) throw new Error("Trace Data List 数据行获取失败！");
+    
+        const traceHead = traceWorkSheet.getRow(2)
+        const traceIndexMap = {} as any;
+        traceHead.eachCell((cell, colNum)=>{
+            if(cell.value)
+            traceIndexMap[getTextValue(cell.value).toLocaleLowerCase().trim()] = colNum
+        })
+
+        // 遍历rcp List
+        const traceMap: TraceData = {}
+
+        // console.log('alarmIndexMap:', alarmIndexMap)
+        for (let row of traceRows) {
+            const idCell = row.getCell(traceIndexMap['svid'] || traceIndexMap['sequence'])
+            const commentCell = row.getCell(traceIndexMap['comment'])
+            const descCell = row.getCell(traceIndexMap['description'])
+            const typeCell = row.getCell(traceIndexMap['type'])
+            if (!idCell.value) continue
+    
+            const id = getTextValue(idCell.value)
+            traceMap[id] = {
+                id,
+                type: getTextValue(typeCell.value),
+                comment: getTextValue(commentCell.value),
+                desc: getTextValue(descCell.value),
+            }
+
+        }
+
+        return traceMap
+    },
 }
 const parse = (wb: Workbook): SecsData => {
     const eventListSheet = wb.getWorksheet("Event List")
@@ -213,6 +248,7 @@ const parse = (wb: Workbook): SecsData => {
     const rcmdSheet = wb.getWorksheet("Remote Command List")
     const rcpSheet = wb.getWorksheet("Remote Command Parameter List")
     const alarmSheet = wb.getWorksheet("Alarm List")
+    const traceSheet = wb.getWorksheet("Trace Data List")
 
     const eid2rid = ParseFunc.parseEventList(eventListSheet);
     const rid2vid = ParseFunc.parseReportList(reportListSheet);
@@ -220,6 +256,7 @@ const parse = (wb: Workbook): SecsData => {
     const rcmd2cpid = ParseFunc.parseRCMDList(rcmdSheet)
     const rcpData = ParseFunc.parseRCPList(rcpSheet)
     const alarmData = ParseFunc.parseAlarmList(alarmSheet)
+    const traceData = ParseFunc.parseTraceDataList(traceSheet)
     return {
         eid2rid,
         rid2vid,
@@ -227,6 +264,7 @@ const parse = (wb: Workbook): SecsData => {
         rcmd2cpid,
         rcpData,
         alarmData,
+        traceData,
     }
 };
 

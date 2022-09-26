@@ -6,6 +6,7 @@ export interface SecsData {
     rcmd2cpid: RCMDData,
     rcpData: RCPData,
     alarmData: AlarmData,
+    traceData: TraceData,
 }
 
 /**
@@ -76,6 +77,19 @@ export interface AlarmData{
         type: string
         chinese: string
         english: string
+    }
+}
+
+/**
+ * 警报数据
+ */
+export interface TraceData{
+
+    [ket: string]: {
+        id: string
+        type: string
+        comment: string
+        desc: string
     }
 }
 

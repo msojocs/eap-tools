@@ -185,7 +185,7 @@ const ParseFunc = {
         // 遍历rcp List
         const alarmMap: AlarmData = {}
 
-        console.log('alarmIndexMap:', alarmIndexMap)
+        // console.log('alarmIndexMap:', alarmIndexMap)
         for (let row of alarmRows) {
             const idCell = row.getCell(alarmIndexMap['alarm id'])
             const chsCell = row.getCell(alarmIndexMap['alarm text chinese'])

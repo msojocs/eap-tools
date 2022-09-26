@@ -360,43 +360,63 @@ export const AnalyzeFunc = {
 	}
 }
 
-const analyze = (testItem: any, secsData: any): {
-	eList: string[],
-	analyzeStr: string
+const analyze = (reportItem: ReportItemData, secsData: SecsData): {
+	eventIdList: string[],
+	analyzeStr: string,
+	rcmdList: string[],
 }=>{
 	let result = {
-		eList: [] as string[],
-		analyzeStr: ''
+		eventIdList: [] as string[],
+		rcmdList: [] as string[],
+		analyzeStr: '',
 	}
-	if(testItem.result === 'NA')return result;
+	if(reportItem.result === 'NA')return result;
 
+	const logData = parseLog(reportItem.log)
 	// console.log('item:', testItem)
-	const logData = parseLog(testItem.log)
-	// console.log('secsData:', secsData)
-	const s6f11 = logData.filter(e=>e.s == '6' && e.f == '11')
-	if(s6f11.length > 0){
-		for(let sf of s6f11){
-			const sfData = sf.data
-			if(!sfData)continue
-			
-			// console.log('sf:', sfData)
-			const eData = sfData.value;
-			const eId = '' + eData[1].value
-			if(!result.eList.includes(eId)){
-				result.eList.push(eId)
-				result.analyzeStr += AnalyzeFunc.getAnalyzeStr611(secsData, eId)
+	if(reportItem.cmdList.find(e=>e.s == '6' && e.f == '11')){
+		// 611解析
+		const s6f11 = logData.filter(e=>e.s == '6' && e.f == '11')
+		if(s6f11.length > 0){
+			for(let sf of s6f11){
+				const sfData = sf.data
+				if(!sfData)continue
+				
+				// console.log('sf:', sfData)
+				const eData = sfData.value;
+				const eId = '' + eData[1].value
+				if(!result.eventIdList.includes(eId)){
+					result.eventIdList.push(eId)
+					result.analyzeStr += AnalyzeFunc.getAnalyzeStr611(secsData, eId)
+				}
+				// console.log('eId:', eId)
+				// const rDataList = eData[2].value
+				// for(let rDataItem of rDataList){
+				// 	console.log('rDataItem:', rDataItem)
+				// 	const rData = rDataItem.value
+				// 	console.log('rData:', rData)
+				// 	const rId = rData[0].value
+				// 	console.log('rId:', rId)
+				// 	const vValueList = rData[1].value
+				// 	console.log('vValueList:', vValueList)
+				// }
 			}
-			// console.log('eId:', eId)
-			// const rDataList = eData[2].value
-			// for(let rDataItem of rDataList){
-			// 	console.log('rDataItem:', rDataItem)
-			// 	const rData = rDataItem.value
-			// 	console.log('rData:', rData)
-			// 	const rId = rData[0].value
-			// 	console.log('rId:', rId)
-			// 	const vValueList = rData[1].value
-			// 	console.log('vValueList:', vValueList)
-			// }
+		}
+	}
+	if(reportItem.cmdList.find(e=>e.s == '2' && e.f == '41')){
+
+		const s2f41 = logData.filter(e=>e.s == '2' && e.f == '41')
+		if(s2f41.length > 0){
+			for(let sf of s2f41){
+				const sfData = sf.data
+				if(!sfData)continue
+				
+				const rcmdData = sfData.value;
+				const rcmdId = rcmdData[0].value
+				if(!result.rcmdList.includes(rcmdId)){
+					result.rcmdList.push(rcmdId)
+				}
+			}
 		}
 	}
 	return result
@@ -417,7 +437,8 @@ const CheckFunc: {
 	 */
 	13: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
 		return {
-			ok: false
+			ok: false,
+			reason: '暂未实现'
 		}
 	},
 
@@ -674,6 +695,32 @@ const CheckFunc: {
 			reason
 		}
 	},
+  
+	/**
+	 * S2F31 时间同步 - 设置设备的时间 单向 H2E
+	 * 
+	 * @param targetLog 要检查的日志
+	 * @param secsData SECS数据
+	 * @param reportData 报告的数据
+	 * @param cmd 当前指令数据
+	 * @returns 
+	 */
+	231: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		for(let log of targetLog){
+			if(log.reply){
+				const {data} = log.reply;
+				if(data?.value == '0'){
+					return {
+						ok: true,
+					}
+				}
+			}
+		}
+		return {
+			ok: false,
+			reason: 'S2F31 没有找到一个是回复0的'
+		}
+	},
 
 	/**
 	 * S2F33 Define/Delete Report检查 单向 H2E
@@ -734,32 +781,6 @@ const CheckFunc: {
 		return {
 			ok: false,
 			reason: `S2F33 ${mode}没有一个是回复0的`
-		}
-	},
-  
-	/**
-	 * S2F31 时间同步 - 设置设备的时间 单向 H2E
-	 * 
-	 * @param targetLog 要检查的日志
-	 * @param secsData SECS数据
-	 * @param reportData 报告的数据
-	 * @param cmd 当前指令数据
-	 * @returns 
-	 */
-	231: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
-		for(let log of targetLog){
-			if(log.reply){
-				const {data} = log.reply;
-				if(data?.value == '0'){
-					return {
-						ok: true,
-					}
-				}
-			}
-		}
-		return {
-			ok: false,
-			reason: 'S2F31 没有找到一个是回复0的'
 		}
 	},
 
@@ -899,10 +920,32 @@ const CheckFunc: {
 	 * @returns 
 	 */
 	241: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
-		
+		const {rcmdList} = reportData
+		if(rcmdList?.length == 0){
+			return {
+				ok: false,
+				reason: '未指定 S2F41 的指令'
+			}
+		}
+		let reason = ''
+		for(let rcmd of rcmdList){
+			const rcmdLog = targetLog.filter(e=>e.data?.value[0].value == rcmd)
+			if(rcmdLog.length === 0){
+				reason += `S2F41 没有找到匹配${rcmd}的日志`
+				continue;
+			}
+			const okLog = rcmdLog.filter(e=>e.reply?.data?.value[0].value == '0')
+			if(okLog.length === 0){
+				reason += 'S2F41 回复非0'
+				continue;
+			}
+			return {
+				ok: true
+			}
+		}
 		return {
 			ok: false,
-			reason: 'todo'
+			reason
 		}
 	},
 	
@@ -1127,7 +1170,13 @@ const CheckFunc: {
 	 * @returns 
 	 */
 	611: (needLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
-		const eventIdList = reportData.eventId
+		const eventIdList = reportData.eventIdList
+		if(!eventIdList){
+			return {
+				ok: false,
+				reason: '没有选定Event ID',
+			}
+		}
 		for(let eventId of eventIdList){
 			// 查日志
 			const eventLog = needLog.filter(e=>{
@@ -1206,6 +1255,7 @@ const CheckFunc: {
 		}
 	}
 }
+
 /**
  * 检查日志是否与测试项目匹配
  * 
@@ -1215,7 +1265,7 @@ const CheckFunc: {
  * 
  */
 export const checkLog = (reportData: ReportItemData, logData: LogSendData[], secsData: SecsData): CheckResult=>{
-	let {cmdList, eventId} = reportData
+	let {cmdList, eventIdList: eventId} = reportData
 	cmdList = JSON.parse(JSON.stringify(cmdList))
 	eventId = JSON.parse(JSON.stringify(eventId))
 	let ok = true
@@ -1229,7 +1279,7 @@ export const checkLog = (reportData: ReportItemData, logData: LogSendData[], sec
 		const targetLog = logData.filter(e=>e.s == cmd.s && e.f == cmd.f)
 		if(targetLog.length === 0){
 			ok = false
-			// reason += `缺少日志: S${cmd.s}F${cmd.f}\r\n`
+			reason += `缺少日志: S${cmd.s}F${cmd.f}\r\n`
 		}else if(CheckFunc[`${cmd.s}${cmd.f}`]){
 			const ret = CheckFunc[`${cmd.s}${cmd.f}`](targetLog, secsData, reportData, cmd, logData)
 			ok &&= ret.ok
@@ -1238,6 +1288,7 @@ export const checkLog = (reportData: ReportItemData, logData: LogSendData[], sec
 			// console.log('检测结果：', ret.ok, reason, ok)
 		}else{
 			ok = false
+			reason += '无法找到处理方案:', `S${cmd.s}F${cmd.f}`
 			console.warn('无法找到处理方案:', `S${cmd.s}F${cmd.f}`)
 		}
 		// debugger

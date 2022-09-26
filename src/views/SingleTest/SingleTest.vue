@@ -7,7 +7,7 @@ import { useStore } from '@/store/store'
 import { ref } from 'vue'
 import LogDataItem from './LogDataItem.vue';
 import type {ReportItemData, SecsData} from '@/utils/types'
-import { EventListData } from './types'
+import { EventListData, RcmdListData } from './types'
 
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 // import { remote } from 'electron'
@@ -20,6 +20,7 @@ const secsFile = ref(localStorage.getItem('secsFile'))
 const logFile = ref(localStorage.getItem('logFile'))
 const targetTab = ref('联线初始化')
 const eventList = ref<EventListData[]>([])
+const rcmdList = ref<RcmdListData[]>([])
 
 const reportData = ref<{
     [key: string]: ReportItemData[]
@@ -100,6 +101,15 @@ const parseReport = async ()=>{
             label: `${eId} ${eData[eId].comment} ${eData[eId].description}`
         })
     }
+    rcmdList.value = []
+    // 转为可供选择的EventList
+    const rcmdData = secsData.value.rcmd2cpid
+    for(let rcmdId in rcmdData){
+        rcmdList.value.push({
+            value: rcmdId,
+            label: `${rcmdId} ${rcmdData[rcmdId].command} ${rcmdData[rcmdId].description}`
+        })
+    }
     
     const wb = new Excel.Workbook()
     await wb.xlsx.readFile(logFile.value as string)
@@ -111,8 +121,9 @@ const parseReport = async ()=>{
         // console.log('k:', k, reportData.value[k])
         const testList = logData[k]
         for(let item of testList){
-            const {eList, analyzeStr} = analyze(item, secsData.value)
-            item.eventId = eList
+            const {eventIdList, analyzeStr, rcmdList} = analyze(item, secsData.value)
+            item.eventIdList = eventIdList
+            item.rcmdList = rcmdList
             item.analyze = analyzeStr
         }
     }
@@ -162,7 +173,7 @@ const exportReport = async ()=>{
                 <el-tabs v-model="targetTab">
                     <template v-for="(data, reportName) in reportData">
                         <el-tab-pane :label="'' + reportName" :name="'' + reportName">
-                            <log-data-item v-if="targetTab == reportName" v-for="log in data" :log="log" :event-list="eventList" :secs-data="secsData"></log-data-item>
+                            <log-data-item v-if="targetTab == reportName" v-for="log in data" :log="log" :event-list="eventList" :rcmd-list="rcmdList" :secs-data="secsData"></log-data-item>
                         </el-tab-pane>
                     </template>
                 </el-tabs>

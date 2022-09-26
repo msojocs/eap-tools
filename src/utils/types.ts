@@ -96,7 +96,9 @@ export interface ReportItemData {
     cmdList: CmdData[],
     log: string,
     analyze: string,
-    eventId: string[],
+    eventIdList?: string[],
+    rcmdList: string[],
+    reason: string
 }
 
 

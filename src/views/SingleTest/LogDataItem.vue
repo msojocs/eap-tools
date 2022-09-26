@@ -5,17 +5,36 @@
                     <el-col :span="4">{{reportData.title}}</el-col>
 
                     <el-col :span="12">
+                        <!-- S6F11选项 -->
                         <el-select
-                        v-model="reportData.eventId"
+                        v-model="reportData.eventIdList"
                         filterable
                         @change="eventTypeChange"
-                        placeholder="Select"
+                        placeholder="Select S6F11"
                         v-if="isInclude611"
                         style="width: 100%;"
                         multiple
                         >
                             <el-option
                             v-for="item in eventList"
+                            :key="item.value"
+                            :label="item.label"
+                            :value="item.value"
+                            />
+                        </el-select>
+
+                        <!-- S2F41选项 -->
+                        <el-select
+                        v-model="reportData.rcmdList"
+                        filterable
+                        @change="rcmdTypeChange"
+                        placeholder="Select S2F41"
+                        v-if="isInclude241"
+                        style="width: 100%;"
+                        multiple
+                        >
+                            <el-option
+                            v-for="item in rcmdList"
                             :key="item.value"
                             :label="item.label"
                             :value="item.value"
@@ -78,6 +97,15 @@
                 <el-row>
                     <el-input
                     type="textarea"
+                    v-model="reportData.reason"
+                    :rows="1"
+                    >
+                    </el-input>
+                </el-row>
+                <br />
+                <el-row>
+                    <el-input
+                    type="textarea"
                     v-model="reportData.log"
                     :rows="10"
                     >
@@ -92,12 +120,13 @@
 import { AnalyzeFunc, checkLog, LogWatcher, parseLog } from '@/utils/log';
 import type { ReportItemData, SecsData } from '@/utils/types';
 import Iconfont from '@/components/iconfont.vue';
-import { EventListData } from './types';
+import { EventListData, RcmdListData } from './types';
 
 const props = defineProps<{
     log: ReportItemData,
     secsData: SecsData,
-    eventList: EventListData[]
+    eventList: EventListData[],
+    rcmdList: RcmdListData[]
 }>()
 
 const reportData = ref(props.log)
@@ -152,11 +181,31 @@ const eventTypeChange = (value: string[])=>{
         reportData.value.analyze += AnalyzeFunc.getAnalyzeStr611(props.secsData, v)
     }
 }
+// 手动变更远程指令
+const rcmdTypeChange = (value: string[])=>{
+    // console.log('eventTypeChange:', value)
+    // if(reportData.value && props.secsData){
+    //     reportData.value.analyze = ''
+    //     for(let v of value)
+    //     reportData.value.analyze += AnalyzeFunc.getAnalyzeStr611(props.secsData, v)
+    // }
+}
 
 // 指令是否包含S6F11
 const isInclude611 = computed(()=>{
     if(reportData.value){
         const ret = reportData.value?.cmdList?.filter(e=>e.s == '6' && e.f == '11')
+        if(ret){
+            return ret.length > 0
+        }
+    }
+    return false
+})
+
+// 指令是否包含S2F41
+const isInclude241 = computed(()=>{
+    if(reportData.value){
+        const ret = reportData.value?.cmdList?.filter(e=>e.s == '2' && e.f == '41')
         if(ret){
             return ret.length > 0
         }
@@ -182,6 +231,7 @@ watch(
             const checkResult = checkLog(reportData.value, logDataObj, props.secsData)
             console.log('checkResult:', checkResult)
             reportData.value.result = checkResult.ok ? 'OK2' : 'NG2'
+            reportData.value.reason = checkResult.reason || ''
         }
     }
 )

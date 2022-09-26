@@ -269,7 +269,9 @@ const parseLogItems = (ws: Worksheet)=>{
             cmdList: [],
             log: "",
             analyze: "",
-            eventId: []
+            eventIdList: [],
+            rcmdList: [],
+            reason: ''
         }
 
         logItem.title = getTextValue(ws.getCell(curRow - 1, 6).value)
@@ -358,7 +360,9 @@ const parseLogItems = (ws: Worksheet)=>{
  */
 const parseReport = (wb: Workbook)=>{
     const ignoreList = ['标题', '测试信息', 'Stream Function List', '业务流程清单', 'test']
-    const allLogData:any = {}
+    const allLogData:{
+        [key: string]: ReportItemData[]
+    } = {}
     for(let ws of wb.worksheets){
         if(ws.state !== 'visible')continue
         if(ignoreList.includes(ws.name.replaceAll(' ', '')))continue

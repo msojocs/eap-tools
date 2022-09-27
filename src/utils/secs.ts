@@ -1,6 +1,6 @@
 import { Workbook, Worksheet } from 'exceljs-enhance';
 import { getTextValue } from './common';
-import { AlarmData, MeasureData, RCMDData, RCPData, SecsData, SecsEventIdData, SecsReportIdData, SecsVarIdData, TraceData } from './types';
+import { AlarmData, MeasureData, RCMDData, RCPData, RecipeData, SecsData, SecsEventIdData, SecsReportIdData, SecsVarIdData, TraceData } from './types';
 
 var Chinese = require('chinese-s2t')
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
@@ -275,6 +275,41 @@ const ParseFunc = {
 
         return measureMap
     },
+    parseRecipeDataList: (recipeWorkSheet: Worksheet): RecipeData=>{
+    
+        const recipeRows = recipeWorkSheet.getRows(3, recipeWorkSheet.rowCount - 2);
+        if (!recipeRows) throw new Error("Recipe Parameter List 数据行获取失败！");
+    
+        const recipeHead = recipeWorkSheet.getRow(2)
+        const recipeIndexMap = {} as any;
+        recipeHead.eachCell((cell, colNum)=>{
+            if(cell.value)
+            recipeIndexMap[getTextValue(cell.value).toLocaleLowerCase().trim()] = colNum
+        })
+
+        // 遍历rcp List
+        const recipeMap: RecipeData = {}
+
+        // console.log('alarmIndexMap:', alarmIndexMap)
+        for (let row of recipeRows) {
+            const pparmCell = row.getCell(recipeIndexMap['pparm'])
+            const nameCell = row.getCell(recipeIndexMap['name'])
+            const descCell = row.getCell(recipeIndexMap['description'])
+            const typeCell = row.getCell(recipeIndexMap['type'])
+            if (!pparmCell.value) continue
+    
+            const pparm = getTextValue(pparmCell.value)
+            recipeMap[pparm] = {
+                pparm: pparm,
+                name: getTextValue(nameCell.value),
+                desc: getTextValue(descCell.value),
+                type: getTextValue(typeCell.value),
+            }
+
+        }
+
+        return recipeMap
+    },
 
 }
 const parse = (wb: Workbook): SecsData => {
@@ -285,6 +320,7 @@ const parse = (wb: Workbook): SecsData => {
     const rcpSheet = wb.getWorksheet("Remote Command Parameter List")
     const alarmSheet = wb.getWorksheet("Alarm List")
     const traceSheet = wb.getWorksheet("Trace Data List")
+    const recipeSheet = wb.getWorksheet("Recipe Parameter List")
 
     const eid2rid = ParseFunc.parseEventList(eventListSheet);
     const rid2vid = ParseFunc.parseReportList(reportListSheet);
@@ -293,6 +329,7 @@ const parse = (wb: Workbook): SecsData => {
     const rcpData = ParseFunc.parseRCPList(rcpSheet)
     const alarmData = ParseFunc.parseAlarmList(alarmSheet)
     const traceData = ParseFunc.parseTraceDataList(traceSheet)
+    const recipeData = ParseFunc.parseRecipeDataList(recipeSheet)
     return {
         eid2rid,
         rid2vid,
@@ -301,6 +338,7 @@ const parse = (wb: Workbook): SecsData => {
         rcpData,
         alarmData,
         traceData,
+        recipeData
     }
 };
 

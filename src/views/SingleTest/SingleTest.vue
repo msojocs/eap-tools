@@ -36,6 +36,7 @@ const secsData = ref<SecsData>({
     rcpData: {},
     alarmData: {},
     traceData: {},
+    recipeData: {},
 })
 
 // 选择文件

@@ -7,6 +7,7 @@ export interface SecsData {
     rcpData: RCPData,
     alarmData: AlarmData,
     traceData: TraceData,
+    recipeData: RecipeData
 }
 
 /**
@@ -94,7 +95,7 @@ export interface TraceData{
 }
 
 /**
- * 警报数据
+ * 量测数据
  */
  export interface MeasureData{
 
@@ -103,6 +104,19 @@ export interface TraceData{
         desc: string
         type: string
         comment: string
+    }
+}
+
+/**
+ * 量测数据
+ */
+ export interface RecipeData{
+
+    [ket: string]: {
+        pparm: string
+        name: string
+        desc: string
+        type: string
     }
 }
 

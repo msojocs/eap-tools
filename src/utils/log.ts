@@ -1279,7 +1279,86 @@ const CheckFunc: {
 		return {
 			ok: true
 		}
-	}
+	},
+
+	/**
+	 * S7F25 检查
+	 * @param needLog 要检查的日志
+	 * @param reportData 报告的数据
+	 * @param secsData SECS数据
+	 * @returns 
+	 */
+	725: (needLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
+		let reason = ''
+		for(let log of needLog){
+			const ppid = log.data?.value
+			console.log('ppid:', ppid)
+			const replyData = log.reply?.data
+			if(!replyData){
+				reason += 'S7F25 响应为空'
+				continue
+			}
+			// 1. 检查响应的PPID是否与请求的一致
+			const replyPPID = replyData.value[0].value
+			console.log('replyPPID:', replyPPID)
+			if(ppid != replyPPID){
+				reason += 'S7F25 响应的PPID与请求的不一致'
+				continue
+			}
+			// 2. 检查配方参数的数量是否与SECS一致
+			const replyParmList = replyData.value[3].value[0].value[1].value
+			console.log('replyParmList:', replyParmList)
+			const secsParmData = secsData.recipeData
+			const secsParmLen = Object.keys(secsParmData).length
+			if(secsParmLen !== replyParmList.length){
+				
+				reason += 'S7F25 响应的配方参数数量与SECS定义的不一致'
+				continue
+			}
+			return {
+				ok: true,
+				reason
+			}
+
+		}
+		return {
+			ok: false,
+			reason
+		}
+	},
+
+	/**
+	 * S7F25 检查
+	 * @param needLog 要检查的日志
+	 * @param reportData 报告的数据
+	 * @param secsData SECS数据
+	 * @returns 
+	 */
+	103: (needLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
+		let reason = ''
+		for(let log of needLog){
+			const ppid = log.data?.value
+			console.log('ppid:', ppid)
+			const replyData = log.reply?.data
+			if(!replyData){
+				reason += 'S10F3 响应为空'
+				continue
+			}
+			if(replyData.value != '0'){
+				reason += 'S10F3 响应非0'
+				continue
+			}
+			return {
+				ok: true,
+				reason
+			}
+
+		}
+		return {
+			ok: false,
+			reason
+		}
+	},
 }
 
 /**

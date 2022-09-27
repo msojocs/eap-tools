@@ -1,6 +1,6 @@
 import { Workbook, Worksheet } from 'exceljs-enhance';
 import { getTextValue } from './common';
-import { AlarmData, RCMDData, RCPData, SecsData, SecsEventIdData, SecsReportIdData, SecsVarIdData, TraceData } from './types';
+import { AlarmData, MeasureData, RCMDData, RCPData, SecsData, SecsEventIdData, SecsReportIdData, SecsVarIdData, TraceData } from './types';
 
 var Chinese = require('chinese-s2t')
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
@@ -240,6 +240,42 @@ const ParseFunc = {
 
         return traceMap
     },
+    parseMeasureDataList: (measureWorkSheet: Worksheet): MeasureData=>{
+    
+        const measureRows = measureWorkSheet.getRows(3, measureWorkSheet.rowCount - 2);
+        if (!measureRows) throw new Error("Process Measure Data List 数据行获取失败！");
+    
+        const measureHead = measureWorkSheet.getRow(2)
+        const measureIndexMap = {} as any;
+        measureHead.eachCell((cell, colNum)=>{
+            if(cell.value)
+            measureIndexMap[getTextValue(cell.value).toLocaleLowerCase().trim()] = colNum
+        })
+
+        // 遍历rcp List
+        const measureMap: MeasureData = {}
+
+        // console.log('alarmIndexMap:', alarmIndexMap)
+        for (let row of measureRows) {
+            const nameCell = row.getCell(measureIndexMap['dvname'])
+            const descCell = row.getCell(measureIndexMap['description'])
+            const typeCell = row.getCell(measureIndexMap['type'])
+            const commentCell = row.getCell(measureIndexMap['comment'])
+            if (!nameCell.value) continue
+    
+            const name = getTextValue(nameCell.value)
+            measureMap[name] = {
+                name: name,
+                desc: getTextValue(descCell.value),
+                type: getTextValue(typeCell.value),
+                comment: getTextValue(commentCell.value),
+            }
+
+        }
+
+        return measureMap
+    },
+
 }
 const parse = (wb: Workbook): SecsData => {
     const eventListSheet = wb.getWorksheet("Event List")

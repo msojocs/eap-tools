@@ -93,6 +93,19 @@ export interface TraceData{
     }
 }
 
+/**
+ * 警报数据
+ */
+ export interface MeasureData{
+
+    [ket: string]: {
+        name: string
+        desc: string
+        type: string
+        comment: string
+    }
+}
+
 /************************测试报告相关数据类型************************* */
 /* StreamFunction指令类型*/
 export interface CmdData {

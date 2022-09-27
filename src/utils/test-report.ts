@@ -276,7 +276,13 @@ const parseLogItems = (ws: Worksheet)=>{
 
         logItem.title = getTextValue(ws.getCell(curRow - 1, 6).value)
         logItem.comment = getTextValue(ws.getCell(curRow + 1, 2).value)
-        logItem.result = getTextValue(ws.getCell(curRow + 1, cell.col).value)
+        for (let i = 1; i < 3; i++) {
+            const resultCell = ws.getCell(curRow + i, cell.col)
+            if(resultCell.isMerged){
+                logItem.result = getTextValue(resultCell.value)
+                break;
+            }
+        }
         logItem.cmdList = []
         let rowInc = 1
         

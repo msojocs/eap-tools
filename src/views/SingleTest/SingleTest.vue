@@ -61,6 +61,22 @@ const selectSecsFile = async ()=>{
     }
 }
 
+/**
+ * 在资源管理器中打开文件
+ * 
+ */
+ const openFolder = ()=>{
+    if(logFile.value){
+        remote.shell.showItemInFolder(logFile.value)
+        
+    }else{
+        ElMessage({
+            type: 'error',
+            message: '文件路径异常！'
+        })
+    }
+}
+
 // 选择报告文件
 const selectReportFile = async ()=>{
  
@@ -169,6 +185,7 @@ const exportReport = async ()=>{
                 <br /><br />
                 报告文件：<span>{{ logFile }}</span><br />
                 <el-button @click="selectReportFile" type="primary">选择文件</el-button>
+                <el-button @click="openFolder">打开所在文件夹</el-button>
                 <br /><br />
                 <el-button @click="parseReport">解析</el-button>
                 <el-button @click="exportReport">导出</el-button>

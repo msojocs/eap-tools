@@ -5,6 +5,14 @@
 <template>
     <div>
         <el-timeline>
+            <el-timeline-item timestamp="2022/9/27" placement="top">
+                <el-card>
+                    <h4>版本：v1.3.3</h4>
+                    <ul>
+                        <li>报告：新增 S1F3, S7F25, S10F3, S9F9</li>
+                    </ul>
+                </el-card>
+            </el-timeline-item>
             <el-timeline-item timestamp="2022/9/24" placement="top">
                 <el-card>
                     <h4>版本：v1.3.0</h4>

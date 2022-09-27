@@ -1334,6 +1334,25 @@ const CheckFunc: {
 	 * @param secsData SECS数据
 	 * @returns 
 	 */
+	99: (needLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
+		if(needLog.length == 0){
+			return {
+				ok: false,
+				reason: '未识别到S9F9'
+			}
+		}
+		return {
+			ok: true
+		}
+	},
+
+	/**
+	 * S7F25 配方检查
+	 * @param needLog 要检查的日志
+	 * @param reportData 报告的数据
+	 * @param secsData SECS数据
+	 * @returns 
+	 */
 	103: (needLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
 		let reason = ''
 		for(let log of needLog){

@@ -152,18 +152,37 @@ const ParseFunc = {
         const rcpMap: RCPData = {}
 
         for (let row of rcpRows) {
-            const idCell = row.getCell(rcpIndexMap['cpid'])
-            const nameCell = row.getCell(rcpIndexMap['cpname'])
-            const descCell = row.getCell(rcpIndexMap['description'])
-            const typeCell = row.getCell(rcpIndexMap['cptype'])
-            if (!idCell.value) continue
+            
+            let id = ''
+            if(rcpIndexMap['cpid']){
+                const idCell = row.getCell(rcpIndexMap['cpid'])
+                if (!idCell.value) continue
+                id = getTextValue(idCell.value)
+            }
+
+            let name = ''
+            if(rcpIndexMap['cpname']){
+                const nameCell = row.getCell(rcpIndexMap['cpname'])
+                name = getTextValue(nameCell.value)
+            }
+
+            let description = ''
+            if(rcpIndexMap['description']){
+                const descCell = row.getCell(rcpIndexMap['description'])
+                description = Chinese.t2s(getTextValue(descCell.value))
+            }
+
+            let type = ''
+            if(rcpIndexMap['cptype']){
+                const typeCell = row.getCell(rcpIndexMap['cptype'])
+                type = getTextValue(typeCell.value)
+            }
     
-            const id = getTextValue(idCell.value)
             rcpMap[id] = {
                 id,
-                name: getTextValue(nameCell.value),
-                description: Chinese.t2s(getTextValue(descCell.value)),
-                type: getTextValue(typeCell.value),
+                name,
+                description,
+                type,
             }
 
         }
@@ -187,18 +206,36 @@ const ParseFunc = {
 
         // console.log('alarmIndexMap:', alarmIndexMap)
         for (let row of alarmRows) {
-            const idCell = row.getCell(alarmIndexMap['alarm id'] || alarmIndexMap['sequence'])
-            const chsCell = row.getCell(alarmIndexMap['alarm text chinese'])
-            const engCell = row.getCell(alarmIndexMap['alarm text english'])
-            const typeCell = row.getCell(alarmIndexMap['alarm type'])
-            if (!idCell.value) continue
+            let id = ''
+            let type = ''
+            let chinese = ''
+            let english = ''
+            if(alarmIndexMap['alarm id'] || alarmIndexMap['sequence']){
+                const idCell = row.getCell(alarmIndexMap['alarm id'] || alarmIndexMap['sequence'])
+                if (!idCell.value) continue
+                id = getTextValue(idCell.value)
+            }
+
+            if(alarmIndexMap['alarm text chinese']){
+                const chsCell = row.getCell(alarmIndexMap['alarm text chinese'])
+                chinese = Chinese.t2s(getTextValue(chsCell.value))
+            }
+
+            if(alarmIndexMap['alarm text english']){
+                const engCell = row.getCell(alarmIndexMap['alarm text english'])
+                english = getTextValue(engCell.value)
+            }
+
+            if(alarmIndexMap['alarm type']){
+                const typeCell = row.getCell(alarmIndexMap['alarm type'])
+                type = getTextValue(typeCell.value)
+            }
     
-            const id = getTextValue(idCell.value)
             alarmMap[id] = {
                 id,
-                type: getTextValue(typeCell.value),
-                chinese: getTextValue(chsCell.value),
-                english: Chinese.t2s(getTextValue(engCell.value)),
+                type,
+                chinese,
+                english,
             }
 
         }
@@ -223,17 +260,32 @@ const ParseFunc = {
         // console.log('alarmIndexMap:', alarmIndexMap)
         for (let row of traceRows) {
             const idCell = row.getCell(traceIndexMap['svid'] || traceIndexMap['sequence'])
-            const commentCell = row.getCell(traceIndexMap['comment'])
-            const descCell = row.getCell(traceIndexMap['description'])
-            const typeCell = row.getCell(traceIndexMap['type'])
             if (!idCell.value) continue
+
+            let comment = ''
+            if(traceIndexMap['comment']){
+                const commentCell = row.getCell(traceIndexMap['comment'])
+                comment = getTextValue(commentCell.value)
+            }
+
+            let desc = ''
+            if(traceIndexMap['description']){
+                const descCell = row.getCell(traceIndexMap['description'])
+                desc = getTextValue(descCell.value)
+            }
+
+            let type = ''
+            if(traceIndexMap['type']){
+                const typeCell = row.getCell(traceIndexMap['type'])
+                type = getTextValue(typeCell.value)
+            }
     
             const id = getTextValue(idCell.value)
             traceMap[id] = {
                 id,
-                type: getTextValue(typeCell.value),
-                comment: getTextValue(commentCell.value),
-                desc: getTextValue(descCell.value),
+                type,
+                comment,
+                desc,
             }
 
         }
@@ -257,18 +309,36 @@ const ParseFunc = {
 
         // console.log('alarmIndexMap:', alarmIndexMap)
         for (let row of measureRows) {
-            const nameCell = row.getCell(measureIndexMap['dvname'])
-            const descCell = row.getCell(measureIndexMap['description'])
-            const typeCell = row.getCell(measureIndexMap['type'])
-            const commentCell = row.getCell(measureIndexMap['comment'])
-            if (!nameCell.value) continue
+            let name = ''
+            if(measureIndexMap['dvname']){
+                const nameCell = row.getCell(measureIndexMap['dvname'])
+                if (!nameCell.value) continue
+                name = getTextValue(nameCell.value)
+            }
+
+            let desc = ''
+            if(measureIndexMap['description']){
+                const descCell = row.getCell(measureIndexMap['description'])
+                desc = getTextValue(descCell.value)
+            }
+
+            let type = ''
+            if(measureIndexMap['type']){
+                const typeCell = row.getCell(measureIndexMap['type'])
+                type = getTextValue(typeCell.value)
+            }
+
+            let comment = ''
+            if(measureIndexMap['comment']){
+                const commentCell = row.getCell(measureIndexMap['comment'])
+                comment = getTextValue(commentCell.value)
+            }
     
-            const name = getTextValue(nameCell.value)
             measureMap[name] = {
-                name: name,
-                desc: getTextValue(descCell.value),
-                type: getTextValue(typeCell.value),
-                comment: getTextValue(commentCell.value),
+                name,
+                desc,
+                type,
+                comment,
             }
 
         }
@@ -292,18 +362,36 @@ const ParseFunc = {
 
         // console.log('alarmIndexMap:', alarmIndexMap)
         for (let row of recipeRows) {
-            const pparmCell = row.getCell(recipeIndexMap['pparm'])
-            const nameCell = row.getCell(recipeIndexMap['name'])
-            const descCell = row.getCell(recipeIndexMap['description'])
-            const typeCell = row.getCell(recipeIndexMap['type'])
-            if (!pparmCell.value) continue
+            let pparm = ''
+            if(recipeIndexMap['pparm']){
+                const pparmCell = row.getCell(recipeIndexMap['pparm'])
+                if (!pparmCell.value) continue
+                pparm = getTextValue(pparmCell.value)
+            }
+
+            let name = ''
+            if(recipeIndexMap['name']){
+                const nameCell = row.getCell(recipeIndexMap['name'])
+                name = getTextValue(nameCell.value)
+            }
+
+            let desc = ''
+            if(recipeIndexMap['description']){
+                const descCell = row.getCell(recipeIndexMap['description'])
+                desc = getTextValue(descCell.value)
+            }
+
+            let type = ''
+            if(recipeIndexMap['type']){
+                const typeCell = row.getCell(recipeIndexMap['type'])
+                type = getTextValue(typeCell.value);
+            }
     
-            const pparm = getTextValue(pparmCell.value)
             recipeMap[pparm] = {
-                pparm: pparm,
-                name: getTextValue(nameCell.value),
-                desc: getTextValue(descCell.value),
-                type: getTextValue(typeCell.value),
+                pparm,
+                name,
+                desc,
+                type,
             }
 
         }

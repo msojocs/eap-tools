@@ -130,7 +130,12 @@ const parseReport = async ()=>{
                 label: `${rcmdId} ${rcmdData[rcmdId].command} ${rcmdData[rcmdId].description}`
             })
         }
+
+    }catch(err: any){
+        ElMessage.error(`SECS解析异常：${err.message || err}`)
+    }
         
+    try{
         const wb = new Excel.Workbook()
         await wb.xlsx.readFile(logFile.value as string)
         // console.log('解析报告:', wb)
@@ -151,7 +156,7 @@ const parseReport = async ()=>{
     }catch(err: any){
         console.error(err)
         ElMessage.error({
-            message: err?.message || '未知错误, 请查看控制台'
+            message: `解析失败: ${err?.message || '未知错误, 请查看控制台'}`
         })
     }
     // console.log(reportData.value)

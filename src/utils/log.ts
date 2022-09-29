@@ -1197,14 +1197,19 @@ const CheckFunc: {
 	 */
 	611: (needLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
 		const eventIdList = reportData.eventIdList
+		let reason = '检查是否绑定Event ID: '
 		if(!eventIdList){
+			reason += 'failed\r\n'
 			return {
 				ok: false,
-				reason: '没有选定Event ID',
+				reason,
 			}
 		}
+		reason += 'success\r\n'
+
 		for(let eventId of eventIdList){
 			// 查日志
+			reason += `[Event ID ${eventId}] 查找日志: `
 			const eventLog = needLog.filter(e=>{
 				const {data} = e
 				const eData = data?.value[1]
@@ -1217,13 +1222,15 @@ const CheckFunc: {
 			console.log('eventId:', eventId, ' - log:', eventLog)
 			// 无日志，不通过
 			if(eventLog.length == 0){
+				reason += 'failed\r\n'
 				return {
 					ok: false,
-					reason: `未找到Event Id${eventId}的相关日志`
+					reason
 				}
 			}
 			// 有日志，检查正确性
 			else{
+				reason += 'success\r\n'
 				for(let log of eventLog){
 					const sf611 = log.data
 					const eIdData = sf611?.value[1]
@@ -1231,45 +1238,58 @@ const CheckFunc: {
 					const rptIdListData = sf611?.value[2]
 
 					// console.log('rptIdListData:', rptIdListData)
+					reason += `[Event ID ${eventId}] 检查Report Id数量与SECS定义是否一致: `
 					if(rptIdListData.value.length !== rptIds.length){
+						reason += 'failed\r\n'
 						return {
 							ok: false,
-							reason: `Report Id数量与SECS定义不一致n`
+							reason
 						}
 					}
+					reason += 'success\r\n'
 
 					for(let i=0; i < rptIdListData.value.length; i++){
 						const rptIdItemData = rptIdListData.value[i]
 						const rptIdData = rptIdItemData.value[0]
 						// console.log(rptIdItemData, rptIds)
+						reason += `[Event ID ${eventId}] 检查绑定的Report Id [${rptIdData.value}] 与SECS定义是否匹配: `
 						if(rptIdData.value != rptIds[i]){
-							
+							reason += 'failed\r\n'
 							return {
 								ok: false,
-								reason: `绑定的Report Id与SECS定义不匹配`
+								reason
 							}
 						}
+						reason += 'success\r\n'
+
 						const secsVIds = secsData.rid2vid[rptIdData.value[0]]
 						const vIdListData = rptIdItemData.value[1]
 						const logVids = vIdListData.value
 						// console.log(vIdListData, logVids, secsVIds)
+
+						reason += `[Event ID ${eventId}] [Report ID ${rptIdData.value}] 检查Variable Id数量与SECS定义是否一致: `
 						if(logVids.length !== secsVIds.length){
+							reason += 'failed\r\n'
 							return {
 								ok: false,
-								reason: `Variable Id数量与SECS定义不一致`
+								reason
 							}
 						}
+						reason += 'success\r\n'
+
 						for (let j = 0; j < logVids.length; j++) {
 							const logVidData = logVids[j];
 							const secsVid = secsData.vidData[secsVIds[j]]
 							// console.log(logVids, logVidData, secsVIds, secsVid)
+							reason += `[Event ID ${eventId}] [Report ID ${rptIdData.value}] 检查Variable Id类型与SECS定义是否一致: `
 							if(logVidData.type !== secsVid.type){
-								
+								reason += 'failed\r\n'
 								return {
 									ok: false,
 									reason: `Variable Id类型与SECS定义不一致 ${logVidData.type} - ${secsVid.type}`
 								}
 							}
+							reason += 'success\r\n'
 						}
 						
 					}
@@ -1277,7 +1297,8 @@ const CheckFunc: {
 			}
 		}
 		return {
-			ok: true
+			ok: true,
+			reason
 		}
 	},
 
@@ -1329,20 +1350,24 @@ const CheckFunc: {
 
 	/**
 	 * S7F25 检查
-	 * @param needLog 要检查的日志
+	 * @param targetLog 要检查的日志
 	 * @param reportData 报告的数据
 	 * @param secsData SECS数据
 	 * @returns 
 	 */
-	99: (needLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
-		if(needLog.length == 0){
+	99: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
+		let reason = 'S9F9识别: '
+		if(targetLog.length == 0){
+			reason += 'failed\r\n'
 			return {
 				ok: false,
-				reason: '未识别到S9F9'
+				reason
 			}
 		}
+		reason += 'success\r\n'
 		return {
-			ok: true
+			ok: true,
+			reason
 		}
 	},
 
@@ -1407,7 +1432,7 @@ export const checkLog = (reportData: ReportItemData, logData: LogSendData[], sec
 		}else if(CheckFunc[`${cmd.s}${cmd.f}`]){
 			const ret = CheckFunc[`${cmd.s}${cmd.f}`](targetLog, secsData, reportData, cmd, logData)
 			ok &&= ret.ok
-			if(!ret.ok && ret.reason)
+			if(ret.reason)
 				reason += `${ret.reason}\r\n`
 			// console.log('检测结果：', ret.ok, reason, ok)
 		}else{

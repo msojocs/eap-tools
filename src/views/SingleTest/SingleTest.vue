@@ -108,9 +108,10 @@ const parseReport = async ()=>{
         const wb1 = new Excel.Workbook()
         await wb1.xlsx.readFile(secsFile.value as string)
         // console.log(wb1)
-        // console.log('secs data:', await secs.parse(wb1))
         // return
-        secsData.value = await secs.parse(wb1)
+        const secsD = await secs.parse(wb1)
+        secsData.value = secsD
+        console.log('secs data:', secsD)
         // secsData
         eventList.value = []
         // 转为可供选择的EventList

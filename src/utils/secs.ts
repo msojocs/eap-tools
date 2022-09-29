@@ -1,10 +1,15 @@
-import { Workbook, Worksheet } from 'exceljs-enhance';
+import { Row, Workbook, Worksheet } from 'exceljs-enhance';
 import { getTextValue } from './common';
 import { AlarmData, MeasureData, RCMDData, RCPData, RecipeData, SecsData, SecsEventIdData, SecsReportIdData, SecsVarIdData, TraceData } from './types';
 
 var Chinese = require('chinese-s2t')
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
 
+const getCellValueByRowIndex = (row: Row, index: number | undefined)=>{
+    if(!index)return ''
+    const cell = row.getCell(index)
+    return getTextValue(cell.value)
+}
 const ParseFunc = {
     parseEventList: (eventListSheet: Worksheet): SecsEventIdData => {
 
@@ -14,34 +19,30 @@ const ParseFunc = {
         if (title === null || title === undefined || !title.includes("CEID List")) {
             throw new Error("CEID List ERROR");
         }
+        const varRows = eventListSheet.getRows(3, eventListSheet.rowCount - 2);
+        if (!varRows) throw new Error("Event List 数据行获取失败！");
+
         const eventHead = eventListSheet.getRow(2)
         const eventIndexMap = {} as any;
         eventHead.eachCell((cell, colNum)=>{
             if(cell.value)
             eventIndexMap[getTextValue(cell.value).toLocaleLowerCase().trim()] = colNum
         })
-        const eidIndex = eventIndexMap["event id"]
-        const descIndex = eventIndexMap["description"]
-        const cmtIndex = eventIndexMap["comment"]
-        const ridIndex = eventIndexMap["link report id"]
-        // console.log('event list:',  eidIndex, ridIndex)
 
+        // 遍历Event List
         const eid2rid: SecsEventIdData = {}
-        let tData = eventListData.slice(3, eventListData.length)
-        for (let data of tData as Array<string>[]) {
-            // console.log('data:', data)
-            if (!data) continue
 
-            if (typeof data.length !== "number") continue
-            const ridStr = '' + data[ridIndex]
-            // console.warn('rids:', rids)
-            eid2rid[data[eidIndex]] = {
-                description: Chinese.t2s(data[descIndex]),
-                comment: Chinese.t2s(data[cmtIndex]),
-                rptIds: ridStr.match(/\d+/g) || []
+        for (let row of varRows) {
+            const eventId = getCellValueByRowIndex(row, eventIndexMap['event id'])
+            if (!eventId) continue
+    
+            eid2rid[eventId] = {
+                description: Chinese.t2s(getCellValueByRowIndex(row, eventIndexMap['description'])),
+                comment: Chinese.t2s(getCellValueByRowIndex(row, eventIndexMap['comment'])),
+                rptIds: getCellValueByRowIndex(row, eventIndexMap['type']).match(/\d+/g) || [],
             }
+
         }
-        // console.log('eid2rid:', eid2rid)
         return eid2rid
     },
     parseReportList: (reportWorkSheet: Worksheet): SecsReportIdData=>{
@@ -49,21 +50,22 @@ const ParseFunc = {
         const reportRows = reportWorkSheet.getRows(3, reportWorkSheet.rowCount - 2);
         if (!reportRows) throw new Error("Report List 数据行获取失败！");
     
+        const rptHead = reportWorkSheet.getRow(2)
+        const rptIndexMap = {} as any;
+        rptHead.eachCell((cell, colNum)=>{
+            if(cell.value)
+            rptIndexMap[getTextValue(cell.value).toLocaleLowerCase()] = colNum
+        })
+
         // 遍历Report List
         const rptMap: SecsReportIdData = {}
-        let vidIndex = 4
-        reportWorkSheet.getRow(2).eachCell((cell, colNum)=>{
-            if(getTextValue(cell.value).includes('VID')){
-                vidIndex = colNum
-            }
-        })
         for (let row of reportRows) {
             const rptCell = row.getCell(1)
-            const vidCell = row.getCell(vidIndex)
-            if (!rptCell.value) continue
+            const rptId = getTextValue(rptCell.value)
+            if (!rptId) continue
+            const vidValue = getCellValueByRowIndex(row, rptIndexMap['link vid'])
     
-            const rid = rptCell.value as string
-            rptMap[rid] = getTextValue(vidCell.value).match(/\d+/g) || []
+            rptMap[rptId] = vidValue.match(/\d+/g) || []
         }
         return rptMap
 
@@ -83,19 +85,17 @@ const ParseFunc = {
         // 遍历var List
         const varMap: SecsVarIdData = {}
 
+        if(!varIndexMap['vid']) return {}
         for (let row of varRows) {
             const vidCell = row.getCell(varIndexMap['vid'])
-            const descCell = row.getCell(varIndexMap['description'])
-            const typeCell = row.getCell(varIndexMap['type'])
-            const commentCell = row.getCell(varIndexMap['comment'])
             if (!vidCell.value) continue
     
             const vid = vidCell.value as string
             varMap[vid] = {
                 id: vid,
-                desc: Chinese.t2s(getTextValue(descCell.value)),
-                type: getTextValue(typeCell.value),
-                comment: Chinese.t2s(getTextValue(commentCell.value)),
+                desc: Chinese.t2s(getCellValueByRowIndex(row, varIndexMap['description'])),
+                type: getCellValueByRowIndex(row, varIndexMap['type']),
+                comment: Chinese.t2s(getCellValueByRowIndex(row, varIndexMap['comment'])),
             }
 
         }
@@ -118,18 +118,36 @@ const ParseFunc = {
         const cmdMap: RCMDData = {}
 
         for (let row of cmdRows) {
-            const cmdCell = row.getCell(cmdIndexMap['command'])
-            const descCell = row.getCell(cmdIndexMap['description'])
-            const linkCell = row.getCell(cmdIndexMap['link cpid'])
-            const rcmdCell = row.getCell(cmdIndexMap['rcmd(ascii)'])
-            if (!cmdCell.value) continue
-    
-            const cmd = getTextValue(cmdCell.value)
-            cmdMap[cmd] = {
-                command: cmd,
-                description: Chinese.t2s(getTextValue(descCell.value)),
-                rcmd: getTextValue(rcmdCell.value),
-                cpIds: getTextValue(linkCell.value).match(/\d+/) || [],
+            let command = '';
+            if(cmdIndexMap['command']){
+                const cmdCell = row.getCell(cmdIndexMap['command'])
+                if (!cmdCell.value) continue
+                command = getTextValue(cmdCell.value)
+            }
+
+            let description = '';
+            if(cmdIndexMap['description']){
+                const descCell = row.getCell(cmdIndexMap['description'])
+                description = Chinese.t2s(getTextValue(descCell.value))
+            }
+
+            let cpIds: string[] = [];
+            if(cmdIndexMap['link cpid']){
+                const linkCell = row.getCell(cmdIndexMap['link cpid'])
+                cpIds = getTextValue(linkCell.value).match(/\d+/) || []
+            }
+
+            let rcmd = '';
+            if(cmdIndexMap['rcmd(ascii)']){
+                const rcmdCell = row.getCell(cmdIndexMap['rcmd(ascii)'])
+                rcmd = getTextValue(rcmdCell.value)
+            }
+
+            cmdMap[command] = {
+                command,
+                description,
+                rcmd,
+                cpIds,
             }
 
         }

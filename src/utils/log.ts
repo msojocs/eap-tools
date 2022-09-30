@@ -454,35 +454,44 @@ const CheckFunc: {
 	 */
 	13: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
 		// 区分是搜集指定的还是全部的
+		let reason = ''
 		for(let log of targetLog){
 			const len = log.data?.value.length
 			const replyLen = log.reply?.data?.value.length
 			const secsTraceLen = Object.keys(secsData.traceData).length
 			const secsVarLen = Object.keys(secsData.vidData).length
-			const mode = len > 0 ? 'specify' : 'all'
 			if(len > 0){
 				// 特定SVID，检查响应数量
+				reason += 'S1F3: 检查模式 - 指定SVID\r\n'
+				reason += 'S1F3: 指定SVID响应数量与请求的是否一致：'
 				if(replyLen != len){
+					reason += 'failed\r\n'
 					return {
 						ok: false,
-						reason: 'S1F3 指定SVID响应数量与请求不一致'
+						reason
 					}
 				}
+				reason += 'success\r\n'
 
 			}else{
 				// 搜索SVID，检查数量
+				reason += 'S1F3: 检查模式 - 所有SVID\r\n'
+				reason += 'S1F3: 检查所有SVID响应数量与SECS定义数量是否一致: '
 				if(!(replyLen == secsTraceLen || replyLen == secsVarLen || replyLen == (secsTraceLen + secsVarLen))){
+					reason += 'failed\r\n'
 					return {
 						ok: false,
-						reason: 'S1F3 查询所有SVID响应数量与SECS定义数量不一致'
+						reason
 					}
 
 				}
+				reason += 'success\r\n'
 
 			}
 		}
 		return {
-			ok: true
+			ok: true,
+			reason
 		}
 	},
 
@@ -500,39 +509,55 @@ const CheckFunc: {
 		const {cmdList} = reportData
 		const log113 = targetLog.filter(e=>e.direct == cmd.direct)
 		console.log('log113:', log113)
+		let reason = ''
+		reason += '寻到S1F13的相关日志:'
 		if(log113.length == 0){
+			reason += 'failed\r\n'
 			return {
 				ok: false,
-				reason: `未找到S1F13的相关日志\r\n`
+				reason
 			}
 		}
+		reason += 'success\r\n'
+
 		const reply = log113[0].reply
+		reason += '设备对S1F13做出响应:'
 		if(!reply){
-			
+			reason += 'failed\r\n'
 			return {
 				ok: false,
-				reason: `设备没有对S1F13做出响应\r\n`
+				reason
 			}
 		}
+		reason += 'success\r\n'
+
 		const replyData = reply.data
 		console.log('log113 data:', replyData)
+		reason += '设备的S1F14的响应有数据:'
 		if(!replyData){
-			
+			reason += 'failed\r\n'
 			return {
 				ok: false,
-				reason: `设备的S1F14响应为空\r\n`
+				reason
 			}
 		}
+		reason += 'success\r\n'
 		const commack = replyData.value[0].value
+
+		reason += '设备的S1F14响应COMMACK值为0: '
 		if(commack != '0'){
+			reason += 'failed\r\n'
 			return {
 				ok: false,
-				reason: `设备的S1F14响应COMMACK值非0\r\n`
+				reason
 			}
 
 		}
+		reason += 'success\r\n'
+
 		return {
-			ok: true
+			ok: true,
+			reason,
 		}
 	},
 
@@ -551,16 +576,35 @@ const CheckFunc: {
 		1 = NG, Already Off-Line, Not Accepted.
 		2~63 = Error, Not Accepted
 		*/
+		let reason = ''
+		reason += '检查有log:'
+		if(targetLog.length === 0){
+			reason += 'failed\r\n'
+			return {
+				ok: false,
+				reason
+			}
+		}
+		reason += 'success\r\n';
+
 		for(let log of targetLog){
+			reason += `[sbyte ${log.sbyte}] 有响应: `
 			if(log.reply){
+				reason += 'success\r\n'
 				const {data} = log.reply
 				if(data){
+					reason += '检测响应0或1:'
 					if(data.value == '0' || data.value == '1'){
+						reason += 'success\r\n'
 						return {
 							ok: true,
+							reason,
 						}
 					}
+					reason += 'failed\r\n'
 				}
+			}else{
+				reason += 'failed\r\n'
 			}
 		}
 		return {
@@ -584,11 +628,13 @@ const CheckFunc: {
 			2 = NG, Already On-Line, Not Accepted.
 			3~63 = Error, Not Accepted.
 			*/
+		let reason = '存在一个回复0或2的:'
 		for(let log of targetLog){
 			if(log.reply){
 				const {data} = log.reply
 				if(data){
 					if(data.value == '0' || data.value == '2'){
+						reason += 'success\r\n'
 						return {
 							ok: true,
 						}
@@ -596,9 +642,10 @@ const CheckFunc: {
 				}
 			}
 		}
+		reason += 'failed\r\n'
 		return {
 			ok: false,
-			reason: 'S1F18没有一个是回复0或2的'
+			reason
 		}
 	},
   
@@ -613,34 +660,43 @@ const CheckFunc: {
 	 */
 	217: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
 		const timeLog = targetLog.filter(e=>e.direct == cmd.direct)
+		let reason = `寻找 S2F17 ${cmd.direct}的日志:`
 		if(timeLog.length === 0){
-			
+			reason += 'failed\r\n'
 			return {
 				ok: false,
-				reason: `没有找到 S2F17 ${cmd.direct}的日志`
+				reason
 			}
 		}
+		reason += 'success\r\n'
 
 		// 向EAP询问直接OK
 		if(cmd.direct === 'E2H'){
+			reason += '设备向EAP询问，直接OK\r\n'
 			return {
 				ok: true,
 			}
 		}
+		reason += 'EAP向设备询问，检测响应：\r\n'
+
 		for(let log of timeLog){
 			if(log.reply){
 				const {data} = log.reply;
 				const timeM = (data?.value as string).match(/\d+/)
+				reason += '时间长度大于5: '
 				if(timeM && timeM[0].length > 5){
+					reason += 'success\r\n'
 					return {
 						ok: true,
+						reason
 					}
 				}
+				reason += 'failed\r\n'
 			}
 		}
 		return {
 			ok: false,
-			reason: 'S2F17 回复的时间格式不正确'
+			reason
 		}
 	},
 	  
@@ -1284,7 +1340,7 @@ const CheckFunc: {
 						}
 						reason += 'success\r\n'
 
-						const secsVIds = secsData.rid2vid[rptIdData.value[0]]
+						const secsVIds = secsData.rid2vid[rptIdData.value]
 						const vIdListData = rptIdItemData.value[1]
 						const logVids = vIdListData.value
 						// console.log(vIdListData, logVids, secsVIds)
@@ -1446,6 +1502,8 @@ export const checkLog = (reportData: ReportItemData, logData: LogSendData[], sec
 		if(!cmd.s || !cmd.f)continue;
 		// 奇数指令才进行处理
 		if(parseInt(cmd.f) % 2 === 0)continue;
+		
+		reason += `检查S${cmd.s}F${cmd.f}:\r\n`
 
 		// console.log('要检查的指令数据:', cmd)
 		const targetLog = logData.filter(e=>e.s == cmd.s && e.f == cmd.f)

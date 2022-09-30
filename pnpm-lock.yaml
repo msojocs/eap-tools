@@ -17,6 +17,7 @@ specifiers:
   element-plus: ^2.2.13
   exceljs-enhance: 4.3.5
   express: ^4.18.1
+  fast-xml-parser: ^4.0.10
   mock-aws-s3: ^4.0.2
   multer: 1.4.5-lts.1
   nock: ^13.2.9
@@ -41,6 +42,7 @@ dependencies:
   element-plus: 2.2.16_vue@3.2.39
   exceljs-enhance: 4.3.5
   express: 4.18.1
+  fast-xml-parser: 4.0.10
   multer: 1.4.5-lts.1
   odbc: 2.4.4
   unplugin-icons: 0.14.9_vite@3.1.0
@@ -2004,6 +2006,13 @@ packages:
     requiresBuild: true
     dev: true
 
+  /fast-xml-parser/4.0.10:
+    resolution: {integrity: sha512-mYMMIk7Ho1QOiedyvafdyPamn1Vlda+5n95lcn0g79UiCQoLQ2xfPQ8m3pcxBMpVaftYXtoIE2wrNTjmLQnnkg==}
+    hasBin: true
+    dependencies:
+      strnum: 1.0.5
+    dev: false
+
   /fastq/1.13.0:
     resolution: {integrity: sha512-YpkpUnK8od0o1hmeSc7UUs/eB/vIPWJYjKck2QKIzAf71Vm1AAQ3EbuZB3g2JIy+pg+ERD0vqI79KyZiB2e2Nw==}
     dependencies:
@@ -3762,6 +3771,10 @@ packages:
     dependencies:
       acorn: 8.8.0
     dev: true
+
+  /strnum/1.0.5:
+    resolution: {integrity: sha512-J8bbNyKKXl5qYcR36TIO8W3mVGVHrmmxsd5PAItGkmyzwJvybiw2IVq5nqd0i4LSNSkB/sx9VHllbfFdr9k1JA==}
+    dev: false
 
   /sumchecker/3.0.1:
     resolution: {integrity: sha512-MvjXzkz/BOfyVDkG0oFOtBxHX2u3gKbMHIF/dXblZsgD3BWOFLmHovIpZY7BykJdAjcqRCBi1WYBNdEC9yI7vg==}

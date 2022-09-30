@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { parseLog } from '@/utils/log';
 import * as secs from '@/utils/secs'
 const fs = require('fs') as typeof import('fs')
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
@@ -50,6 +51,22 @@ const start2 = async()=>{
     }
 }
 
+const doParseLog = ()=>{
+    const str = `
+
+2022-09-12 14:45:23.8407[TRACE]RECV-S2F35 Wbit=[True] Systembytes=[7].
+Header=00 01 82 23 00 00 00 00 00 07  
+ 01 02 A9 02 00 01 01 00  
+     <L,2 
+        <U2,1 , '1'>,
+        <L,0 
+        >
+    >`
+
+    const result = parseLog(str)
+    console.log(result)
+}
+
 watch(
     ()=>path.value,
     (value)=>{
@@ -66,6 +83,8 @@ watch(
             <el-input v-model="path"></el-input>
             <el-button @click="start1">start</el-button>
             <el-button @click="start2">start</el-button>
+            <br>
+            <el-button @click="doParseLog">日志解析</el-button>
         </el-main>
     </el-container>
 </template>

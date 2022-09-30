@@ -139,6 +139,7 @@ const genEle:{
 
 // 解析日志SF内容
 function parseSF(str: string): LogTypeData | null{
+	// TODO: 配方管理的日志格式存在差异，还有S9F9
 	let match
 	if(/<([A-Z]+\d?) \[(\d+)][ ]?([^>\n]*)/.test(str))
 		match = str.matchAll(/<([A-Z]+\d?) \[(\d+)][ ]?([^>\n]*)/gm)
@@ -189,8 +190,24 @@ const parseLog = (logStr: string)=>{
 	// log结构解析
     for(let log of logArr){
         // S1F17 H2E Wbit(True) DeviceID(1) Systembytes(3)
-        const data = log.split(/S(\d+)F(\d+) (H2E|E2H) Wbit\((True|False)\) DeviceID\((\d+)\) Systembytes\((\d+)\)/)
-		const actionM = data[0].match(/\[[A-Z]+\](Receive|Send|T\d timeout) (\[S\d+F\d+_(E|H)\])?/)
+		// 1-s 2-f 3-direct 4-wbit 5-deviceId 6-sbyte 7-content
+        let data = log.split(/S(\d+)F(\d+) (H2E|E2H) Wbit\((True|False)\) DeviceID\((\d+)\) Systembytes\((\d+)\)/)
+		if(log.includes('Header=')){
+			console.log('模拟器')
+			// 模拟器
+			const _d = log.split(/\[[A-Z]+\](RECV|SEND)-S(\d+)F(\d+) Wbit=\[(True|False)\] Systembytes=\[(\d+)\]/)
+			console.log(_d)
+			data = [log, _d[2], _d[3], _d[1] === 'RECV' ? 'E2H' : 'H2E', /* wbit */_d[4], '0', /*sbyte*/_d[5], log]
+		}
+		let actionM = data[0].match(/\[[A-Z]+\](Receive|Send) (\[S\d+F\d+_(E|H)\])/)
+		if(!actionM){
+			// EAP收到超时
+			actionM = data[0].match(/\[[A-Z]+\](T\d timeout) (\[S\d+F\d+_(E|H)\])?/)
+		}
+		if(!actionM){
+			// 模拟器收到的信息
+			actionM = data[0].match(/\[[A-Z]+\](RECV|SEND)-(S\d+F\d+)/)
+		}
 		
 		// f为奇数，send
 		// TODO: timeout
@@ -347,6 +364,7 @@ export const AnalyzeFunc = {
 		if(eData.rptIds){
 			for(let rId of eData.rptIds){
 				const vIds = rid2vid[rId]
+				// TODO: 可能没找到
 				result += `Report ID: ${rId}<br />`
 				for(let vId of vIds){
 					const data = vidData[vId]
@@ -706,6 +724,10 @@ const CheckFunc: {
 				continue;
 			}
 			const stopCmd = sf61stopList[0]
+			if(!stopCmd.reply){
+				reason += '停止S2F24 缺少数据'
+				continue;
+			}
 			if(stopCmd.reply?.data?.value != '0'){
 				reason += '停止S2F24 响应非0'
 				continue;
@@ -1289,6 +1311,7 @@ const CheckFunc: {
 									reason: `Variable Id类型与SECS定义不一致 ${logVidData.type} - ${secsVid.type}`
 								}
 							}
+							// TODO: 检测内容是否空或者NA
 							reason += 'success\r\n'
 						}
 						

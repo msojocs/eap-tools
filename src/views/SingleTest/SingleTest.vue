@@ -9,6 +9,7 @@ import LogDataItem from './LogDataItem.vue';
 import type {ReportItemData, SecsData} from '@/utils/types'
 import { EventListData, RcmdListData } from './types'
 import { ElMessage } from 'element-plus'
+import { parseXML } from '@/utils/secs'
 
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 // import { remote } from 'electron'
@@ -18,6 +19,7 @@ const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
 const store = useStore()
 
 const secsFile = ref(localStorage.getItem('secsFile'))
+const xmlSecsFile = ref(localStorage.getItem('xmlSecsFile'))
 const logFile = ref(localStorage.getItem('logFile'))
 const targetTab = ref('联线初始化')
 const eventList = ref<EventListData[]>([])
@@ -39,29 +41,6 @@ const secsData = ref<SecsData>({
     recipeData: {},
 })
 
-// 选择文件
-const selectSecsFile = async ()=>{
- 
-    const result = await remote.dialog.showOpenDialog({
-        properties: ['openFile'],
-        filters: [
-            {
-                name: 'Excel',
-                extensions: ['xlsx']                // 只允许 jpg 和 png 格式的文件
-            },
-            {
-                name: 'All',
-                extensions: ['*']                // 只允许 jpg 和 png 格式的文件
-            }
-        ],
-    });
-    console.log(result)
-    if(!result.canceled){
-        secsFile.value = result.filePaths[0]
-        localStorage.setItem('secsFile', secsFile.value as string)
-    }
-}
-
 /**
  * 在资源管理器中打开文件
  * 
@@ -78,6 +57,52 @@ const selectSecsFile = async ()=>{
     }
 }
 
+// 选择文件
+const selectSecsFile = async ()=>{
+ 
+    const result = await remote.dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [
+            {
+                name: 'Excel',
+                extensions: ['xlsx']
+            },
+            {
+                name: 'All',
+                extensions: ['*']
+            }
+        ],
+    });
+    console.log(result)
+    if(!result.canceled){
+        secsFile.value = result.filePaths[0]
+        localStorage.setItem('secsFile', secsFile.value as string)
+    }
+}
+
+// 选择文件
+const selectXmlSecsFile = async ()=>{
+ 
+    const result = await remote.dialog.showOpenDialog({
+        properties: ['openFile'],
+        filters: [
+            {
+                name: 'Xml',
+                extensions: ['xml']               
+            },
+            {
+                name: 'All',
+                extensions: ['*']               
+            }
+        ],
+    });
+    console.log(result)
+    if(!result.canceled){
+        xmlSecsFile.value = result.filePaths[0]
+        localStorage.setItem('xmlSecsFile', xmlSecsFile.value as string)
+    }
+}
+
 // 选择报告文件
 const selectReportFile = async ()=>{
  
@@ -86,11 +111,11 @@ const selectReportFile = async ()=>{
         filters: [
             {
                 name: 'Excel',
-                extensions: ['xlsx']                // 只允许 jpg 和 png 格式的文件
+                extensions: ['xlsx']
             },
             {
                 name: 'All',
-                extensions: ['*']                // 只允许 jpg 和 png 格式的文件
+                extensions: ['*']
             }
         ],
     });
@@ -103,6 +128,16 @@ const selectReportFile = async ()=>{
 
 // 解析报告
 const parseReport = async ()=>{
+    // try{
+    //     const fs = require('node:fs')
+    //     const xmlStr = fs.readFileSync(xmlSecsFile.value).toString()
+    //     const result = parseXML(xmlStr)
+    //     console.log('xml parse result:', result)
+    // TODO: 尝试解析excel版本的SECS，成功后补全xml版本的缺失数据
+    // }catch(err){
+    //     console.error(err)
+    // }
+    // return
     try{
         console.log('parse secs: ', secsFile.value)
         const wb1 = new Excel.Workbook()
@@ -189,6 +224,10 @@ const exportReport = async ()=>{
                 SECS文件：<span>{{ secsFile }}</span><br />
                 <!-- <el-input type="file"></el-input> -->
                 <el-button @click="selectSecsFile" type="primary">选择SECS文件</el-button>
+                <br /><br />
+                Library文件：<span>{{ xmlSecsFile }}</span><br />
+                <!-- <el-input type="file"></el-input> -->
+                <el-button @click="selectXmlSecsFile" type="primary">选择Library SECS文件</el-button>
                 <br /><br />
                 报告文件：<span>{{ logFile }}</span><br />
                 <el-button @click="selectReportFile" type="primary">选择文件</el-button>

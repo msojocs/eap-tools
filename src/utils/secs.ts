@@ -39,7 +39,7 @@ const ParseFunc = {
             eid2rid[eventId] = {
                 description: Chinese.t2s(getCellValueByRowIndex(row, eventIndexMap['description'])),
                 comment: Chinese.t2s(getCellValueByRowIndex(row, eventIndexMap['comment'])),
-                rptIds: getCellValueByRowIndex(row, eventIndexMap['type']).match(/\d+/g) || [],
+                rptIds: getCellValueByRowIndex(row, eventIndexMap['link report id']).match(/\d+/g) || [],
             }
 
         }
@@ -249,7 +249,8 @@ const ParseFunc = {
                 type = getTextValue(typeCell.value)
             }
     
-            alarmMap[id] = {
+            // TODO: id为0时，似乎会丢失
+            alarmMap['' + id] = {
                 id,
                 type,
                 chinese,
@@ -1055,6 +1056,230 @@ const fixDataForXML = (wb: Workbook) => {
         ret += '<br />\r\n'
     }
     return ret
+}
+
+const XMLParseFunc = {
+    alarmcollection: (data: any): AlarmData=>{
+        // console.log('alarmcollection:', data)
+        interface DataType {
+            '@_alarmtextchinese': string,
+            '@_alarmtextenglish': string,
+            '@_alarmtype': string,
+            '@_enable': string,
+            '@_id': string
+        }
+        const data_ = data.alarm as DataType[]
+        const result: AlarmData = {}
+        for(let _d of data_){
+            result[_d['@_id']] = {
+                id: _d['@_id'],
+                type: _d['@_alarmtype'],
+                chinese: _d['@_alarmtextchinese'],
+                english: _d['@_alarmtextenglish']
+            }
+        }
+        return result
+    },
+    commandcollection: (data: any): RCMDData=>{
+        // console.log('commandcollection:', data)
+        interface DataType {
+            '@_alias': string
+            '@_defaultlength': string
+            '@_enable': string
+            '@_id': string
+            '@_link': string
+            '@_name': string
+        }
+        const data_ = data.command as DataType[]
+        const result: RCMDData = {}
+        for(let _d of data_){
+            result[_d['@_name']] = {
+                command: _d['@_name'],
+                rcmd: _d['@_name'],
+                description: '',
+                cpIds: _d['@_link'].match(/\d+/g) || [],
+            }
+        }
+        return result
+
+    },
+    commandparametercollection: (data: any): RCPData=>{
+        // console.log('commandparametercollection:', data)
+        interface DataType {
+            '@_alias': string
+            '@_defaultlength': string
+            '@_defaultunit': string
+            '@_defaultvalue': string
+            '@_enable': string
+            '@_id': string
+            '@_name': string
+            '@_rule': string
+        }
+        const data_ = data.cpname as DataType[]
+        const result: RCPData = {}
+        for(let _d of data_){
+            result[_d['@_id']] = {
+                id: _d['@_id'],
+                name: _d['@_name'],
+                description: '',
+                type: _d['@_defaultunit'],
+            }
+        }
+        return result
+
+    },
+    // constantdatacollection: (alarmData: any)=>{
+
+    // },
+    // discretedatacollection: (alarmData: any)=>{
+
+    // },
+    eventcollection: (data: any): SecsEventIdData=>{
+        // console.log('eventcollection:', data)
+        interface DataType {
+            '@_alias': string
+            '@_enable': string
+            '@_id': string
+            '@_link': string
+            '@_name': string
+        }
+        const events = data.event as DataType[]
+        const result: SecsEventIdData = {}
+        for(let event of events){
+            result[event['@_id']] = {
+                description: event['@_name'],
+                comment: '',
+                rptIds: event['@_link'].match(/\d+/g) || []
+            }
+        }
+        return result
+
+    },
+    recipebodycollection: (data: any): RecipeData=>{
+        // console.log('recipebodycollection:', data)
+        interface DataType {
+            '@_alias': string
+            '@_defaultlength': string
+            '@_defaultunit': string
+            '@_defaultvalue': string
+            '@_enable': string
+            '@_group': string
+            '@_groupname': string
+            '@_id': string // pparm
+            '@_maxvalue': string
+            '@_minvalue': string
+            '@_name': string
+            '@_seqno': string
+        }
+        const data_ = data.recipedata as DataType[]
+        const result: RecipeData = {}
+        for(let _d of data_){
+            result[_d['@_id']] = {
+                pparm: _d['@_id'],
+                name: _d['@_name'],
+                desc: '',
+                type: _d['@_defaultunit']
+            }
+        }
+        return result
+
+    },
+    reportcollection: (data: any): SecsReportIdData=>{
+        // console.log('reportcollection:', data)
+        interface DataType {
+            '@_alias': string
+            '@_enable': string
+            '@_id': string
+            '@_link': string
+            '@_name': string
+        }
+        const data_ = data.report as DataType[]
+        const result: SecsReportIdData = {}
+        for(let _d of data_){
+            result[_d['@_id']] = _d['@_link'].match(/\d+/g) || []
+        }
+        return result
+    },
+    tracedatacollection: (data: any): TraceData=>{
+        // console.log('tracedatacollection:', data)
+        interface DataType {
+            '@_alias': string
+            '@_defaultlength': string
+            '@_defaultunit': string
+            '@_defaultvalue': string
+            '@_enable': string
+            '@_group': string
+            '@_groupname': string
+            '@_id': string
+            '@_maxvalue': string
+            '@_minvalue': string
+            '@_name': string
+            '@_seqno': string
+        }
+        const data_ = data.tracedata as DataType[]
+        const result: TraceData = {}
+        for(let _d of data_){
+            let id = _d['@_id']
+            if(id.length == 0)
+            id = _d['@_seqno']
+            result[id] = {
+                id,
+                type: _d['@_defaultunit'],
+                comment: '',
+                desc: _d['@_name'],
+            }
+        }
+        return result
+    },
+    variablecollection: (data: any): SecsVarIdData=>{
+        // console.log('variablecollection:', data)
+        interface DataType {
+            '@_alias': string
+            '@_defaultlength': string
+            '@_defaultunit': string
+            '@_defaultvalue': string
+            '@_enable': string
+            '@_id': string
+            '@_maxvalue': string
+            '@_minvalue': string
+            '@_name': string
+            '@_rule': string
+        }
+        const data_ = data.variable as DataType[]
+        const result: SecsVarIdData = {}
+        for(let _d of data_){
+            result[_d['@_id']] = {
+                id: _d['@_id'],
+                type: _d['@_defaultunit'],
+                comment: '',
+                desc: _d['@_name'],
+            }
+        }
+        return result
+
+    }
+}
+export const parseXML = (xml: string): SecsData => {
+    const { XMLParser, XMLBuilder, XMLValidator} = require("fast-xml-parser");
+    const options = {
+        ignoreAttributes : false
+    };
+    const parser = new XMLParser(options);
+    let jObj = parser.parse(xml);
+    console.log(jObj)
+    const library = jObj.library
+    console.log('library:', library)
+    const secsData: SecsData = {
+        eid2rid: XMLParseFunc.eventcollection(library.eventcollection),
+        rid2vid: XMLParseFunc.reportcollection(library.reportcollection),
+        vidData: XMLParseFunc.variablecollection(library.variablecollection),
+        rcmd2cpid: XMLParseFunc.commandcollection(library.commandcollection),
+        rcpData: XMLParseFunc.commandparametercollection(library.commandparametercollection),
+        alarmData: XMLParseFunc.alarmcollection(library.alarmcollection),
+        traceData: XMLParseFunc.tracedatacollection(library.tracedatacollection),
+        recipeData: XMLParseFunc.recipebodycollection(library.recipebodycollection)
+    }
+    return secsData
 }
 export {
     parse,

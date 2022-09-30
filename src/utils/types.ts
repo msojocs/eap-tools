@@ -108,7 +108,7 @@ export interface TraceData{
 }
 
 /**
- * 量测数据
+ * 配方数据
  */
  export interface RecipeData{
 

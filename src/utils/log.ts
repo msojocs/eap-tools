@@ -363,12 +363,21 @@ export const AnalyzeFunc = {
 		let result = `Event ID: ${eId} ${eData.comment}<br />`
 		if(eData.rptIds){
 			for(let rId of eData.rptIds){
-				const vIds = rid2vid[rId]
-				// TODO: 可能没找到
 				result += `Report ID: ${rId}<br />`
+
+				const vIds = rid2vid[rId]
+				if(!vIds){
+					console.warn('没找到vid数据,Report ID:', rId)
+					continue;
+				}
 				for(let vId of vIds){
+					result += `<span style="color:red;">Variables ID: ${vId} </span>`
 					const data = vidData[vId]
-					result += `<span style="color:red;">Variables ID: ${vId} </span> - <span style="color:green;"> ${data.desc} </span> - <span style="color:blue;"> 类型：${data.type} </span> - <span style="color: #b7107c;"> 取值：${data.comment}</span><br />`
+					if(!data){
+						result += `<span style="color:red;"> 未找到vid的数据 </span><br>`
+						continue;
+					}
+					result += ` - <span style="color:green;"> ${data.desc} </span> - <span style="color:blue;"> 类型：${data.type} </span> - <span style="color: #b7107c;"> 取值：${data.comment}</span><br />`
 				}
 			}
 		}else{

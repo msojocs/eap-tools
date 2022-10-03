@@ -1,4 +1,5 @@
 import { FSWatcher } from 'chokidar';
+import { getTextValue } from './common';
 import { CheckResult, CmdData, LogReplyData, LogSendData, LogTypeData, ReportItemData, SecsData } from './types';
 const chokidar = require('chokidar') as typeof import('chokidar');
 const fs = require('fs') as typeof import('fs')
@@ -1024,7 +1025,6 @@ const CheckFunc: {
 	/**
 	 * S2F41 EAP下发远程指令 单向 H2E
 	 * 
-	 * TODO:
 	 * 
 	 * @param targetLog 要检查的日志
 	 * @param secsData SECS数据
@@ -1371,12 +1371,24 @@ const CheckFunc: {
 							reason += `[Event ID ${eventId}] [Report ID ${rptIdData.value}] 检查Variable Id类型与SECS定义是否一致: `
 							if(logVidData.type !== secsVid.type){
 								reason += 'failed\r\n'
+								reason += `Variable Id类型与SECS定义不一致log: ${logVidData.type} -secs: ${secsVid.type}`
 								return {
 									ok: false,
-									reason: `Variable Id类型与SECS定义不一致 ${logVidData.type} - ${secsVid.type}`
+									reason
 								}
 							}
-							// TODO: 检测内容是否空或者NA
+							reason += 'success\r\n'
+
+							// 检测内容是否空或者NA
+							const vidValue = logVidData.value
+							reason += `[Event ID ${eventId}] [Report ID ${rptIdData.value}] 检测空值与NA：`
+							if(vidValue == '' || vidValue == 'NA'){
+								reason += 'failed\r\n'
+								return {
+									ok: false,
+									reason
+								}
+							}
 							reason += 'success\r\n'
 						}
 						

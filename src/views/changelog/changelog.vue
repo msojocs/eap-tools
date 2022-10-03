@@ -7,6 +7,14 @@
         <el-timeline>
             <el-timeline-item timestamp="2022/9/27" placement="top">
                 <el-card>
+                    <h4>版本：v1.3.6</h4>
+                    <ul>
+                        <li>SECS整合：兼容多个Report ID</li>
+                    </ul>
+                </el-card>
+            </el-timeline-item>
+            <el-timeline-item timestamp="2022/9/27" placement="top">
+                <el-card>
                     <h4>版本：v1.3.3</h4>
                     <ul>
                         <li>报告：新增 S1F3, S7F25, S10F3, S9F9</li>

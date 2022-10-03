@@ -740,73 +740,92 @@ const testPrepareV2 = (wb: Workbook) => {
         }
 
         // 从Report List找vid
-        let vid = rptMap[getTextValue(reportIDCell.value)].join('\r\n')
-        if (!vid || vid.length === 0) {
-            console.warn(`未找到Report ID${reportIDCell.value}对应的VID！`);
+        const rptIds = getTextValue(reportIDCell.value).match(/\d+/g)
+        if(!rptIds){
+            console.warn('rptIds获取失败，reportIDCell：', reportIDCell)
             continue
         }
-        vid = `${vid}`
-        const vidCell = eventRow.getCell(5)
-        vidCell.value = vid.replaceAll(',', '\r\n')
-        vidCell.alignment = {
-            vertical: 'middle',
-            horizontal: 'left',
-            wrapText: true
-        }
-        vidCell.border = {
-            top: { style: 'thin' },
-            left: { style: 'thin' },
-            bottom: { style: 'thin' },
-            right: { style: 'thin' },
-        }
-        const vids = vid.match(/(\d+)/g)
-        if (!vids) {
-            console.warn(`vid${vid}解析失败！`);
-            continue
-        }
-        // console.log(vids)
-
-        // vid详情
         let comment = []
-        for (const vid of vids) {
-            const varData = varMap[vid]
-            if(varData){
-                const data = [
-                    {
-                        'font': {
-                            'color': { 'argb': 'FFFF3300' }
-                        },
-                        'text': `vid${vid}`
-                    },
-                    {
-                        'font': {
-                            'color': { 'argb': 'FF660000' }
-                        },
-                        'text': `, ${varData.desc}`
-                    },
-                    {
-                        'font': {
-                            'color': { 'argb': 'FF116600' }
-                        },
-                        'text': `, 类型${varData.type}`
-                    },
-                    {
-                        'font': {
-                            'color': { 'argb': 'FF0000FF' }
-                        },
-                        'text': `, 取值:\r\n${varData.comment}`
-                    },
-                    {
-                        'font': {
-                            'color': { 'argb': 'FF0000FF' }
-                        },
-                        'text': `\r\n`
-                    },
-                ]
-                comment.push(...data)
+        const vidCell = eventRow.getCell(5)
+        vidCell.value = ''
+        for(let rptId of rptIds){
+
+            if(!rptMap[rptId]){
+                console.log('未在rptMap中找到rptId：', rptId)
+                continue
             }
+            let vid = rptMap[rptId].join('\r\n')
+            if (!vid || vid.length === 0) {
+                console.warn(`未找到Report ID${reportIDCell.value}对应的VID！`);
+                continue
+            }
+            vid = `${vid}`
+            vidCell.value += vid.replaceAll(',', '\r\n') + '\r\n------\r\n'
+            vidCell.alignment = {
+                vertical: 'middle',
+                horizontal: 'left',
+                wrapText: true
+            }
+            vidCell.border = {
+                top: { style: 'thin' },
+                left: { style: 'thin' },
+                bottom: { style: 'thin' },
+                right: { style: 'thin' },
+            }
+            const vids = vid.match(/(\d+)/g)
+            if (!vids) {
+                console.warn(`vid${vid}解析失败！`);
+                continue
+            }
+            // console.log(vids)
+    
+            // vid详情
+            for (const vid of vids) {
+                const varData = varMap[vid]
+                if(varData){
+                    const data = [
+                        {
+                            'font': {
+                                'color': { 'argb': 'FFFF3300' }
+                            },
+                            'text': `vid${vid}`
+                        },
+                        {
+                            'font': {
+                                'color': { 'argb': 'FF660000' }
+                            },
+                            'text': `, ${varData.desc}`
+                        },
+                        {
+                            'font': {
+                                'color': { 'argb': 'FF116600' }
+                            },
+                            'text': `, 类型${varData.type}`
+                        },
+                        {
+                            'font': {
+                                'color': { 'argb': 'FF0000FF' }
+                            },
+                            'text': `, 取值:\r\n${varData.comment}`
+                        },
+                        {
+                            'font': {
+                                'color': { 'argb': 'FF0000FF' }
+                            },
+                            'text': `\r\n`
+                        },
+                    ]
+                    comment.push(...data)
+                }
+            }
+            comment.pop()
+            comment.push({
+                'font': {
+                    'color': { 'argb': 'FF0000FF' }
+                },
+                'text': `\r\n---------\r\n`
+            })
         }
-        comment.pop()
         const commentCell = eventRow.getCell(6)
         commentCell.alignment = {
             vertical: 'middle',
@@ -817,7 +836,12 @@ const testPrepareV2 = (wb: Workbook) => {
         commentCell.value = {
             richText: comment
         }
-        commentCell.border = vidCell.border
+        commentCell.border = {
+            top: { style: 'thin' },
+            left: { style: 'thin' },
+            bottom: { style: 'thin' },
+            right: { style: 'thin' },
+        }
     }
 }
 

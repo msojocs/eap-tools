@@ -7,6 +7,15 @@
         <el-timeline>
             <el-timeline-item timestamp="2022/10/09" placement="top">
                 <el-card>
+                    <h4>版本：v1.3.8</h4>
+                    <ul>
+                        <li>修复：SECS整合，标题索引时调用toLocaleLowerCase失败的问题</li>
+                        <li>优化：服务器相关路径数据存储</li>
+                    </ul>
+                </el-card>
+            </el-timeline-item>
+            <el-timeline-item timestamp="2022/10/09" placement="top">
+                <el-card>
                     <h4>版本：v1.3.7</h4>
                     <ul>
                         <li>新增：单机测试日志路径可配置化</li>

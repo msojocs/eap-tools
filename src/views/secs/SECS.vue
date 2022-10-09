@@ -62,7 +62,6 @@ const openFolder = ()=>{
 const generatorMergeSECS = async ()=>{
     const wb = new Excel.Workbook()
     await wb.xlsx.readFile(secsFile.value as string);
-    (window as any).wb = wb
     
     const eventWorkSheet = wb.getWorksheet('Event List')
     if (!eventWorkSheet) throw new Error("Event List工作表获取失败！");
@@ -77,7 +76,6 @@ const generatorMergeSECS = async ()=>{
     await wb.xlsx.readFile(newSecsFile.value as string);
 
     try {
-            
         secsHandle.testPrepareV2(wb)
         await wb.xlsx.writeFile(newSecsFile.value)
         ElMessage({

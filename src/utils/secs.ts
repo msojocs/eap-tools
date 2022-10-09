@@ -524,7 +524,7 @@ const testPrepare = (wb: Workbook) => {
     const varIndexMap = {} as any;
     varHead.eachCell((cell, colNum)=>{
         if(cell.value)
-        varIndexMap[(cell.value as string).toLocaleLowerCase()] = colNum
+        varIndexMap[getTextValue(cell.value).toLocaleLowerCase()] = colNum
     })
     // 遍历var List
     const varMap = {} as {
@@ -730,7 +730,7 @@ const testPrepareV2 = (wb: Workbook) => {
     const varIndexMap = {} as any;
     varHead.eachCell((cell, colNum)=>{
         if(cell.value)
-        varIndexMap[(cell.value as string).toLocaleLowerCase()] = colNum
+        varIndexMap[getTextValue(cell.value).toLocaleLowerCase()] = colNum
     })
     // 遍历Event List, 开始写入数据
     for (let eventRow of eventRows) {

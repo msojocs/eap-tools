@@ -1,16 +1,20 @@
 <script setup lang="ts">
+import { useCustomStore } from '@/store';
 import { getIPs } from '@/utils/common';
 import { FileServer } from '@/utils/server';
 import { ref, computed, onUnmounted } from 'vue';
 const remote = require('@electron/remote') as typeof import('@electron/remote')
+const { shell } = require('electron') as typeof import('electron');
 
+const store = useCustomStore()
 const serverStatus = ref(0)
 const serverStatusText = [
     "已关闭", "运行中"
 ]
 // const oldServer = (window as any).server;
-const server = new FileServer(localStorage.getItem('shareFolder') || '', localStorage.getItem('uploadFolder') || '', parseInt(localStorage.getItem('serverPort') || '8081'));
+const server = new FileServer(store.getters['server/sharePath'] || '', store.getters['server/uploadPath'] || '', store.getters['server/port']);
 // (window as any).server = server;
+console.log(server)
 const serverPort = ref(server.port)
 const shareFolder = ref(server.shareDir)
 const uploadFolder = ref(server.uploadDir)
@@ -41,13 +45,16 @@ const restartServer = ()=>{
     server.restart()
 }
 
+const changePort = (port: string)=>{
+    store.commit('server/updatePort', port)
+}
 const selectShareFolder = ()=>{
     remote.dialog.showOpenDialog({
         properties: ['openDirectory', 'createDirectory']
     }).then(res=>{
         if(!res.canceled){
             shareFolder.value = res.filePaths[0]
-            localStorage.setItem('shareFolder', res.filePaths[0])
+            store.commit('server/updateSharePath', res.filePaths[0])
             server.shareDir = shareFolder.value
         }
         
@@ -59,7 +66,7 @@ const selectUploadFolder = ()=>{
     }).then(res=>{
         if(!res.canceled){
             uploadFolder.value = res.filePaths[0]
-            localStorage.setItem('uploadFolder', res.filePaths[0])
+            store.commit('server/updateUploadPath', res.filePaths[0])
             server.uploadDir = uploadFolder.value
         }
         
@@ -82,11 +89,24 @@ onUnmounted(()=>{
                 路径配置
             </template>
             <div>
-                共享路径：{{shareFolder}}
-                <el-button @click="selectShareFolder">选择</el-button>
-                <br>
-                上传路径：{{uploadFolder}}
-                <el-button @click="selectUploadFolder">选择</el-button>
+                <el-input v-model="shareFolder" :disabled="true">
+                    <template #prepend>
+                        共享路径：
+                    </template>
+                    <template #append>
+                        <el-button @click="selectShareFolder">选择</el-button>
+                    </template>
+                </el-input>
+                <br/>
+                <br/>
+                <el-input v-model="uploadFolder" :disabled="true">
+                    <template #prepend>
+                        上传路径：
+                    </template>
+                    <template #append>
+                        <el-button @click="selectUploadFolder">选择</el-button>
+                    </template>
+                </el-input>
             </div>
         </el-card>
         <br>
@@ -97,9 +117,19 @@ onUnmounted(()=>{
             <div>
                 服务器状态：<span>{{serverStatusText[serverStatus]}}</span>
                 <br>
-                端口：<el-input v-model="serverPort" type="number" style="width:100px" :disabled="serverStatus === 1"></el-input>
+                端口：<el-input v-model="serverPort" type="number" style="width:100px" :disabled="serverStatus === 1" @change="changePort"></el-input>
                 <br>
-                <span v-for="ip in localIPS" :key="ip.name">{{ip.name}}: http://{{ip.ip}}:{{server.port}}<br></span>
+                <br>
+                <span>点击链接可以在浏览器打开：</span>
+                <br>
+                <span
+                    style="cursor: pointer;"
+                    v-for="ip in localIPS"
+                    :key="ip.name"
+                    @click="shell.openExternal(`http://${ip.ip}:${server.port}`)"
+                    >{{ip.name}}: http://{{ip.ip}}:{{server.port}}
+                    <br>
+                </span>
                 <span>本地: http://127.0.0.1:{{server.port}}<br></span>
                 <br>
                 <el-button @click="startServer" type="primary" :disabled="serverStatus === 1">启动</el-button>

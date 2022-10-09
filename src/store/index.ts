@@ -1,6 +1,7 @@
 import { InjectionKey } from 'vue'
 import { createStore, useStore as baseUseStore,  Store } from 'vuex'
 import { settings } from './modules/settings'
+import { server } from './modules/server'
 const {app} = require('@electron/remote') as typeof import('@electron/remote');
 
 const isDev = process.env.IS_DEV == "true" ? true : false;
@@ -22,7 +23,8 @@ export const store = createStore<State>({
       version: packageObj.version
     },
     modules: {
-      settings
+      settings,
+      server,
     }
 })
 

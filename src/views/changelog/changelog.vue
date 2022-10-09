@@ -5,7 +5,15 @@
 <template>
     <div>
         <el-timeline>
-            <el-timeline-item timestamp="2022/9/27" placement="top">
+            <el-timeline-item timestamp="2022/10/09" placement="top">
+                <el-card>
+                    <h4>版本：v1.3.7</h4>
+                    <ul>
+                        <li>新增：单机测试日志路径可配置化</li>
+                    </ul>
+                </el-card>
+            </el-timeline-item>
+            <el-timeline-item timestamp="2022/09/27" placement="top">
                 <el-card>
                     <h4>版本：v1.3.6</h4>
                     <ul>
@@ -13,7 +21,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/9/27" placement="top">
+            <el-timeline-item timestamp="2022/09/27" placement="top">
                 <el-card>
                     <h4>版本：v1.3.3</h4>
                     <ul>
@@ -21,7 +29,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/9/24" placement="top">
+            <el-timeline-item timestamp="2022/09/24" placement="top">
                 <el-card>
                     <h4>版本：v1.3.0</h4>
                     <ul>
@@ -29,7 +37,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/9/24" placement="top">
+            <el-timeline-item timestamp="2022/09/24" placement="top">
                 <el-card>
                     <h4>版本：v1.2.0</h4>
                     <ul>
@@ -38,7 +46,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/9/23" placement="top">
+            <el-timeline-item timestamp="2022/09/23" placement="top">
                 <el-card>
                     <h4>版本：v1.1.3</h4>
                     <ul>
@@ -46,7 +54,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/9/22" placement="top">
+            <el-timeline-item timestamp="2022/09/22" placement="top">
                 <el-card>
                     <h4>版本：v1.1.0</h4>
                     <ul>
@@ -58,7 +66,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/9/17" placement="top">
+            <el-timeline-item timestamp="2022/09/17" placement="top">
                 <el-card>
                     <h4>版本：v1.0.14</h4>
                     <ul>
@@ -66,7 +74,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/9/11" placement="top">
+            <el-timeline-item timestamp="2022/09/11" placement="top">
                 <el-card>
                     <h4>版本：v1.0.13</h4>
                     <ul>
@@ -75,7 +83,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/9/10" placement="top">
+            <el-timeline-item timestamp="2022/09/10" placement="top">
                 <el-card>
                     <h4>版本：v1.0.10</h4>
                     <ul>
@@ -84,7 +92,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/8/24" placement="top">
+            <el-timeline-item timestamp="2022/08/24" placement="top">
                 <el-card>
                     <h4></h4>
                     <ul>
@@ -92,7 +100,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/8/23" placement="top">
+            <el-timeline-item timestamp="2022/08/23" placement="top">
                 <el-card>
                     <h4></h4>
                     <ul>
@@ -100,7 +108,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/8/23" placement="top">
+            <el-timeline-item timestamp="2022/08/23" placement="top">
                 <el-card>
                     <h4></h4>
                     <ul>
@@ -108,7 +116,7 @@
                     </ul>
                 </el-card>
             </el-timeline-item>
-            <el-timeline-item timestamp="2022/8/22" placement="top">
+            <el-timeline-item timestamp="2022/08/22" placement="top">
                 <el-card>
                     <h4></h4>
                     <ul>

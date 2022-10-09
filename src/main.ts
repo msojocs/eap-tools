@@ -4,7 +4,7 @@ import App from "./App.vue";
 import ElementPlus, { ElMessage } from "element-plus";
 import "element-plus/dist/index.css";
 import router from "./router";
-import { store, key } from './store/store'
+import { store, key } from './store'
 
 // 如果您正在使用CDN引入，请删除下面一行。
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";

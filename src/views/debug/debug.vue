@@ -25,7 +25,7 @@ const logStr = ref('')
 const startWatch = ()=>{
     logStr.value = ''
     // /HBFP-DES-003-L/20220912/Trace
-    watcher.start(`D:/Log/EAP/**/${new Date().getFullYear()}${(new Date().getMonth()+1 + '').padStart(2, '0')}${new Date().getDate()}/Trace/*`, function (newData: string, filename: string){
+    watcher.start(`D:/Log/EAP/**/${new Date().getFullYear()}${(new Date().getMonth()+1 + '').padStart(2, '0')}${(new Date().getDate() + '').padStart(2, '0')}/Trace/*`, function (newData: string, filename: string){
         // console.log('call callback')
         console.log(...arguments)
         logStr.value += newData

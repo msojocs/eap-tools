@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { useRouter, useRoute } from 'vue-router'
 import { ref } from 'vue'
-import {useStore} from '@/store/store'
+import {useCustomStore} from '@/store'
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://vuejs.org/api/sfc-script-setup.html#script-setups
 const isCollapse = ref(false)
 const router = useRouter()
 const route = useRoute()
-const store = useStore()
+const store = useCustomStore()
 console.log(router.getRoutes(), route)
 </script>
 

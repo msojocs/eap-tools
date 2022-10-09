@@ -2,7 +2,7 @@
 import * as secs from '@/utils/secs'
 import { analyze } from '@/utils/log'
 import * as logHandle from '@/utils/test-report'
-import { useStore } from '@/store/store'
+import { useCustomStore } from '@/store'
 // import * as Excel from 'exceljs'
 import { ref } from 'vue'
 import LogDataItem from './LogDataItem.vue';
@@ -16,7 +16,7 @@ const remote = require('@electron/remote') as typeof import('@electron/remote');
 // import * as remote from '@electron/remote'
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
 
-const store = useStore()
+const store = useCustomStore()
 
 const secsFile = ref(localStorage.getItem('secsFile'))
 const xmlSecsFile = ref(localStorage.getItem('xmlSecsFile'))
@@ -188,6 +188,7 @@ const parseReport = async ()=>{
                 item.analyze = analyzeStr
             }
         }
+        console.log(logData)
         reportData.value = logData
     }catch(err: any){
         console.error(err)
@@ -244,10 +245,41 @@ const exportReport = async ()=>{
                 <el-tabs v-model="targetTab">
                     <template v-for="(data, reportName) in reportData">
                         <el-tab-pane :label="'' + reportName" :name="'' + reportName">
-                            <log-data-item v-if="targetTab == reportName" v-for="log in data" :log="log" :event-list="eventList" :rcmd-list="rcmdList" :secs-data="secsData"></log-data-item>
+                            <log-data-item
+                            v-if="targetTab == reportName"
+                            v-for="log in data"
+                            :log="log"
+                            :event-list="eventList"
+                            :rcmd-list="rcmdList"
+                            :secs-data="secsData"
+                            ></log-data-item>
                         </el-tab-pane>
                     </template>
                 </el-tabs>
+                    <!-- <DynamicScroller
+                        :items="reportData[targetTab]"
+                        :min-item-size="2"
+                        class="scroller"
+                        keyField="title"
+                    >
+                        <template v-slot="{ item, index, active }">
+                            <DynamicScrollerItem
+                                :item="item"
+                                :active="active"
+                                :size-dependencies="[
+                                    item.title
+                                ]"
+                                :data-index="index"
+                            >
+                                <log-data-item
+                                :log="item"
+                                :event-list="eventList"
+                                :rcmd-list="rcmdList"
+                                :secs-data="secsData"
+                                ></log-data-item>
+                            </DynamicScrollerItem>
+                        </template>
+                    </DynamicScroller> -->
             </el-card>
         </el-main>
         <span class="test" style="height: 100vh;"></span>
@@ -256,6 +288,8 @@ const exportReport = async ()=>{
     
 </template>
 
-<style lang="scss" scoped>
-    
+<style scoped>
+    .scroller{
+        height: 100vh;
+    }
 </style>

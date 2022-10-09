@@ -1,6 +1,6 @@
 import * as VueRouter from "vue-router";
 import CheckList from "@/views/checkList/CheckList.vue";
-import TEST from "@/views/test/test.vue";
+import SETTINGS from "@/views/Settings/Settings.vue";
 import SingleTest from "@/views/SingleTest/SingleTest.vue";
 import OUTPUT from "@/views/output/Output.vue";
 import SECS from "@/views/secs/SECS.vue";
@@ -58,10 +58,10 @@ const routes = [
         }
     },
     {
-        path: "/test",
-        component: TEST,
+        path: "/Settings",
+        component: SETTINGS,
         meta: {
-            title: '测试页面 (dev)',
+            title: '设置页面 ',
             icon: 'Setting'
         }
     },

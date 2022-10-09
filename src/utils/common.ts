@@ -1,4 +1,7 @@
-const getTextValue = (value: any): string=>{
+
+const remote = require('@electron/remote') as typeof import('@electron/remote')
+
+export const getTextValue = (value: any): string=>{
     let result = ''
     if(!value)return result
     
@@ -18,6 +21,7 @@ const getTextValue = (value: any): string=>{
                 }else if (value?.text){
                     result += value.text
                 }
+                // TODO: 单项选择
                 break
             case 'number':
                 result = `${value}`
@@ -40,7 +44,7 @@ const getTextValue = (value: any): string=>{
  * @param str 
  * @returns 
  */
-const toCDB = (str: string) => {
+export const toCDB = (str: string) => {
     var tmp = "";
     for (var i = 0; i < str.length; i++) {
         if (str.charCodeAt(i) > 65248 && str.charCodeAt(i) < 65375) {
@@ -53,7 +57,7 @@ const toCDB = (str: string) => {
     return tmp
 }
 
-const getIPs = ()=>{
+export const getIPs = ()=>{
     const os = require('os');
     const interfaces = os.networkInterfaces();
     let ips = [];
@@ -70,8 +74,11 @@ const getIPs = ()=>{
     }
     return ips;
 }
-export {
-    getTextValue,
-    toCDB,
-    getIPs,
+
+
+export const selectFolder = ()=>{
+    
+    return remote.dialog.showOpenDialog({
+        properties: ['openDirectory', 'createDirectory']
+    })
 }

@@ -3,7 +3,6 @@
             <el-col>
                 <el-row>
                     <el-col :span="4">{{reportData.title}}</el-col>
-
                     <el-col :span="12">
                         <!-- S6F11选项 -->
                         <el-select
@@ -121,6 +120,10 @@ import { AnalyzeFunc, checkLog, LogWatcher, parseLog } from '@/utils/log';
 import type { ReportItemData, SecsData } from '@/utils/types';
 import Iconfont from '@/components/iconfont.vue';
 import { EventListData, RcmdListData } from './types';
+import { useCustomStore } from '@/store';
+import { ElMessage } from 'element-plus';
+
+const store = useCustomStore()
 
 const props = defineProps<{
     log: ReportItemData,
@@ -133,9 +136,20 @@ const reportData = ref(props.log)
 // 日志监视器状态
 const watcherStatus = ref<'run'|'pause'|'down'>('down')
 
-const watcher = new LogWatcher();
+let watcher: LogWatcher | null = null;
 // 启动监听
 const startWatch = ()=>{
+    const logPath = store.getters['settings/eapLogPath']
+    if(!logPath){
+        ElMessage({
+            message: '日志路径异常！',
+            type: 'error'
+        })
+        return
+    }
+    console.log('logPath:', logPath)
+
+    watcher = new LogWatcher();
     if(watcherStatus.value == 'pause'){
         
         watcherStatus.value = 'run'
@@ -146,7 +160,7 @@ const startWatch = ()=>{
     reportData.value.log = ''
     // TODO: 路径配置化
     // /HBFP-DES-003-L/20220912/Trace
-    watcher.start(`D:/Log/EAP/**/${new Date().getFullYear()}${(new Date().getMonth()+1 + '').padStart(2, '0')}${new Date().getDate()}/Trace/*`, function (newData: string, filename: string){
+    watcher.start(`${logPath}/**/${new Date().getFullYear()}${(new Date().getMonth()+1 + '').padStart(2, '0')}${(new Date().getDate() + '').padStart(2, '0')}/Trace/*`, function (newData: string, filename: string){
         // console.log('call callback')
         console.log(...arguments)
         // 暂停不记录
@@ -169,7 +183,10 @@ const pauseWatch = ()=>{
 const stopWatch = ()=>{
     
     watcherStatus.value = 'down'
-    watcher.stop()
+    if(watcher){
+        watcher.stop()
+        watcher = null
+    }
 }
 
 // 手动变更事件
@@ -194,9 +211,9 @@ const rcmdTypeChange = (value: string[])=>{
 // 指令是否包含S6F11
 const isInclude611 = computed(()=>{
     if(reportData.value){
-        const ret = reportData.value?.cmdList?.filter(e=>e.s == '6' && e.f == '11')
+        const ret = reportData.value?.cmdList?.find(e=>e.s == '6' && e.f == '11')
         if(ret){
-            return ret.length > 0
+            return true
         }
     }
     return false
@@ -205,9 +222,9 @@ const isInclude611 = computed(()=>{
 // 指令是否包含S2F41
 const isInclude241 = computed(()=>{
     if(reportData.value){
-        const ret = reportData.value?.cmdList?.filter(e=>e.s == '2' && e.f == '41')
+        const ret = reportData.value?.cmdList?.find(e=>e.s == '2' && e.f == '41')
         if(ret){
-            return ret.length > 0
+            return true
         }
     }
     return false

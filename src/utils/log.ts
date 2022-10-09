@@ -289,6 +289,7 @@ class LogWatcher {
 
 	start(logDir: string, callback: Function){
 		if(this.watch)return;
+		console.log('logDir:', logDir);
 		
 		this.logLength = {}
 		this.watcher = chokidar.watch(logDir)

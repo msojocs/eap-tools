@@ -128,49 +128,58 @@ const selectReportFile = async ()=>{
 
 // 解析报告
 const parseReport = async ()=>{
-    // try{
-    //     const fs = require('node:fs')
-    //     const xmlStr = fs.readFileSync(xmlSecsFile.value).toString()
-    //     const result = parseXML(xmlStr)
-    //     console.log('xml parse result:', result)
+    let xmlSecs = null
+    let excelSecs = null
     // TODO: 尝试解析excel版本的SECS，成功后补全xml版本的缺失数据
-    // }catch(err){
-    //     console.error(err)
-    // }
+    try{
+        const fs = require('node:fs')
+        const xmlStr = fs.readFileSync(xmlSecsFile.value).toString()
+        xmlSecs = parseXML(xmlStr)
+        console.log('xml parse result:', xmlSecs)
+        secsData.value = xmlSecs
+    }catch(err){
+        console.error('SECS Xml解析异常:', err)
+        ElMessage.error({
+            message: 'XML 解析失败'
+        })
+    }
     // return
+
     try{
         console.log('parse secs: ', secsFile.value)
         const wb1 = new Excel.Workbook()
         await wb1.xlsx.readFile(secsFile.value as string)
-        // console.log(wb1)
-        // return
-        const secsD = await secs.parse(wb1)
-        secsData.value = secsD
-        console.log('secs data:', secsD)
-        // secsData
-        eventList.value = []
-        // 转为可供选择的EventList
-        const eData = secsData.value.eid2rid
-        for(let eId in eData){
-            eventList.value.push({
-                value: eId,
-                label: `${eId} ${eData[eId].comment} ${eData[eId].description}`
-            })
-        }
-        rcmdList.value = []
-        // 转为可供选择的EventList
-        const rcmdData = secsData.value.rcmd2cpid
-        for(let rcmdId in rcmdData){
-            rcmdList.value.push({
-                value: rcmdId,
-                label: `${rcmdId} ${rcmdData[rcmdId].command} ${rcmdData[rcmdId].description}`
-            })
-        }
+        
+        excelSecs = await secs.parse(wb1)
+        // 成功就覆盖xml解析出来的数据
+        secsData.value = excelSecs
+        console.log('secs data:', excelSecs)
 
     }catch(err: any){
+        console.error('SECS Excel解析异常:', err)
         ElMessage.error(`SECS解析异常：${err.message || err}`)
     }
-        
+    
+    // 转为可供选择的EventList
+    eventList.value = []
+    const eData = secsData.value.eid2rid
+    for(let eId in eData){
+        eventList.value.push({
+            value: eId,
+            label: `${eId} ${eData[eId].comment} ${eData[eId].description}`
+        })
+    }
+
+    // 转为可供选择的EventList
+    rcmdList.value = []
+    const rcmdData = secsData.value.rcmd2cpid
+    for(let rcmdId in rcmdData){
+        rcmdList.value.push({
+            value: rcmdId,
+            label: `${rcmdId} ${rcmdData[rcmdId].command} ${rcmdData[rcmdId].description}`
+        })
+    }
+
     try{
         const wb = new Excel.Workbook()
         await wb.xlsx.readFile(logFile.value as string)

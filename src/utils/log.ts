@@ -517,11 +517,11 @@ const CheckFunc: {
 	 * @returns 
 	 */
 	113: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
-		const {cmdList} = reportData
+		// const {cmdList} = reportData
 		const log113 = targetLog.filter(e=>e.direct == cmd.direct)
 		console.log('log113:', log113)
 		let reason = ''
-		reason += '寻到S1F13的相关日志:'
+		reason += '[S1F13] 寻到S1F13的相关日志:'
 		if(log113.length == 0){
 			reason += 'failed\r\n'
 			return {
@@ -532,7 +532,7 @@ const CheckFunc: {
 		reason += 'success\r\n'
 
 		const reply = log113[0].reply
-		reason += '设备对S1F13做出响应:'
+		reason += '[S1F13] 设备对S1F13做出响应:'
 		if(!reply){
 			reason += 'failed\r\n'
 			return {
@@ -544,7 +544,7 @@ const CheckFunc: {
 
 		const replyData = reply.data
 		console.log('log113 data:', replyData)
-		reason += '设备的S1F14的响应有数据:'
+		reason += '[S1F13] 设备的S1F14的响应有数据:'
 		if(!replyData){
 			reason += 'failed\r\n'
 			return {
@@ -555,7 +555,7 @@ const CheckFunc: {
 		reason += 'success\r\n'
 		const commack = replyData.value[0].value
 
-		reason += '设备的S1F14响应COMMACK值为0: '
+		reason += '[S1F13] 设备的S1F14响应COMMACK值为0: '
 		if(commack != '0'){
 			reason += 'failed\r\n'
 			return {
@@ -588,7 +588,7 @@ const CheckFunc: {
 		2~63 = Error, Not Accepted
 		*/
 		let reason = ''
-		reason += '检查有log:'
+		reason += '[S1F15] 检查有log:'
 		if(targetLog.length === 0){
 			reason += 'failed\r\n'
 			return {
@@ -599,12 +599,12 @@ const CheckFunc: {
 		reason += 'success\r\n';
 
 		for(let log of targetLog){
-			reason += `[sbyte ${log.sbyte}] 有响应: `
+			reason += `[S1F15][sbyte ${log.sbyte}] 是否有响应: `
 			if(log.reply){
 				reason += 'success\r\n'
 				const {data} = log.reply
 				if(data){
-					reason += '检测响应0或1:'
+					reason += `[S1F15][sbyte ${log.sbyte}] 检测响应0或1:`
 					if(data.value == '0' || data.value == '1'){
 						reason += 'success\r\n'
 						return {
@@ -618,9 +618,10 @@ const CheckFunc: {
 				reason += 'failed\r\n'
 			}
 		}
+		reason += '[S1F15] 设备没有一个是回复0或1的\r\n'
 		return {
 			ok: false,
-			reason: 'S1F15 设备没有一个是回复0或1的'
+			reason
 		}
 	},
 
@@ -639,7 +640,7 @@ const CheckFunc: {
 			2 = NG, Already On-Line, Not Accepted.
 			3~63 = Error, Not Accepted.
 			*/
-		let reason = '存在一个回复0或2的:'
+		let reason = '[S1F17] 存在一个回复0或2的:'
 		for(let log of targetLog){
 			if(log.reply){
 				const {data} = log.reply
@@ -648,6 +649,7 @@ const CheckFunc: {
 						reason += 'success\r\n'
 						return {
 							ok: true,
+							reason
 						}
 					}
 				}
@@ -849,18 +851,24 @@ const CheckFunc: {
 	233: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
 		// 要区别检查两个模式，Enable/Disable
 		let mode = ''
+		let reason = ''
+		reason += '[S2F33] 检测指令类型 [Delete/Define], '
 		if(cmd.comment.toLowerCase().includes('delete')){
 			mode = 'delete'
+			reason += '鉴定为Delete: success\r\n'
 		}else if(cmd.comment.toLowerCase().includes('define')){
 			mode = 'define'
+			reason += '鉴定为Delete: Define\r\n'
 		}else{
+			reason += '鉴定失败: failed\r\n'
 			return {
 				ok: false,
-				reason: 'S2F33无法识别指令是Define还是Delete'
+				reason
 			}
 		}
 
 		// 过滤指定模式的日志
+		reason += `[S2F33] 过滤指定模式 [${mode}] 的日志\r\n`
 		const checkLog = targetLog.filter(e=>{
 			const {data} = e
 			console.log(e.data)
@@ -872,30 +880,36 @@ const CheckFunc: {
 		})
 
 		// 没有指定模式的日志
+		reason += `[S2F33] 是否找到指定模式 [${mode}] 的日志,`
 		if(checkLog.length === 0){
-			
+			reason += '没找到: failed\r\n'
 			return {
 				ok: false,
 				reason: `S2F33缺少${mode}模式的日志`
 			}
 		}
+		reason += `找到(${checkLog.length}条): success\r\n`
 
+		reason += `[S2F33] 是否至少一个回复0,`
 		for(let log of checkLog){
 			if(log.reply){
 				const {data} = log.reply
 				if(data){
 					// 有一个通过即可
 					if(data.value == '0'){
+						reason += '找到: success\r\n'
 						return {
 							ok: true,
+							reason
 						}
 					}
 				}
 			}
 		}
+		reason += '没有: failed\r\n'
 		return {
 			ok: false,
-			reason: `S2F33 ${mode}没有一个是回复0的`
+			reason
 		}
 	},
 
@@ -911,18 +925,24 @@ const CheckFunc: {
 	235: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
 		// 要区别检查两个模式，Enable/Disable
 		let mode = ''
+		let reason = ''
+		reason += '[S2F35] 检测指令类型 [Define/Delete],'
 		if(cmd.comment.toLowerCase().includes('delete')){
 			mode = 'delete'
+			reason += '鉴定为Delete: success\r\n'
 		}else if(cmd.comment.toLowerCase().includes('define')){
 			mode = 'define'
+			reason += '鉴定为Define: success\r\n'
 		}else{
+			reason += '鉴定失败: failed\r\n'
 			return {
 				ok: false,
-				reason: 'S2F35无法识别指令是Define还是Delete'
+				reason
 			}
 		}
 
 		// 过滤指定模式的日志
+		reason += `[S2F35] 过滤指定模式 [${mode}] 的日志\r\n`
 		const checkLog = targetLog.filter(e=>{
 			const {data} = e
 			console.log(e.data)
@@ -934,30 +954,37 @@ const CheckFunc: {
 		})
 
 		// 没有指定模式的日志
+		reason += `[S2F35] 是否找到指定模式 [${mode}] 的日志,`
 		if(checkLog.length === 0){
-			
+			reason += '寄, 没找到: failed\r\n'
 			return {
 				ok: false,
-				reason: `S2F35缺少${mode}模式的日志`
+				reason
 			}
 		}
+		reason += '找到: success\r\n'
 
+		reason += `[S2F35] 是否至少有一个回复0,`
 		for(let log of checkLog){
 			if(log.reply){
 				const {data} = log.reply
 				if(data){
 					// 有一个通过即可
+					reason += '找到: success\r\n'
 					if(data.value == '0'){
 						return {
 							ok: true,
+							reason
 						}
 					}
 				}
 			}
 		}
+		reason += '没找到: failed\r\n'
+
 		return {
 			ok: false,
-			reason: `S2F35 ${mode}没有一个是回复0的`
+			reason
 		}
 	},
 
@@ -973,18 +1000,23 @@ const CheckFunc: {
 	237: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
 		// 要区别检查两个模式，Enable/Disable
 		let mode = ''
+		let reason = ''
+		reason += '[S2F37] 检测S2F37指令是Enable还是Disable,'
 		if(cmd.comment.toLowerCase().includes('disable')){
 			mode = 'disable'
+			reason += '鉴定为Disable: success\r\n'
 		}else if(cmd.comment.toLowerCase().includes('enable')){
 			mode = 'enable'
+			reason += '鉴定为Enable: success\r\n'
 		}else{
 			return {
 				ok: false,
-				reason: 'S2F37无法识别指令是Enable还是Disable'
+				reason: '无法识别指令是Enable还是Disable: failed\r\n'
 			}
 		}
 
 		// 过滤指定模式的日志
+		reason += '[S2F37] 过滤指定模式的日志\r\n'
 		const checkLog = targetLog.filter(e=>{
 			const {data} = e
 			// console.log(e.data)
@@ -996,30 +1028,36 @@ const CheckFunc: {
 		})
 
 		// 没有指定模式的日志
+		reason += `[S2F37] 是否有${mode}模式的日志,`
 		if(checkLog.length === 0){
-			
+			reason += '没有有: failed\r\n'
 			return {
 				ok: false,
-				reason: `S2F37缺少${mode}模式的日志`
+				reason
 			}
 		}
+		reason += `有(${checkLog.length}个): success\r\n`
 
+		reason += `[S2F37] 是否至少有一个S2F37回复0,`
 		for(let log of checkLog){
 			if(log.reply){
 				const {data} = log.reply
 				if(data){
 					// 有一个通过即可
+					reason += `找到: success\r\n`
 					if(data.value == '0'){
 						return {
 							ok: true,
+							reason
 						}
 					}
 				}
 			}
 		}
+		reason += `没找到: failed\r\n`
 		return {
 			ok: false,
-			reason: `S2F37 ${mode}没有一个是回复0的`
+			reason
 		}
 	},
 
@@ -1035,26 +1073,38 @@ const CheckFunc: {
 	 */
 	241: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
 		const {rcmdList} = reportData
+		let reason = '[S2F41] 是否设置指令,'
 		if(rcmdList?.length == 0){
+			reason += '没有, 请指定: failed\r\n'
 			return {
 				ok: false,
-				reason: '未指定 S2F41 的指令'
+				reason
 			}
 		}
-		let reason = ''
+		reason += `有(${rcmdList.length}个): success\r\n`
+
 		for(let rcmd of rcmdList){
+			reason += `[S2F41] 处理指令 [${rcmd}]:\r\n`
 			const rcmdLog = targetLog.filter(e=>e.data?.value[0].value == rcmd)
+			reason += `[S2F41] 是否有指令 [${rcmd}] 的日志,`
 			if(rcmdLog.length === 0){
-				reason += `S2F41 没有找到匹配${rcmd}的日志`
+				reason += '没有: failed\r\n'
 				continue;
 			}
+			reason += '有: success\r\n'
+
+			reason += `[S2F41] 指令 [${rcmd}] 是否回复0,`
 			const okLog = rcmdLog.filter(e=>e.reply?.data?.value[0].value == '0')
 			if(okLog.length === 0){
-				reason += 'S2F41 回复非0'
+				reason += '非0: failed\r\n'
 				continue;
 			}
+			reason += '0: success\r\n'
+
+			// 正常情况RCMD只需要校验一个, 有一个过了就行
 			return {
-				ok: true
+				ok: true,
+				reason
 			}
 		}
 		return {
@@ -1111,7 +1161,7 @@ const CheckFunc: {
 			if(alarm.english != text){
 				return {
 					ok: false,
-					reason: 'S5F1 警报文本与SECS资料不符'
+					reason: `S5F1 警报文本 [${text}] 与SECS资料 [${alarm.english}] 不符`
 				}
 			}
 			
@@ -1131,20 +1181,24 @@ const CheckFunc: {
 	 * @returns 
 	 */
 	53: (targetLog: LogSendData[], secsData: SecsData, reportData: ReportItemData, cmd: CmdData): CheckResult=>{
+		let reason = ''
+		reason += '[S5F3] 是否至少有一个回复0的,'
 		for(let log of targetLog){
 			if(log.reply){
 				const {data} = log.reply
 				if(data?.value == '0'){
-					
+					reason += '有: success\r\n'
 					return {
-						ok: true
+						ok: true,
+						reason
 					}
 				}
 			}
 		}
+		reason += '没有有: failed\r\n'
 		return {
 			ok: false,
-			reason: `S5F3 没有一个是回复0的`
+			reason
 		}
 	},
 
@@ -1340,7 +1394,7 @@ const CheckFunc: {
 						const rptIdItemData = rptIdListData.value[i]
 						const rptIdData = rptIdItemData.value[0]
 						// console.log(rptIdItemData, rptIds)
-						reason += `[Event ID ${eventId}] 检查绑定的Report Id [${rptIdData.value}] 与SECS定义是否匹配: `
+						reason += `[Event ID ${eventId}] 检查绑定的Report Id [${rptIdData.value}] 与SECS定义 [${rptIds[i]}] 是否匹配: `
 						if(rptIdData.value != rptIds[i]){
 							reason += 'failed\r\n'
 							return {
@@ -1399,6 +1453,64 @@ const CheckFunc: {
 		}
 		return {
 			ok: true,
+			reason
+		}
+	},
+
+	/**
+	 * S7F19 检查
+	 * @param needLog 要检查的日志
+	 * @param reportData 报告的数据
+	 * @param secsData SECS数据
+	 * @returns 
+	 */
+	719: (needLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
+		let reason = '[S7F19] 是否有日志,'
+		if(needLog.length === 0){
+			reason += ',没有: failed\r\n'
+			return {
+				ok: false,
+				reason
+			}
+		}
+		reason += `,有(${needLog.length}个): success\r\n`
+
+
+		for(let log of needLog){
+			reason += `[S7F19][sbyte ${log.sbyte}] 是否有响应,`
+			if(!log.reply){
+				reason += '没有: failed\r\n'
+				continue
+			}
+			reason += '有: success\r\n'
+
+			const replyData = log.reply.data
+			reason += `[S7F19][sbyte ${log.sbyte}] 响应是否有数据,`
+			if(!replyData){
+				reason += '没有: failed\r\n'
+				continue
+			}
+			reason += '有: success\r\n'
+
+			const ppidList = replyData.value
+			const err = ppidList.filter((e: { value: string | any[]; })=>!e.value || !e.value.length || e.value.length === 0 || e.value == 'NA')
+			reason += `[S7F19][sbyte ${log.sbyte}] 响应数据是否有异常,`
+			if(err.length > 0){
+				console.warn('', err)
+				reason += '有: failed\r\n'
+				continue
+			}
+			reason += '没有: success\r\n'
+
+			return {
+				ok: true,
+				reason
+			}
+
+		}
+		
+		return {
+			ok: false,
 			reason
 		}
 	},
@@ -1482,17 +1594,21 @@ const CheckFunc: {
 	103: (needLog: LogSendData[], secsData: SecsData, reportData: ReportItemData): CheckResult=>{
 		let reason = ''
 		for(let log of needLog){
-			const ppid = log.data?.value
-			console.log('ppid:', ppid)
 			const replyData = log.reply?.data
+			reason += '[S10F3] 响应是否非空,'
 			if(!replyData){
-				reason += 'S10F3 响应为空'
+				reason += '空的: failed\r\n'
 				continue
 			}
+			reason += '非空: success\r\n'
+			
+			reason += '[S10F3] 响应是否非0,'
 			if(replyData.value != '0'){
-				reason += 'S10F3 响应非0'
+				reason += '非0: failed\r\n'
 				continue
 			}
+			reason += '0: success\r\n'
+
 			return {
 				ok: true,
 				reason

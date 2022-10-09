@@ -118,7 +118,7 @@ const recipeScript_725_output = computed(()=>{
                 </template>
                 Recipe Body Request(S7F25, S7F26) 日志：
                 <el-input type="textarea" v-model="recipeScript_725"></el-input>
-                脚本数据：
+                S7F23脚本数据：
                 <el-input type="textarea" v-model="recipeScript_725_output"></el-input>
             </el-card>
         </el-main>

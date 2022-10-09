@@ -41,8 +41,17 @@
         <el-card class="card">
             <template #header>
                 <div class="card-header">
-                    <span>下载文件</span>
-                    <el-button class="button" type="primary" @click="getFileList">刷新</el-button>
+                    <el-row style="width: 100%;">
+                        <el-col :span="3">
+                            <span>下载文件</span>
+                        </el-col>
+                        <el-col :span="14">
+                        </el-col>
+                        <el-col :span="7">
+                            <el-button class="button" type="primary" @click="downFolderArchive">打包下载文件夹</el-button>
+                            <el-button class="button" type="primary" @click="getFileList">刷新</el-button>
+                        </el-col>
+                    </el-row>
                 </div>
                 
             </template>
@@ -173,7 +182,11 @@
                     //     }
                     // };
                     // xhr.send(); // 发送ajax请求
-                }
+                },
+                downFolderArchive: function(){
+                    const url = `${this.API}/downloadFolderArchive?path=` + encodeURIComponent(`${this.path.join('/')}`); //记得拼接参数
+                    window.open(url, '_blank')
+                },
             },
         };
         const app = Vue.createApp(App);

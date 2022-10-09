@@ -124,6 +124,7 @@ onUnmounted(()=>{
                 <br>
                 <span
                     style="cursor: pointer;"
+                    title="点击在浏览打开"
                     v-for="ip in localIPS"
                     :key="ip.name"
                     @click="shell.openExternal(`http://${ip.ip}:${server.port}`)"

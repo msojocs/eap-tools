@@ -2,7 +2,10 @@ const express = require('express') as typeof import('express');
 import { Express } from 'express-serve-static-core';
 import { AddressInfo, Socket } from 'net';
 import { Server } from 'http';
+const Archiver = require('archiver') as typeof import('archiver')
+const path = require('path')
 var fs = require("fs") as typeof import('fs'); //引入fs，fs 是node中一个文件操作模块，包括文件创建，删除，查询，读取，写入。
+const {app} = require('@electron/remote') as typeof import('@electron/remote')
 
 var bodyParser = require('body-parser'); // 这个模块是获取post请求传过来的数据。
 var multer = require('multer'); //multer - node.js 中间件，用于处理 enctype="multipart/form-data"（设置表单的MIME编码）的表单数据。
@@ -133,6 +136,41 @@ const FileServer = class {
                 res.download(targetDir, {
                     dotfiles: 'allow'
                 })
+            }
+            else{
+                ret.code = 1
+                ret.msg = 'shareDir Empty!'
+                res.end(JSON.stringify(ret))
+            }
+        })
+        // 下载文件夹
+        app_t.get('/api/downloadFolderArchive', (req, res) => {
+            const ret = {
+                code: 0,
+            } as {
+                code: number,
+                msg?: string,
+                data?: any
+            }
+            if(this._shareDir){
+                // res.header('Content-Type', 'application/octet-stream');
+                console.log(req)
+                const targetFolder = `${this._shareDir}/${req.query.path || ''}`
+                console.log('download folder:', targetFolder)
+                const tempFolder = app.getPath('temp')
+                console.log('temp folder:', tempFolder)
+                console.log(targetFolder, fs.existsSync(targetFolder))
+                const archive = Archiver.create('zip')
+                var output = fs.createWriteStream(tempFolder + '/down.zip');
+                archive.pipe(output);
+                archive.directory(targetFolder, false)
+                archive.finalize();
+                output.on('close', function () {
+                    res.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(path.basename(targetFolder))}`)
+                    res.sendFile(tempFolder + '/down.zip', function () {
+                        console.log('downloadFolderArchive done')
+                    })
+                });
             }
             else{
                 ret.code = 1

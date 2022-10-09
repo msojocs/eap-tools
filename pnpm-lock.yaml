@@ -3,6 +3,7 @@ lockfileVersion: 5.4
 specifiers:
   '@electron/remote': ^2.0.8
   '@element-plus/icons-vue': ^2.0.9
+  '@types/archiver': ^5.3.1
   '@types/express': ^4.17.13
   '@types/node': ^18.7.2
   '@vitejs/plugin-vue': ^3.0.2
@@ -51,6 +52,7 @@ dependencies:
   vuex: 4.0.2_vue@3.2.39
 
 devDependencies:
+  '@types/archiver': 5.3.1
   '@types/express': 4.17.13
   '@types/node': 18.7.16
   '@vitejs/plugin-vue': 3.1.0_vite@3.1.0+vue@3.2.39
@@ -335,6 +337,12 @@ packages:
     engines: {node: '>= 10'}
     dev: true
 
+  /@types/archiver/5.3.1:
+    resolution: {integrity: sha512-wKYZaSXaDvTZuInAWjCeGG7BEAgTWG2zZW0/f7IYFcoHB2X2d9lkVFnrOlXl3W6NrvO6Ml3FLLu8Uksyymcpnw==}
+    dependencies:
+      '@types/glob': 7.2.0
+    dev: true
+
   /@types/body-parser/1.19.2:
     resolution: {integrity: sha512-ALYone6pm6QmwZoAgeyNksccT9Q4AWZQ6PvfwR37GT6r6FWUPguq6sUmNGSMV2Wr761oQoBxwGGa6DR5o1DC9g==}
     dependencies:
@@ -384,7 +392,6 @@ packages:
       '@types/minimatch': 5.1.2
       '@types/node': 18.7.16
     dev: true
-    optional: true
 
   /@types/keyv/3.1.4:
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
@@ -408,7 +415,6 @@ packages:
   /@types/minimatch/5.1.2:
     resolution: {integrity: sha512-K0VQKziLUWkVKiRVrx4a40iPaxTUefQmjtkQofBkYRcoaaL/8rhwDWww9qWbrgicNOgnpIsMxyNIUM4+n6dUIA==}
     dev: true
-    optional: true
 
   /@types/ms/0.7.31:
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}

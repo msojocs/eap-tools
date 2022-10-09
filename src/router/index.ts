@@ -2,7 +2,7 @@ import * as VueRouter from "vue-router";
 import CheckList from "@/views/checkList/CheckList.vue";
 import SETTINGS from "@/views/Settings/Settings.vue";
 import SingleTest from "@/views/SingleTest/SingleTest.vue";
-import OUTPUT from "@/views/output/Output.vue";
+import OTHER from "@/views/Other/Other.vue";
 import SECS from "@/views/secs/SECS.vue";
 import SERVER from "@/views/server/Server.vue";
 import CHANGELOG from "@/views/changelog/changelog.vue";
@@ -27,6 +27,7 @@ const routes = [
     },
     {
         path: "/secs",
+        name: 'secs-handle',
         component: SECS,
         meta: {
             title: 'SECS处理',
@@ -35,22 +36,17 @@ const routes = [
     },
     {
         path: "/server",
+        name:'server',
         component: SERVER,
         meta: {
             title: '文件服务',
+            keepAlive: true,
             icon: 'Files'
         }
     },
     {
-        path: "/debug",
-        component: DEBUG,
-        meta: {
-            title: '调试',
-            icon: 'CircleClose'
-        }
-    },
-    {
         path: "/single-test",
+        name: 'single-test',
         component: SingleTest,
         meta: {
             title: '单机测试 (dev)',
@@ -58,7 +54,17 @@ const routes = [
         }
     },
     {
+        path: "/other",
+        name: 'other',
+        component: OTHER,
+        meta: {
+            title: '其它',
+            icon: 'More'
+        }
+    },
+    {
         path: "/Settings",
+        name: 'settings',
         component: SETTINGS,
         meta: {
             title: '设置页面 ',
@@ -66,7 +72,17 @@ const routes = [
         }
     },
     {
+        path: "/debug",
+        name: 'debug',
+        component: DEBUG,
+        meta: {
+            title: '调试',
+            icon: 'CircleClose'
+        }
+    },
+    {
         path: "/mdb",
+        name: 'mdb',
         component: MDB,
         meta: {
             title: 'MDB编辑器 (pause)',
@@ -74,15 +90,8 @@ const routes = [
         }
     },
     {
-        path: "/output",
-        component: OUTPUT,
-        meta: {
-            title: '导出 (开发中)',
-            icon: 'Upload'
-        }
-    },
-    {
         path: "/changelog",
+        name: 'changelog',
         component: CHANGELOG,
         meta: {
             title: '更新日志',

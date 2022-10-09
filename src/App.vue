@@ -50,10 +50,11 @@ console.log(router.getRoutes(), route)
       <!-- 路由出口 -->
       <el-main>
         <!-- 路由匹配到的组件将渲染在这里 -->
-        <router-view v-slot="{ Component }">
+        <router-view v-slot="{ Component, route }">
           <keep-alive>
-            <component :is="Component" />
+            <component :is="Component" :key="route.path" v-if="route.meta.keepAlive" />
           </keep-alive>
+            <component :is="Component" :key="route.path" v-if="!route.meta.keepAlive" />
         </router-view>
       </el-main>
       

@@ -17,7 +17,7 @@ const currentTableData = ref([])
 const currentTablePage = ref(1)
 const currentTableTotal = ref(1)
 const currentTablePageSize = ref(10)
-const isEdit = ref(true)
+const isEdit = ref(false)
 const editData = ref({})
 
 const selectDatabase = async()=>{

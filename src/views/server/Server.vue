@@ -89,7 +89,7 @@ onUnmounted(()=>{
                 路径配置
             </template>
             <div>
-                <el-input v-model="shareFolder" :disabled="true">
+                <el-input v-model="shareFolder" :readonly="true">
                     <template #prepend>
                         共享路径：
                     </template>
@@ -99,7 +99,7 @@ onUnmounted(()=>{
                 </el-input>
                 <br/>
                 <br/>
-                <el-input v-model="uploadFolder" :disabled="true">
+                <el-input v-model="uploadFolder" :readonly="true">
                     <template #prepend>
                         上传路径：
                     </template>

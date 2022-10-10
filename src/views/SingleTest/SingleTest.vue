@@ -8,8 +8,9 @@ import { ref } from 'vue'
 import LogDataItem from './LogDataItem.vue';
 import type {ReportItemData, SecsData} from '@/utils/types'
 import { EventListData, RcmdListData } from './types'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElNotification } from 'element-plus'
 import { parseXML } from '@/utils/secs'
+const fs = require('fs') as typeof import('fs')
 
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 // import { remote } from 'electron'
@@ -20,16 +21,18 @@ const store = useCustomStore()
 
 const secsFile = ref(localStorage.getItem('secsFile'))
 const xmlSecsFile = ref(localStorage.getItem('xmlSecsFile'))
-const logFile = ref(localStorage.getItem('logFile'))
+const reportFilePath = ref(localStorage.getItem('logFile'))
 const targetTab = ref('联线初始化')
 const eventList = ref<EventListData[]>([])
 const rcmdList = ref<RcmdListData[]>([])
 
+// 报告数据
 const reportData = ref<{
     [key: string]: ReportItemData[]
 }>({
     '联线初始化': []
 })
+// SECS数据
 const secsData = ref<SecsData>({
     eid2rid: {},
     rid2vid: {},
@@ -46,8 +49,8 @@ const secsData = ref<SecsData>({
  * 
  */
  const openFolder = ()=>{
-    if(logFile.value){
-        remote.shell.showItemInFolder(logFile.value)
+    if(reportFilePath.value){
+        remote.shell.showItemInFolder(reportFilePath.value)
         
     }else{
         ElMessage({
@@ -121,8 +124,44 @@ const selectReportFile = async ()=>{
     });
     console.log(result)
     if(!result.canceled){
-        logFile.value = result.filePaths[0]
-        localStorage.setItem('logFile', logFile.value as string)
+        reportFilePath.value = result.filePaths[0]
+        localStorage.setItem('logFile', reportFilePath.value as string)
+    }
+}
+
+const initData = (secsD: SecsData, reportD: {
+    [key: string]: ReportItemData[];
+})=>{
+
+    // 转为可供选择的Event List
+    eventList.value = []
+    const eData = secsD.eid2rid
+    for(let eId in eData){
+        eventList.value.push({
+            value: eId,
+            label: `${eId} ${eData[eId].comment} ${eData[eId].description}`
+        })
+    }
+
+    // 转为可供选择的RCMD List
+    rcmdList.value = []
+    const rcmdData = secsD.rcmd2cpid
+    for(let rcmdId in rcmdData){
+        rcmdList.value.push({
+            value: rcmdId,
+            label: `${rcmdId} ${rcmdData[rcmdId].command} ${rcmdData[rcmdId].description}`
+        })
+    }
+
+    // 预分析日志中的S6F11的Event ID
+    for(let k in reportD){
+        const testList = reportD[k]
+        for(let item of testList){
+            const {eventIdList, analyzeStr, rcmdList} = analyze(item, secsData.value)
+            item.eventIdList = eventIdList
+            item.rcmdList = rcmdList
+            item.analyze = analyzeStr
+        }
     }
 }
 
@@ -157,54 +196,26 @@ const parseReport = async ()=>{
 
     }catch(err: any){
         console.error('SECS Excel解析异常:', err)
-        ElMessage.error(`SECS解析异常：${err.message || err}`)
+        ElMessage.error(`SECS解析异常，使用XML数据：${err.message || err}`)
     }
     
-    // 转为可供选择的EventList
-    eventList.value = []
-    const eData = secsData.value.eid2rid
-    for(let eId in eData){
-        eventList.value.push({
-            value: eId,
-            label: `${eId} ${eData[eId].comment} ${eData[eId].description}`
-        })
-    }
-
-    // 转为可供选择的EventList
-    rcmdList.value = []
-    const rcmdData = secsData.value.rcmd2cpid
-    for(let rcmdId in rcmdData){
-        rcmdList.value.push({
-            value: rcmdId,
-            label: `${rcmdId} ${rcmdData[rcmdId].command} ${rcmdData[rcmdId].description}`
-        })
-    }
 
     try{
         const wb = new Excel.Workbook()
-        await wb.xlsx.readFile(logFile.value as string)
-        // console.log('解析报告:', wb)
+        await wb.xlsx.readFile(reportFilePath.value as string)
         const logData = logHandle.parseReport(wb)
 
-        // 分析
-        for(let k in logData){
-            // console.log('k:', k, reportData.value[k])
-            const testList = logData[k]
-            for(let item of testList){
-                const {eventIdList, analyzeStr, rcmdList} = analyze(item, secsData.value)
-                item.eventIdList = eventIdList
-                item.rcmdList = rcmdList
-                item.analyze = analyzeStr
-            }
-        }
         console.log(logData)
         reportData.value = logData
     }catch(err: any){
         console.error(err)
         ElMessage.error({
-            message: `解析失败: ${err?.message || '未知错误, 请查看控制台'}`
+            message: `报告解析失败: ${err?.message || '未知错误, 请查看控制台'}`
         })
     }
+
+    // 根据SECS数据与报告数据做初始化
+    initData(secsData.value, reportData.value)
     // console.log(reportData.value)
     // window.wb = wb
 }
@@ -213,9 +224,74 @@ const parseReport = async ()=>{
 const exportReport = async ()=>{
 
     const wb = new Excel.Workbook()
-    await wb.xlsx.readFile(logFile.value as string)
+    await wb.xlsx.readFile(reportFilePath.value as string)
     logHandle.exportReport(wb, reportData.value)
-    wb.xlsx.writeFile((logFile.value as string).replace('.xlsx', ' - export.xlsx'))
+    wb.xlsx.writeFile((reportFilePath.value as string).replace('.xlsx', ' - export.xlsx'))
+}
+// 保存记录
+const storeReportData = ()=>{
+    const storePath = store.state.dataLoc + '/SingleTest'
+
+    // 创建目录
+    try{
+        fs.mkdirSync(storePath, {
+            recursive: true
+        })
+    }catch{
+
+    }
+    // 写入报告
+    try {
+            
+        fs.writeFileSync(`${storePath}/config.json`, JSON.stringify(reportData.value))
+        fs.writeFileSync(`${storePath}/secs.json`, JSON.stringify(secsData.value))
+        ElNotification.success({
+            message: '存储成功！'
+        })
+    } catch (error: any) {
+        ElNotification.error({
+            message: '写入失败！' + (error?.message?? '')
+        })
+    }
+
+}
+// 加载记录
+const loadReportData = ()=>{
+    try{
+
+        const storePath = store.state.dataLoc + '/SingleTest'
+        const configFile = `${storePath}/config.json`
+        if(!fs.existsSync(configFile)){
+            ElNotification.warning({
+                message: '报告配置文件不存在！'
+            })
+            return 
+        }
+        const configBuf = fs.readFileSync(configFile)
+        const configData = JSON.parse(configBuf.toString())
+        reportData.value = configData
+
+        const secsFile = `${storePath}/secs.json`
+        if(!fs.existsSync(secsFile)){
+            ElNotification.warning({
+                message: 'SECS配置文件不存在！'
+            })
+            return 
+        }
+        const secsBuf = fs.readFileSync(secsFile)
+        const _secsData = JSON.parse(secsBuf.toString())
+        secsData.value = _secsData
+
+        initData(_secsData, configData)
+
+        ElNotification.success({
+            message: '读取成功！'
+        })
+    }catch(err: any){
+        ElNotification.error({
+            message: '读取配置失败！' + (err?.message?? '')
+        })
+    }
 }
 
 </script>
@@ -229,18 +305,51 @@ const exportReport = async ()=>{
         <el-main>
             <el-card>
                 <template #header>
-                    <span>SECS文件及测试报告</span>
+                    <div class="card-header">
+                        <el-row style="width: 100%;">
+                            <el-col :span="8">
+                                <span>SECS文件及测试报告</span>
+                            </el-col>
+                            <el-col :span="12"></el-col>
+                            <el-col :span="4">
+                                <el-button @click="loadReportData">加载</el-button>
+                                <el-button @click="storeReportData" type="primary">存储</el-button>
+                            </el-col>
+                        </el-row>
+                    </div>
                 </template>
-                SECS文件：<span>{{ secsFile }}</span><br />
-                <!-- <el-input type="file"></el-input> -->
-                <el-button @click="selectSecsFile" type="primary">选择SECS文件</el-button>
+                
+                <el-input type="text" v-model="secsFile" :readonly="true">
+                    <template #prepend>
+                        SECS文件：
+                    </template>
+                    <template #append>
+                        <el-button @click="selectSecsFile" type="primary">选择SECS文件</el-button>
+                    </template>
+                </el-input>
                 <br /><br />
-                Library文件：<span>{{ xmlSecsFile }}</span><br />
-                <!-- <el-input type="file"></el-input> -->
-                <el-button @click="selectXmlSecsFile" type="primary">选择Library SECS文件</el-button>
+
+                <el-input type="text" v-model="xmlSecsFile" :readonly="true">
+                    <template #prepend>
+                        Library文件：
+                    </template>
+                    <template #append>
+                        <el-button @click="selectXmlSecsFile" type="primary">选择Library SECS文件</el-button>
+                    </template>
+                </el-input>
                 <br /><br />
-                报告文件：<span>{{ logFile }}</span><br />
-                <el-button @click="selectReportFile" type="primary">选择文件</el-button>
+
+                <el-input type="text" v-model="reportFilePath" :readonly="true">
+                    <template #prepend>
+                        测试报告文件：
+                    </template>
+                    <template #append>
+                        <el-button @click="selectReportFile" type="primary">选择文件</el-button>
+                    </template>
+                </el-input>
+                <br>
+                <br>
+
                 <el-button @click="openFolder">打开所在文件夹</el-button>
                 <br /><br />
                 <el-button @click="parseReport">解析</el-button>
@@ -298,7 +407,12 @@ const exportReport = async ()=>{
 </template>
 
 <style scoped>
-    .scroller{
-        height: 100vh;
-    }
+.scroller{
+    height: 100vh;
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 </style>

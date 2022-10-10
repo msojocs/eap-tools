@@ -140,7 +140,7 @@ const genEle:{
 
 // 解析日志SF内容
 function parseSF(str: string): LogTypeData | null{
-	// TODO: 配方管理的日志格式存在差异，还有S9F9
+	
 	let match
 	if(/<([A-Z]+\d?) \[(\d+)][ ]?([^>\n]*)/.test(str))
 		match = str.matchAll(/<([A-Z]+\d?) \[(\d+)][ ]?([^>\n]*)/gm)
@@ -160,8 +160,13 @@ function parseSF(str: string): LogTypeData | null{
 	// console.log(data)
 	let root
 	let ele = data.shift()
-    if(ele)
-	root = genEle[ele[0]](data, ele)
+    if(ele){
+		if(genEle[ele[0]]){
+			root = genEle[ele[0]](data, ele)
+		}else{
+			console.warn('无法识别的类型:', ele[0])
+		}
+	}
 	return root
 }
 
@@ -468,40 +473,47 @@ const CheckFunc: {
 		let reason = ''
 		for(let log of targetLog){
 			const len = log.data?.value.length
+			const replyType = log.reply?.data?.type
 			const replyLen = log.reply?.data?.value.length
 			const secsTraceLen = Object.keys(secsData.traceData).length
 			const secsVarLen = Object.keys(secsData.vidData).length
+
+			reason += '[S1F3] 检查响应类型是否为LIST,'
+			if(replyType != 'L'){
+				reason += `异常类型${replyType}: failed\r\n`
+				continue
+			}
+			reason += ': success\r\n'
+
 			if(len > 0){
 				// 特定SVID，检查响应数量
-				reason += 'S1F3: 检查模式 - 指定SVID\r\n'
-				reason += 'S1F3: 指定SVID响应数量与请求的是否一致：'
+				reason += '[S1F3] 检查模式 - 指定SVID\r\n'
+				reason += '[S1F3] 指定SVID响应数量与请求的是否一致：'
 				if(replyLen != len){
 					reason += 'failed\r\n'
-					return {
-						ok: false,
-						reason
-					}
+					continue
 				}
 				reason += 'success\r\n'
 
 			}else{
 				// 搜索SVID，检查数量
-				reason += 'S1F3: 检查模式 - 所有SVID\r\n'
-				reason += 'S1F3: 检查所有SVID响应数量与SECS定义数量是否一致: '
+				reason += '[S1F3] 检查模式 - 所有SVID\r\n'
+				reason += '[S1F3] 检查所有SVID响应数量与SECS定义数量是否一致: '
 				if(!(replyLen == secsTraceLen || replyLen == secsVarLen || replyLen == (secsTraceLen + secsVarLen))){
 					reason += 'failed\r\n'
-					return {
-						ok: false,
-						reason
-					}
+					continue
 
 				}
 				reason += 'success\r\n'
 
 			}
+			return {
+				ok: true,
+				reason
+			}
 		}
 		return {
-			ok: true,
+			ok: false,
 			reason
 		}
 	},

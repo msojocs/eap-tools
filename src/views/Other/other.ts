@@ -18,10 +18,10 @@ export const genRecipeScriptData = (log: LogSendData)=>{
     result += `<Item ItemName="c" ItemType="L" Length="${recipeList.length}" Fixed="False">\r\n`
     for(let recipe of recipeList){
         result += `<Item ItemName="" ItemType="L" Length="2" Fixed="True">\r\n`
-        const ccode = recipe.value[0].value
+        const ccode = recipe.value[0]
         const recipeContent = recipe.value[1].value
 
-        result += `<Item ItemName="CCODE" ItemType="A" Length="${ccode.length}" Fixed="False">${ccode}</Item>\r\n`
+        result += `<Item ItemName="CCODE" ItemType="${ccode.type}" Length="${ccode.value.length}" Fixed="False">${ccode.value}</Item>\r\n`
 
         const scriptRecipeContent = recipeContent.map((e: {
             type: string,

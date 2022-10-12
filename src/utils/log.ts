@@ -27,6 +27,7 @@ const genEle:{
 		return genEle.L(data, ele)
 	},
 	A: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
+		console.log(data, ele)
 		return {
 			type: 'A',
 			value: ele[2]
@@ -115,13 +116,13 @@ const genEle:{
 	F4: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'F4',
-			value: ele[2].match(/\d+/g)
+			value: ele[2].split(' ') || []
 		}
 	},
 	F8: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
 		return {
 			type: 'F8',
-			value: ele[2].match(/\d+/g)
+			value: ele[2].split(' ') || []
 		}
 	},
 	JIS: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { parseLog } from '@/utils/log';
-import { genRecipeScriptData } from './other';
+import { genRecipeScriptDataV2 } from './other';
 
 
 const recipeScript_725 = ref(`2022-06-30 15:59:24.4945[TRACE]Send [S7F25_H] Formatted Process Program Request,TrxId[202206301559244945],SystemBytes[137]
@@ -27,15 +27,15 @@ S7F25 H2E Wbit(True) DeviceID(1) Systembytes(137)
 S7F26 E2H Wbit(False) DeviceID(1) Systembytes(137)
 <L [4]
     <A [8] 502X5955> *PPID 
-    <A [8] PrePaste> *MDLN 
+    <A [13] PrePaste->123> *MDLN 
     <A [7] 1.0.0.0> *SOFTREV 
     <L [1]
         <L [2]
             <A [1] 0> *CCODE 
             <L [49]
                 <A [4] 5950> *PPARM 
-                <A [1] 0> *PPARM 
-                <A [1] 0> *PPARM 
+                <F4 [1] 7.7> *PPARM 
+                <A [5] 015.1> *PPARM 
                 <A [1] 0> *PPARM 
                 <A [1] 0> *PPARM 
                 <A [1] 0> *PPARM 
@@ -96,7 +96,7 @@ const recipeScript_725_output = computed(()=>{
     if(s7f25Log.length === 0)return ''
 
     console.log(s7f25Log)
-    const s7f23Script = genRecipeScriptData(s7f25Log[0])
+    const s7f23Script = genRecipeScriptDataV2(s7f25Log[0])
     console.log(s7f23Script)
     return s7f23Script
 })
@@ -117,9 +117,9 @@ const recipeScript_725_output = computed(()=>{
                     </div>
                 </template>
                 Recipe Body Request(S7F25, S7F26) 日志：
-                <el-input type="textarea" v-model="recipeScript_725"></el-input>
+                <el-input type="textarea" v-model="recipeScript_725" :rows="10"></el-input>
                 S7F23脚本数据：
-                <el-input type="textarea" v-model="recipeScript_725_output"></el-input>
+                <el-input type="textarea" v-model="recipeScript_725_output" :rows="10"></el-input>
             </el-card>
         </el-main>
     </el-container>

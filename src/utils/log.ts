@@ -27,7 +27,7 @@ const genEle:{
 		return genEle.L(data, ele)
 	},
 	A: (data: Array<Array<string>>, ele: Array<string>): LogTypeData=>{
-		console.log(data, ele)
+		// console.log(data, ele)
 		return {
 			type: 'A',
 			value: ele[2]
@@ -141,6 +141,57 @@ const genEle:{
 
 // 解析日志SF内容
 function parseSF(str: string): LogTypeData | null{
+	console.log(str.split('\n'))
+	const lines = str.split('\n')
+
+	const data = []
+	console.log('lines:', lines)
+	for(let line of lines){
+		console.log('处理line:', line)
+		const exp = /<([A-Z]+\d?) \[(\d+)\][ ]?/
+		if(!exp.test(line)){
+			console.warn('匹配失败:', line)
+			continue
+		}
+		const m = line.match(exp)
+		
+		if(!m)continue;
+		console.log('m:', m)
+
+		let content = ''
+		switch(m[1]){
+			case 'A':
+			case 'ASCII':
+				const _m = line.match(new RegExp(`<[A-Z]+\\d? \\[\\d+\\][ ]?(.{${m[2]}})>`))
+				if(_m)content = _m[1]
+				break;
+			default:
+				if(line.includes('> *')){
+					const start = line.indexOf(`<${m[1]} [${m[2]}]`)
+					const end = line.lastIndexOf('> *')
+					if(end > -1 && start > -1){
+						content = line.substring(start + `<${m[1]} [${m[2]}]`.length, end).trim()
+					}
+				}
+				break;
+		}
+		// type length content
+		data.push([m[1], m[2], content])
+	}
+	// console.log(data)
+	// return null
+	let root
+	let ele = data.shift()
+    if(ele){
+		if(genEle[ele[0]]){
+			root = genEle[ele[0]](data, ele)
+		}else{
+			console.warn('无法识别的类型:', ele[0])
+		}
+	}
+	return root
+}
+function parseSF_old(str: string): LogTypeData | null{
 	
 	let match
 	if(/<([A-Z]+\d?) \[(\d+)][ ]?([^>\n]*)/.test(str))

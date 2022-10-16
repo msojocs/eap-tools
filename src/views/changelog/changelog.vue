@@ -5,6 +5,14 @@
 <template>
     <div>
         <el-timeline>
+            <el-timeline-item timestamp="2022/10/16" placement="top">
+                <el-card>
+                    <h4>版本：v1.4.2</h4>
+                    <ul>
+                        <li>新增：测试报告中类型参数的自动识别</li>
+                    </ul>
+                </el-card>
+            </el-timeline-item>
             <el-timeline-item timestamp="2022/10/09" placement="top">
                 <el-card>
                     <h4>版本：v1.3.8</h4>

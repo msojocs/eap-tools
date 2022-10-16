@@ -82,3 +82,27 @@ export const selectFolder = ()=>{
         properties: ['openDirectory', 'createDirectory']
     })
 }
+
+export const getFilesByDir = (dir: string, ext: string = 'xlsx')=>{
+    const fs = require('fs') as typeof import('fs')
+    const path = require('path')
+    function getFiles(dir: string){
+        const stat = fs.statSync(dir)
+        const list = []
+        if(stat.isDirectory()){
+            //判断是不是目录
+            const dirs=fs.readdirSync(dir)
+            dirs.forEach(value=>{
+                // console.log('路径',path.resolve(dir,value));
+                list.push(...getFiles(path.join(dir,value)))
+            })
+        }else if(stat.isFile()){
+            //判断是不是文件
+            console.log('文件名称',dir);
+            if(dir.endsWith(ext))
+                list.push(dir)
+        }
+        return list
+    }
+    return getFiles(dir)
+}

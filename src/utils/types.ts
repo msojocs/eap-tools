@@ -182,3 +182,18 @@ export interface CheckResult {
     ok: boolean,
     reason?: string
 }
+
+
+// 类型数据标识
+export interface TypeDataType {
+    alarmIdType?: string,
+    dataIdType?: string,
+    eventIdType?: string,
+    reportIdType?: string,
+    variableIdType?: string,
+    traceIdType?: string,
+    dsperLen?: string,
+    traceTotalType?: string,
+    traceSizeType?: string,
+    svIdType?: string,
+}

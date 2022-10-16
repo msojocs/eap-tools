@@ -166,7 +166,7 @@ const FileServer = class {
                 archive.directory(targetFolder, false)
                 archive.finalize();
                 output.on('close', function () {
-                    res.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(path.basename(targetFolder))}`)
+                    res.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(path.basename(targetFolder))}.zip`)
                     res.sendFile(tempFolder + '/down.zip', function () {
                         console.log('downloadFolderArchive done')
                     })

@@ -1,6 +1,6 @@
 import { Workbook, Worksheet } from "exceljs-enhance"
 import {getTextValue} from './common'
-import { CmdData, ReportItemData } from "./types"
+import { CmdData, ReportItemData, TypeDataType } from "./types"
 
 /**
  * 生成业务流程清单
@@ -450,6 +450,132 @@ const exportReport = (wb: Workbook, logData: any)=>{
         allLogData[ws.name] = exportLogItems(ws, resultList)
     }
 }
+
+export const parseReportTypeData = (reportData: {
+    [key: string]: ReportItemData[];
+}) :TypeDataType=>{
+    const result: TypeDataType = {}
+    console.log('====parseReportTypeData====')
+    /**
+     * ALID_TYPE
+     * CEID_TYPE
+     * DATAID_TYPE
+     * DSPER_LEN
+     * REPGSZ_TYPE
+     * 
+     * RPTID_TYPE
+     * SVID_TYPE
+     * TOTSMP_TYPE
+     * TRID_TYPE
+     * VID_TYPE
+     * 
+     */
+    const keys = Object.keys(reportData)
+    // ALID_TYPE
+    let targetKey = keys.filter(e=>e.includes('设备警报收集'))
+    if(targetKey.length > 0){
+        const data = reportData[targetKey[0]]
+        console.log('alarm data:', data)
+        const items = data.filter(e=>e.log && e.log.includes('ALID'))
+        const mResult = items[0].log.match(/<([A-Z]\d?) \[\d+\] .*?> \*ALID/)
+        if(mResult){
+            console.log('ALARM ID TYPE:', mResult[1])
+            result.alarmIdType = mResult[1]
+        }
+    }
+
+    // CEID_TYPE
+    targetKey = keys.filter(e=>e.includes('设备控制模式'))
+    if(targetKey.length > 0){
+        const data = reportData[targetKey[0]]
+        console.log('控制模式 data:', data)
+        const items = data.filter(e=>e.log && e.log.includes('CEID'))
+        const mResult = items[0].log.match(/<([A-Z]\d?) \[\d+\] .*?> \*CEID/)
+        if(mResult){
+            console.log('EVENT ID TYPE:', mResult[1])
+            result.eventIdType = mResult[1]
+        }
+    }
+
+    // DATAID_TYPE
+    targetKey = keys.filter(e=>e.includes('设备控制模式'))
+    if(targetKey.length > 0){
+        const data = reportData[targetKey[0]]
+        console.log('控制模式 data:', data)
+        const items = data.filter(e=>e.log && e.log.includes('DATAID'))
+        const mResult = items[0].log.match(/<([A-Z]\d?) \[\d+\] .*?> \*DATAID/)
+        if(mResult){
+            console.log('DATA ID TYPE:', mResult[1])
+            result.dataIdType = mResult[1]
+        }
+    }
+
+    // * TRID_TYPE
+    // * DSPER_LEN
+    // * TOTSMP_TYPE
+    // * REPGSZ_TYPE
+    // * SVID_TYPE
+    targetKey = keys.filter(e=>e.includes('Trace Data'))
+    if(targetKey.length > 0){
+        const data = reportData[targetKey[0]]
+        console.log('TRACE DATA data:', data)
+        const items = data.filter(e=>e.result == 'OK' && e.log && e.log.includes('TRID'))
+        const trResult = items[0].log.match(/<([A-Z]\d?) \[\d+\] .*?> \*TRID/)
+        const dsperResult = items[0].log.match(/<[A-Z]\d? \[(\d+)\] .*?> \*DSPER/)
+        const totsmpResult = items[0].log.match(/<([A-Z]\d?) \[\d+\] .*?> \*TOTSMP/)
+        const sizeResult = items[0].log.match(/<([A-Z]\d?) \[\d+\] .*?> \*REPGSZ/)
+        const svidResult = items[0].log.match(/<([A-Z]\d?) \[\d+\] .*?> \*SVID/)
+        if(trResult){
+            console.log('TRACE ID TYPE:', trResult[1])
+            result.traceIdType = trResult[1]
+        }
+        if(dsperResult){
+            console.log('DSPER LENGTH:', dsperResult[1])
+            result.dsperLen = dsperResult[1]
+        }
+        if(totsmpResult){
+            console.log('TOTSMP TYPE:', totsmpResult[1])
+            result.traceTotalType = totsmpResult[1]
+        }
+        if(sizeResult){
+            console.log('REPGSZ TYPE:', sizeResult[1])
+            result.traceSizeType = sizeResult[1]
+        }
+        if(svidResult){
+            console.log('SVID TYPE:', svidResult[1])
+            result.svIdType = svidResult[1]
+        }
+    }
+
+    // * RPTID_TYPE
+    targetKey = keys.filter(e=>e.includes('设备控制模式'))
+    if(targetKey.length > 0){
+        const data = reportData[targetKey[0]]
+        console.log('控制模式 data:', data)
+        const items = data.filter(e=>e.log && e.log.includes('RPTID'))
+        const mResult = items[0].log.match(/<([A-Z]\d?) \[\d+\] .*?> \*RPTID/)
+        if(mResult){
+            console.log('REPORT ID TYPE:', mResult[1])
+            result.reportIdType = mResult[1]
+        }
+    }
+
+
+    // * VID_TYPE
+    targetKey = keys.filter(e=>e.includes('初始化'))
+    if(targetKey.length > 0){
+        const data = reportData[targetKey[0]]
+        console.log('初始化 data:', data)
+        const items = data.filter(e=>e.log && e.log.includes('VID'))
+        const mResult = items[0].log.match(/<([A-Z]\d?) \[\d+\] .*?> \*VID/)
+        if(mResult){
+            console.log('VARIABLE ID TYPE:', mResult[1])
+            result.variableIdType = mResult[1]
+        }
+    }
+    return result
+
+} 
 
 export {
     genProcedureList,

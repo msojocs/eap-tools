@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import * as logHandle from '@/utils/test-report'
 import { ComponentInternalInstance, getCurrentInstance, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElNotification } from 'element-plus'
+import { parseReportTypeData } from '@/utils/test-report';
+import { getFilesByDir } from '@/utils/common';
 const remote = require('@electron/remote') as typeof import('@electron/remote');
 const Excel = require('exceljs-enhance') as typeof import('exceljs-enhance')
 // 在你的 setup 方法中
@@ -69,7 +71,6 @@ const generatorProcessList = async ()=>{
 const prepareCheckList = async ()=>{
     const wb = new Excel.Workbook()
     await wb.xlsx.readFile(logFile.value as string);
-    (window as any).wb = wb
     console.log(wb)
     try {
             
@@ -79,6 +80,88 @@ const prepareCheckList = async ()=>{
             type: 'success',
             message: '操作完成'
         }, appContext)
+    } catch (error: any) {
+        appContext.config.globalProperties.$message.error(error?.message ?? 'error')
+    }
+}
+
+const handleTypeDataByDir = ref(false)
+const getCheckListTypeData = async ()=>{
+    const filename = logFile.value as string
+    if(handleTypeDataByDir.value){
+        const path = require('path') as typeof import('path')
+        const dir = path.dirname(filename)
+        console.log('dir:', dir)
+        const fileList = getFilesByDir(dir).filter(e=>!e.includes('new'))
+        console.log('fileList:', fileList)
+        for(let file of fileList){
+            genCheckListTypeData(file)
+        }
+    }else{
+        genCheckListTypeData(filename)
+    }
+}
+const genCheckListTypeData = async (filename: string)=>{
+    
+    const wb = new Excel.Workbook()
+    
+    try {
+        await wb.xlsx.readFile(filename);
+        let isReport = false;
+        for(let ws of wb.worksheets){
+            if(ws.name.includes('初始化')){
+                isReport = true;
+                break
+            }
+        }
+        if(!isReport)return
+
+        const reportData = logHandle.parseReport(wb)
+        console.log('reportData:', reportData)
+        /**
+         * ALID_TYPE
+         * CEID_TYPE
+         * DATAID_TYPE
+         * DSPER_LEN
+         * REPGSZ_TYPE
+         * RPTID_TYPE
+         * SVID_TYPE
+         * TOTSMP_TYPE
+         * TRID_TYPE
+         * VID_TYPE
+         * 
+         */
+        const typeData = parseReportTypeData(reportData)
+        console.log('typeData:', typeData)
+        const ws = wb.addWorksheet('数据类型标识（自动）')
+        ws.getCell(1, 1).value = '项目'
+        ws.getCell(1, 2).value = '值'
+        const keys = Object.keys(typeData)
+        const map: any = {
+            alarmIdType: 'ALID TYPE',
+            eventIdType: 'CEID_TYPE',
+            dataIdType: 'DATAID_TYPE',
+            traceIdType: 'TRID_TYPE',
+            dsperLen: 'DSPER_LEN',
+            traceTotalType: 'TOTSMP_TYPE',
+            traceSizeType: 'REPGSZ_TYPE',
+            svIdType: 'SVID_TYPE',
+            reportIdType: 'RPTID_TYPE',
+            variableIdType: 'VID_TYPE',
+        }
+        for (let i = 0; i < keys.length; i++) {
+            const element = keys[i];
+            if(!map[element]){
+                console.warn('为识别的项目：', element)
+                continue
+            }
+            ws.getCell(i + 2, 1).value = map[element]
+            ws.getCell(i + 2, 2).value = (typeData as any)[element]
+        }
+        await wb.xlsx.writeFile(filename.replace('.xlsx', ' - new.xlsx'))
+        ElNotification.success({
+            message: '操作完成'
+        })
     } catch (error: any) {
         appContext.config.globalProperties.$message.error(error?.message ?? 'error')
     }
@@ -123,6 +206,26 @@ const prepareCheckList = async ()=>{
         <el-card class="box-card">
             <template #header>
             <div class="card-header">
+                <span>获取EAP配置信息（dev）</span>
+                <span>
+                    处理同目录所有文件及子文件的文件<el-switch v-model="handleTypeDataByDir"></el-switch>
+                </span>
+            </div>
+            </template>
+            <div>
+                <ol>
+                    <li>EID TYPE</li>
+                    <li>DESPER LEN</li>
+                    <li>....</li>
+                </ol>
+                <br />
+                <el-button @click="getCheckListTypeData" type="primary" :disabled="!logFile">处理生成</el-button>
+            </div>
+        </el-card>
+        <br />
+        <el-card class="box-card">
+            <template #header>
+            <div class="card-header">
                 <span>单机测试报告准备</span>
             </div>
             </template>
@@ -134,11 +237,14 @@ const prepareCheckList = async ()=>{
                 <br />
                 <el-button @click="prepareCheckList" type="primary" :disabled="!logFile">处理生成</el-button>
             </div>
-            
         </el-card>
     </div>
 </template>
 
-<style lang="scss" scoped>
-    
+<style scoped>
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 </style>

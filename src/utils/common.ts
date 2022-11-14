@@ -99,7 +99,7 @@ export const getFilesByDir = (dir: string, ext: string = 'xlsx')=>{
         }else if(stat.isFile()){
             //判断是不是文件
             console.log('文件名称',dir);
-            if(dir.endsWith(ext))
+            if(dir.endsWith(ext) && !dir.includes('\\~'))
                 list.push(dir)
         }
         return list

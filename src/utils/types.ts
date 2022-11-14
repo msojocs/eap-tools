@@ -196,4 +196,5 @@ export interface TypeDataType {
     traceTotalType?: string,
     traceSizeType?: string,
     svIdType?: string,
+    cCodeType?: string
 }

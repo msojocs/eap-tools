@@ -95,10 +95,10 @@ const getCheckListTypeData = async ()=>{
         const fileList = getFilesByDir(dir).filter(e=>!e.includes('new'))
         console.log('fileList:', fileList)
         for(let file of fileList){
-            genCheckListTypeData(file)
+            await genCheckListTypeData(file)
         }
     }else{
-        genCheckListTypeData(filename)
+        await genCheckListTypeData(filename)
     }
 }
 const genCheckListTypeData = async (filename: string)=>{
@@ -129,6 +129,7 @@ const genCheckListTypeData = async (filename: string)=>{
          * TOTSMP_TYPE
          * TRID_TYPE
          * VID_TYPE
+         * CCODE_TYPE
          * 
          */
         const typeData = parseReportTypeData(reportData)
@@ -148,11 +149,12 @@ const genCheckListTypeData = async (filename: string)=>{
             svIdType: 'SVID_TYPE',
             reportIdType: 'RPTID_TYPE',
             variableIdType: 'VID_TYPE',
+            cCodeType: 'CCODE_TYPE',
         }
         for (let i = 0; i < keys.length; i++) {
             const element = keys[i];
             if(!map[element]){
-                console.warn('为识别的项目：', element)
+                console.warn('未识别的项目：', element)
                 continue
             }
             ws.getCell(i + 2, 1).value = map[element]
@@ -163,6 +165,7 @@ const genCheckListTypeData = async (filename: string)=>{
             message: '操作完成'
         })
     } catch (error: any) {
+        console.error(filename, error)
         appContext.config.globalProperties.$message.error(error?.message ?? 'error')
     }
 }

@@ -14,6 +14,7 @@ console.log(router.getRoutes(), route)
 <template>
   <el-container class="layout">
     <el-aside width="100" style="background-color:#545c64">
+      <!-- <div v-if="!isCollapse" class="drawer-bg"></div> -->
       <el-scrollbar>
         <el-menu
         :default-active="router.currentRoute.value.path"
@@ -22,6 +23,7 @@ console.log(router.getRoutes(), route)
           text-color="#fff"
           :collapse="isCollapse"
           router
+          :collapse-transition="false"
           >
           <el-menu-item v-for="r in router.options.routes" :key="r.path" :index="r.path">
             <el-icon>
@@ -88,5 +90,15 @@ console.log(router.getRoutes(), route)
 }
 .router-v{
   padding: 1rem;
+}
+
+.drawer-bg {
+  background: #000;
+  opacity: 0.3;
+  width: 100%;
+  top: 0;
+  height: 100%;
+  position: absolute;
+  z-index: 999;
 }
 </style>
